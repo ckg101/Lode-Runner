@@ -150,9 +150,15 @@ CONTROLS::~CONTROLS()
 CURSOR::CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height)
 {
 	cursorGraphic = NULL;
+	selectionGraphic = NULL;
 	cursorGraphic = new SPRITE(d, 1, screen_width, screen_height); 
 	cursorGraphic->loadBitmaps(L"Graphics\\block33_");
+	cursorGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	cursorGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	selectionGraphic = new SPRITE(d, 1, screen_width, screen_height); 
+	selectionGraphic->loadBitmaps(L"Graphics\\block34_");
+	selectionGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	selectionGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	typeNbr = 0;
 	blockCursor = 0;
 }
@@ -161,6 +167,8 @@ CURSOR::~CURSOR()
 {
 	if(cursorGraphic)
 		delete cursorGraphic;
+	if(selectionGraphic)
+		delete selectionGraphic;
 }
 
 int CURSOR::SetType(unsigned int type_nbr)
@@ -176,15 +184,16 @@ unsigned int CURSOR::GetType(void)
 
 void CURSOR::Render(IDirect3DSurface9* &backbuffer)
 {
+	selectionGraphic->renderSprite(backbuffer);
 	cursorGraphic->renderSprite(backbuffer);
 }
 
 void CURSOR::SetX_Pos(int x)
 {
-	cursorGraphic->x_pos = x;
+	selectionGraphic->x_pos = x;
 }
 
 void CURSOR::SetY_Pos(int y)
 {
-	cursorGraphic->y_pos = y;
+	selectionGraphic->y_pos = y;
 }

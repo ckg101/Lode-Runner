@@ -39,6 +39,7 @@ class CURSOR
 		int blockCursor;
 	protected:
 		SPRITE* cursorGraphic;
+		SPRITE* selectionGraphic;
 		unsigned int typeNbr;			// ID for the image to be displayed as cursor from PLATFORM sheet
 };
 

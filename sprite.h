@@ -18,6 +18,7 @@ class SPRITE
 		int setAnimationType(int a);
 		int renderSprite(IDirect3DSurface9* &backbuffer);
 		void nextFrame(void);
+		void setTransparencyColor(unsigned long color);
 		int x_pos;
 		int y_pos;
 	protected:
@@ -28,6 +29,7 @@ class SPRITE
 		int screenWidth;
 		int screenHeight;
 		int animationType;
+		unsigned long transparencyColor;
 };
 
 class PLATFORM

@@ -130,6 +130,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	src = background.parameters;
 	sprite = new SPRITE(d3ddev, 9, SCREEN_WIDTH, SCREEN_HEIGHT);
 	sprite->loadBitmaps(L"Graphics\\explosion");
+	sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	editorCursor = new CURSOR(d3ddev, 1, SCREEN_WIDTH, SCREEN_HEIGHT);
 	controls->CreateKeyboard(hWnd);
 	controls->CreateMouse(hWnd);

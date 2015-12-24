@@ -205,7 +205,7 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 			
 			for(int x = 0; x < frames[frameState].parameters.right; x++)
 			{
-				if(lFrame[counter2] == D3DCOLOR_XRGB(0,0,0) || lFrame[counter2]==D3DCOLOR_XRGB(1,1,1))
+				if(lFrame[counter2] == transparencyColor)
 				{
 					// do nothing
 				}
@@ -234,6 +234,11 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 void SPRITE::nextFrame(void)
 {
 	frameState++;
+}
+
+void SPRITE::setTransparencyColor(unsigned long color)
+{
+	transparencyColor = color;
 }
 
 PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
