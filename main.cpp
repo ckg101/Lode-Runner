@@ -144,9 +144,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//platform->addPlatform(1, 31);
 	//platform->setBlock(0, 0, 0);
 	//platform->setBlock(1, 100, 100);
-	//LoadBitmapImg("test.bmp");
-	//background.surface = LoadBitmapImg2("test.bmp");
-	//LoadBitmapImg3("test.bmp", background.surface);
+	
+
     // enter the main loop:
  
     MSG msg;
@@ -164,7 +163,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
             break;
  
         //if(KEY_DOWN(VK_ESCAPE))
-            //PostMessage(hWnd, WM_DESTROY, 0, 0);
+	            //PostMessage(hWnd, WM_DESTROY, 0, 0);
+
 		RenderFrame();
     }
  
@@ -379,44 +379,25 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 {
 	int x, y;
 	wchar_t str[256];
+	POINT p;
 
-	platform->GetBlockCoordinates(editorCursor->blockCursor, x, y);
-
+	platform->GetBlockCoordinates(editorCursor->GetBlockCursor(), x, y);
 	// cursor for the level editor
-	// if mouse move greater than 15 then draw cursor in the surrounding blocks
-	if(mouseState->lX >-15 && mouseState->lX < 15)
-	{
-	}
-	if(mouseState->lX >= 15)
-	{
-		if(((editorCursor->blockCursor+1) % 16) != 0)
-			editorCursor->blockCursor++;
-	}
-	else if(mouseState->lX <=-15)
-	{
-		if(((editorCursor->blockCursor) % 16) != 0)
-		editorCursor->blockCursor--;
-	}
-	if(mouseState->lY >-15 && mouseState->lY < 15)
-	{
-	}
-	if(mouseState->lY >= 15)
-	{
-		if(editorCursor->blockCursor < 240)
-			editorCursor->blockCursor+=16;
-	}
-	else if(mouseState->lY <=-15)
-	{
-		if(editorCursor->blockCursor > 15)
-		editorCursor->blockCursor-=16;
-	}
+
+	// Get the cursor position and then get the corresponding platform block number according
+	// to the coordinates of the cursor
+	p = editorCursor->GetCursorPosition();
+	
+	editorCursor->SetBlockCursor(platform->getBlockNbr(p.x, p.y));
+	editorCursor->MoveCursorX(mouseState->lX);
+	editorCursor->MoveCursorY(mouseState->lY);
 
 	if(mouseState->rgbButtons[0] & 0x80)
 	{
-		if(platform->getIsOccupied(editorCursor->blockCursor) == false)
+		if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == false)
 		{
-			platform->addPlatform(editorCursor->blockCursor, editorCursor->GetType());
-			platform->setBlock(editorCursor->blockCursor);
+			platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
+			platform->setBlock(editorCursor->GetBlockCursor());
 		}
 	}
 	if(mouseState->rgbButtons[1] & 0x80)
@@ -426,7 +407,8 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 		//mouseState->lX = mouseState->lX - pOrigin.lX;
 		//mouseState->lY = mouseState.lY - pOrigin.lY;
 	
-	editorCursor->SetX_Pos(x);
-	editorCursor->SetY_Pos(y);
+	// move the selection box to the appropriate position
+	editorCursor->SetSelectionX_Pos(x);
+	editorCursor->SetSelectionY_Pos(y);
 	
 }

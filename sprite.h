@@ -44,6 +44,7 @@ class PLATFORM
 		void setBlock(unsigned int blockNbr);
 		void renderPlatform(IDirect3DSurface9* &buf);
 		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
+		unsigned int getBlockNbr(int x, int y);
 		bool getIsOccupied(unsigned int blockNbr);
 		IMAGE* getImage(int type);
 	private:
@@ -58,6 +59,28 @@ class PLATFORM
 
 };
 
-
+class CURSOR
+{
+	public:
+		CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height);
+		~CURSOR();
+		int SetType(unsigned int type_nbr);
+		unsigned int GetType(void);
+		void Render(IDirect3DSurface9* &backbuffer);
+		void SetSelectionX_Pos(int x);
+		void SetSelectionY_Pos(int y);
+		void MoveCursorX(int qty);
+		void MoveCursorY(int qty);
+		int GetBlockCursor(void);
+		int SetBlockCursor(int c);
+		POINT GetCursorPosition(void);
+	private:
+		int blockCursor;
+		SPRITE* cursorGraphic;
+		SPRITE* selectionGraphic;
+		unsigned int typeNbr;			// ID for the image to be displayed as cursor from PLATFORM sheet
+		int screenWidth;
+		int screenHeight;
+};
 
 #endif

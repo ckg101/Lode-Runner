@@ -241,6 +241,11 @@ void SPRITE::setTransparencyColor(unsigned long color)
 	transparencyColor = color;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// PLATFORM CLASS
+////////////////////////////////////////////////////////////////////////////////////////////
+
 PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 {
 	d3ddev = d;
@@ -432,6 +437,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int type)
 void PLATFORM::setBlock(unsigned int blockNbr)
 {
 	isOccupied[blockNbr] = true;
+	blocks[blockNbr]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 }
 
 void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
@@ -445,8 +451,22 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 
 void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
 {
-	x = blocks[blockNbr]->x_pos;
-	y = blocks[blockNbr]->y_pos;
+	if(blockNbr >= 0 && blockNbr < nbrOfBlocks)
+	{
+		x = blocks[blockNbr]->x_pos;
+		y = blocks[blockNbr]->y_pos;
+	}
+}
+
+unsigned int PLATFORM::getBlockNbr(int x, int y)
+{
+	for(int index = 0; index < nbrOfBlocks; index++)
+	{
+		if(x >= blocks[index]->x_pos && x <= blocks[index]->x_pos+47)
+			if(y >= blocks[index]->y_pos && y <= blocks[index]->y_pos+47)
+				return index;
+	}
+	return 0;
 }
 
 bool PLATFORM::getIsOccupied(unsigned int blockNbr)
@@ -457,4 +477,97 @@ bool PLATFORM::getIsOccupied(unsigned int blockNbr)
 IMAGE* PLATFORM::getImage(int type)
 {
 	return &sheet[type];
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CURSOR CLASS
+//////////////////////////////////////////////////////////////////////////////
+
+CURSOR::CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height)
+{
+	cursorGraphic = NULL;
+	selectionGraphic = NULL;
+	cursorGraphic = new SPRITE(d, 1, screen_width, screen_height); 
+	cursorGraphic->loadBitmaps(L"Graphics\\block33_");
+	cursorGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	cursorGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	selectionGraphic = new SPRITE(d, 1, screen_width, screen_height); 
+	selectionGraphic->loadBitmaps(L"Graphics\\block34_");
+	selectionGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	selectionGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	typeNbr = 0;
+	blockCursor = 0;
+	screenWidth = screen_width;
+	screenHeight = screen_height;
+}
+
+CURSOR::~CURSOR()
+{
+	if(cursorGraphic)
+		delete cursorGraphic;
+	if(selectionGraphic)
+		delete selectionGraphic;
+}
+
+int CURSOR::SetType(unsigned int type_nbr)
+{
+	typeNbr = type_nbr;
+	return 1;
+}
+
+unsigned int CURSOR::GetType(void)
+{
+	return typeNbr;
+}
+
+void CURSOR::Render(IDirect3DSurface9* &backbuffer)
+{
+	selectionGraphic->renderSprite(backbuffer);
+	cursorGraphic->renderSprite(backbuffer);
+}
+
+void CURSOR::SetSelectionX_Pos(int x)
+{
+	selectionGraphic->x_pos = x;
+}
+
+void CURSOR::SetSelectionY_Pos(int y)
+{
+	selectionGraphic->y_pos = y;
+}
+
+void CURSOR::MoveCursorX(int qty)
+{
+	if(cursorGraphic->x_pos+qty < screenWidth-48 && cursorGraphic->x_pos+qty >= 0)
+		cursorGraphic->x_pos+=qty;
+}
+
+void CURSOR::MoveCursorY(int qty)
+{
+	if(cursorGraphic->y_pos+qty < screenHeight-47 && cursorGraphic->y_pos+qty >=0)
+		cursorGraphic->y_pos+=qty;
+}
+
+POINT CURSOR::GetCursorPosition(void)
+{
+	POINT p;
+	p.x = cursorGraphic->x_pos;
+	p.y = cursorGraphic->y_pos;
+	return p;
+}
+
+int CURSOR::GetBlockCursor(void)
+{
+	return blockCursor;
+}
+
+int CURSOR::SetBlockCursor(int c)
+{
+	if(blockCursor < 256 && blockCursor >= 0)
+	{
+		blockCursor = c;
+		return 1;
+	}
+	return 0;
 }

@@ -13,7 +13,10 @@
 *.db
 *.pspimage
 *.vcproj
-
+*.obj
+*.idb
+*.htm
+*.pdb
 
 # Build results
 [Dd]ebug/

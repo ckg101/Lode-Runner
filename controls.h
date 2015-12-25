@@ -26,21 +26,4 @@ class CONTROLS
 		DIMOUSESTATE mouseState;
 };
 
-class CURSOR
-{
-	public:
-		CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height);
-		~CURSOR();
-		int SetType(unsigned int type_nbr);
-		unsigned int GetType(void);
-		void Render(IDirect3DSurface9* &backbuffer);
-		void SetX_Pos(int x);
-		void SetY_Pos(int y);
-		int blockCursor;
-	protected:
-		SPRITE* cursorGraphic;
-		SPRITE* selectionGraphic;
-		unsigned int typeNbr;			// ID for the image to be displayed as cursor from PLATFORM sheet
-};
-
 #endif
