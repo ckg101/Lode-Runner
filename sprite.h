@@ -46,11 +46,15 @@ class PLATFORM
 		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
 		unsigned int getBlockNbr(int x, int y);
 		bool getIsOccupied(unsigned int blockNbr);
+		bool getIsSelected(unsigned int blockNbr);
+		unsigned int getSelectedTypeNbr(void);
 		IMAGE* getImage(int type);
 	private:
 		SPRITE** blocks;
 		IMAGE* sheet;			// this holds the sprite sheet
+		SPRITE** menu;
 		bool* isOccupied;
+		bool* isSelected;
 		unsigned int nbrOfBlocks;
 		unsigned int nbrOfTypes;
 		int screenWidth;

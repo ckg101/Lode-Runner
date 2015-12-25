@@ -254,7 +254,9 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	nbrOfBlocks = 0;
 	blocks = NULL;
 	isOccupied = NULL;
+	isSelected = NULL;
 	sheet = NULL;
+	menu = NULL;
 }
 
 PLATFORM::~PLATFORM()
@@ -265,6 +267,8 @@ PLATFORM::~PLATFORM()
 		free(isOccupied);
 	if(sheet)
 		free(sheet);
+	if(isSelected)
+		free(isSelected);
 }
 
 // nbr_of_blocks MUST BE SQUARE
@@ -280,14 +284,18 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 
 	// set each block as false to represent an empty block
 	isOccupied = (bool*)malloc(sizeof(bool) * nbr_of_blocks);
+	if(isOccupied == NULL)
+		return -1;
 	memset((bool*)isOccupied, (bool)false, sizeof(bool) * nbr_of_blocks);
 	nbrOfBlocks = nbr_of_blocks;
+
+	nbrOfTypes = nbr_of_types;
 
 	for(unsigned int index = 0; index < nbrOfBlocks; index++)
 	{
 		blocks[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 		if(blocks[index] == NULL)
-			return -1;
+			return -2;
 	}
 	
 	for(unsigned int index_x = 0; index_x < (unsigned int)sqrt((double)nbrOfBlocks); index_x++)
@@ -307,29 +315,52 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	// load sprite sheet
 	sheet = (IMAGE*)malloc(sizeof(IMAGE) * nbrOfTypes);
 	if(sheet == NULL)
-		return -2;
-	nbrOfTypes = nbr_of_types;
+		return -3;
+
+	menu = (SPRITE**)malloc(sizeof(SPRITE*) * (nbrOfTypes+1));
+	if(menu == NULL)
+		return -4;
+	
+	memset(menu, 0, sizeof(SPRITE*)*(nbrOfTypes+1));
+
+	isSelected = (bool*)malloc(sizeof(bool) * nbr_of_types);
+	if(isSelected == NULL)
+		return -5;
+	memset((bool*)isSelected, (bool)false, sizeof(bool) * nbr_of_types);
+	
 	for(unsigned int index = 0; index < nbrOfTypes; index++)
 	{
 		sheet[index].image = NULL;
 	}
+
 	return 1;
 }
 
 void PLATFORM::deinitialize(void)
 {
+	unsigned int index;
 	if(blocks == NULL)
 		return;
-	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	for(index = 0; index < nbrOfBlocks; index++)
 	{
 		if(blocks[index])
 			delete blocks[index];
 	}
-	for(unsigned int index = 0; index < nbrOfTypes; index++)
+	for(index = 0; index < nbrOfTypes; index++)
 	{
 		if(sheet[index].image)
 			free(sheet[index].image);
 	}
+	for(index = 0; index < nbrOfTypes+1; index++)
+	{
+		if(menu[index])
+		{
+			delete menu[index];
+			menu[index] = NULL;
+		}
+	}
+	if(menu)
+		free(menu);
 }
 
 int PLATFORM::loadBlocks(wchar_t* name)
@@ -420,6 +451,47 @@ int PLATFORM::loadBlocks(wchar_t* name)
 		
 		index++;
 	}
+
+	int x, y;
+	
+	// load the menu
+	
+	for(unsigned int index = 0; index < nbrOfTypes; index++)
+	{
+		menu[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+		if(menu[index] == NULL)
+			return -1;
+		menu[index]->copyBitmaps(&sheet[index], 0);
+	}
+	
+	menu[nbrOfTypes] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(menu[nbrOfTypes] == NULL)
+		return -1;
+
+	menu[nbrOfTypes]->loadBitmaps(L"Graphics\\block34_");
+	menu[nbrOfTypes]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+
+	x = 768;
+	y = 0;
+	counter = 0;
+	menu[counter]->x_pos = x;
+	menu[counter]->y_pos = y;
+
+	for(unsigned int index_y = 0; index_y < 7; index_y++)
+	{
+		for(unsigned int index_x = 0; index_x < 5; index_x++)
+		{
+			// set the coordinates of the blocks
+			menu[counter]->x_pos = x;
+			menu[counter]->y_pos = y;
+			x+=48;
+			counter++;
+			if(counter == nbrOfTypes)
+				break;
+		}
+		y+=48;
+		x=768;
+	}
 	return 1;
 }
 
@@ -436,16 +508,37 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int type)
 
 void PLATFORM::setBlock(unsigned int blockNbr)
 {
-	isOccupied[blockNbr] = true;
-	blocks[blockNbr]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	if(blockNbr >= 0 && blockNbr < 256)
+	{
+		isOccupied[blockNbr] = true;
+		blocks[blockNbr]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	}
+	else if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
+	{
+		memset((bool*)isSelected, (bool)false, sizeof(bool)*nbrOfTypes);
+		isSelected[blockNbr-256] = true;
+		menu[blockNbr-256]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+		menu[nbrOfTypes]->x_pos = menu[blockNbr-256]->x_pos;
+		menu[nbrOfTypes]->y_pos = menu[blockNbr-256]->y_pos;
+	}
 }
 
 void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 {
-	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	unsigned int index;
+	for(index = 0; index < nbrOfBlocks; index++)
 	{	
 		if(isOccupied[index] == true)
 			blocks[index]->renderSprite(buf);
+	}
+
+	for(index = 0; index < nbrOfTypes; index++)
+	{
+		menu[index]->renderSprite(buf);
+		if(isSelected[index])
+		{
+			menu[nbrOfTypes]->renderSprite(buf);
+		}
 	}
 }
 
@@ -455,6 +548,11 @@ void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
 	{
 		x = blocks[blockNbr]->x_pos;
 		y = blocks[blockNbr]->y_pos;
+	}
+	else if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
+	{
+		x = menu[blockNbr-256]->x_pos;
+		y = menu[blockNbr-256]->y_pos;
 	}
 }
 
@@ -466,12 +564,34 @@ unsigned int PLATFORM::getBlockNbr(int x, int y)
 			if(y >= blocks[index]->y_pos && y <= blocks[index]->y_pos+47)
 				return index;
 	}
+
+	for(int index = 0; index < nbrOfTypes; index++)
+	{
+		if(x >= menu[index]->x_pos && x <= menu[index]->x_pos+47)
+			if(y >= menu[index]->y_pos && y <= menu[index]->y_pos+47)
+				return index+256;
+	}
 	return 0;
 }
 
 bool PLATFORM::getIsOccupied(unsigned int blockNbr)
 {
 	return isOccupied[blockNbr];
+}
+
+bool PLATFORM::getIsSelected(unsigned int blockNbr)
+{
+	return isSelected[blockNbr-256];
+}
+
+unsigned int PLATFORM::getSelectedTypeNbr(void)
+{
+	for(int index = 0; index < nbrOfTypes; index++)
+	{
+		if(isSelected[index] == true)
+			return index;
+	}
+	return 0;
 }
 
 IMAGE* PLATFORM::getImage(int type)
@@ -568,6 +688,11 @@ int CURSOR::SetBlockCursor(int c)
 	{
 		blockCursor = c;
 		return 1;
+	}
+	else if(blockCursor >= 256 && blockCursor < 256+32)
+	{
+		blockCursor = c;
+		return 2;
 	}
 	return 0;
 }

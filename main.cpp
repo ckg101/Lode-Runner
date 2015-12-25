@@ -41,6 +41,7 @@ BACKGROUND background;
 PLATFORM* platform;
 int frameCounter;
 time_t seconds;
+bool isRunning;
 
 //unsigned char keyboardState[256];
  
@@ -149,8 +150,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
     // enter the main loop:
  
     MSG msg;
+	isRunning = true;
                     
-    while(TRUE)
+    while(isRunning)
     {
         while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
@@ -160,7 +162,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
  
  
         if(msg.message == WM_QUIT)
+		{
+			isRunning = false;
             break;
+		}
  
         //if(KEY_DOWN(VK_ESCAPE))
 	            //PostMessage(hWnd, WM_DESTROY, 0, 0);
@@ -192,7 +197,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             {
                 // close the application entirely
                 PostQuitMessage(0);
-                return 0;
+				isRunning = false;
+                //return 0;
             } break;
     }
  
@@ -358,6 +364,10 @@ void ProcessKeyboardInput(unsigned char k)
 {
 	switch(k)
 	{
+		case 1:
+			//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
+			PostMessage(hWnd, WM_DESTROY, 0, 0);
+		break;
 		case 205:		// right key is pressed
 			//editor_cursor->x_pos++;
 			editorCursor->SetType(editorCursor->GetType()+1);
@@ -398,6 +408,11 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 		{
 			platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
 			platform->setBlock(editorCursor->GetBlockCursor());
+		}
+		if(platform->getIsSelected(editorCursor->GetBlockCursor()) == false)
+		{
+			platform->setBlock(editorCursor->GetBlockCursor());
+			editorCursor->SetType(platform->getSelectedTypeNbr());
 		}
 	}
 	if(mouseState->rgbButtons[1] & 0x80)
