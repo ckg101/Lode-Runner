@@ -257,6 +257,8 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	isSelected = NULL;
 	sheet = NULL;
 	menu = NULL;
+	type = NULL;
+	temp_sprite = NULL;
 }
 
 PLATFORM::~PLATFORM()
@@ -269,6 +271,8 @@ PLATFORM::~PLATFORM()
 		free(sheet);
 	if(isSelected)
 		free(isSelected);
+	if(type)
+		free(type);
 }
 
 // nbr_of_blocks MUST BE SQUARE
@@ -281,12 +285,17 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	blocks = (SPRITE**)malloc(sizeof(SPRITE*) * nbr_of_blocks);
 	if(blocks == NULL)
 		return 0;
+	
+	type = (unsigned int*)malloc(sizeof(unsigned int) * nbr_of_blocks);
+	if(type == NULL)
+		return -1;
+	memset((unsigned int*)type, (unsigned int)100, sizeof(unsigned int) * nbr_of_blocks);
 
 	// set each block as false to represent an empty block
-	isOccupied = (bool*)malloc(sizeof(bool) * nbr_of_blocks);
+	isOccupied = (unsigned char*)malloc(sizeof(unsigned char) * nbr_of_blocks);
 	if(isOccupied == NULL)
 		return -1;
-	memset((bool*)isOccupied, (bool)false, sizeof(bool) * nbr_of_blocks);
+	memset((unsigned char*)isOccupied, (unsigned char)0, sizeof(unsigned char) * nbr_of_blocks);
 	nbrOfBlocks = nbr_of_blocks;
 
 	nbrOfTypes = nbr_of_types;
@@ -333,6 +342,10 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 		sheet[index].image = NULL;
 	}
 
+	temp_sprite = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(temp_sprite == NULL)
+		return -7;
+
 	return 1;
 }
 
@@ -359,6 +372,7 @@ void PLATFORM::deinitialize(void)
 			menu[index] = NULL;
 		}
 	}
+	delete temp_sprite;
 	if(menu)
 		free(menu);
 }
@@ -495,13 +509,17 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	return 1;
 }
 
-int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int type)
+int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 {
 	if(blockNbr >= nbrOfBlocks)
 		return 0;
-	if(type >= nbrOfTypes)
+	if(_type >= nbrOfTypes)
 		return -1;
-	blocks[blockNbr]->copyBitmaps(&sheet[type], 0);
+	blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
+	type[blockNbr] = _type;
+	if(isOccupied[blockNbr] == 3)
+		if(type[blockNbr] != 0)
+			type[blockNbr]+=200;
 		
 	return 1;
 }
@@ -510,7 +528,12 @@ void PLATFORM::setBlock(unsigned int blockNbr)
 {
 	if(blockNbr >= 0 && blockNbr < 256)
 	{
-		isOccupied[blockNbr] = true;
+		if(isOccupied[blockNbr] == 3)
+			isOccupied[blockNbr]= 4;
+		else if(isOccupied[blockNbr] == 0)
+			isOccupied[blockNbr] = 1;
+		if(type[blockNbr] == 0)
+			isOccupied[blockNbr] = 3;
 		blocks[blockNbr]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	}
 	else if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
@@ -528,8 +551,18 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 	unsigned int index;
 	for(index = 0; index < nbrOfBlocks; index++)
 	{	
-		if(isOccupied[index] == true)
+		if(isOccupied[index] == 1 || isOccupied[index] == 3)
 			blocks[index]->renderSprite(buf);
+		if(isOccupied[index] == 4)
+		{
+			temp_sprite->copyBitmaps(&sheet[type[index]-200], 0);
+			temp_sprite->x_pos = blocks[index]->x_pos;
+			temp_sprite->y_pos = blocks[index]->y_pos;
+			temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			temp_sprite->renderSprite(buf);
+			blocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			blocks[index]->renderSprite(buf);
+		}
 	}
 
 	for(index = 0; index < nbrOfTypes; index++)
@@ -574,8 +607,10 @@ unsigned int PLATFORM::getBlockNbr(int x, int y)
 	return 0;
 }
 
-bool PLATFORM::getIsOccupied(unsigned int blockNbr)
+unsigned char PLATFORM::getIsOccupied(unsigned int blockNbr)
 {
+	if(blockNbr >= nbrOfBlocks)
+		return 2;
 	return isOccupied[blockNbr];
 }
 

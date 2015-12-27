@@ -404,7 +404,8 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 
 	if(mouseState->rgbButtons[0] & 0x80)
 	{
-		if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == false)
+		if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == 0 || 
+			platform->getIsOccupied(editorCursor->GetBlockCursor()) == 3)
 		{
 			platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
 			platform->setBlock(editorCursor->GetBlockCursor());
