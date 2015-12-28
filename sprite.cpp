@@ -509,6 +509,9 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	
 	for(unsigned int index = 0; index < nbrOfTypes; index++)
 	{
+		if(index == BLOCK_TELEPORT_ENTRY)
+		{
+		}
 		menu[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 		if(menu[index] == NULL)
 			return -1;
