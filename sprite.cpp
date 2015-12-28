@@ -195,9 +195,6 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		//pFrame = frames[frameState].image;
 		lFrame = frames[frameState].image;
 		//counter = bih.biWidth * bih.biHeight;
-
-		// Print line by line from the bottom to the top becuase BMP is stored
-		// upside down
 		
 		for(int y = 0; y < frames[frameState].parameters.bottom; y++)
 		{
@@ -231,6 +228,41 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		return 1;
 }
 
+int SPRITE::CopyOntoBlock(IMAGE* frame)
+{
+	HRESULT hr;
+		
+		unsigned long* lBits;
+		unsigned long* lFrame;
+		int counter = 0;
+		int counter2 = 0;
+		lBits = frame->image;
+		lFrame = frames[frameState].image;
+		//counter = bih.biWidth * bih.biHeight;
+
+		
+		for(int y = 0; y < 48; y++)
+		{
+			//counter = frames[frameState].parameters.right * y;
+			
+			for(int x = 0; x < 48; x++)
+			{
+				if(lFrame[counter2] == transparencyColor)
+				{
+					// do nothing
+				}
+				else
+					lBits[counter] = lFrame[counter2];
+				
+				counter++;
+				counter2++;
+			}
+			//counter = screenWidth * (y+y_pos)+x_pos;
+		}
+		
+		return 1;
+}
+
 void SPRITE::nextFrame(void)
 {
 	frameState++;
@@ -239,6 +271,11 @@ void SPRITE::nextFrame(void)
 void SPRITE::setTransparencyColor(unsigned long color)
 {
 	transparencyColor = color;
+}
+
+IMAGE* SPRITE::getFrame(void)
+{
+	return &frames[frameState];
 }
 
 
@@ -515,11 +552,19 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 		return 0;
 	if(_type >= nbrOfTypes)
 		return -1;
-	blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
+	if(isOccupied[blockNbr] != 3)
+		blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
 	type[blockNbr] = _type;
 	if(isOccupied[blockNbr] == 3)
+	{
+		temp_sprite->copyBitmaps(&sheet[_type], 0);
+		temp_sprite->x_pos = blocks[blockNbr]->x_pos;
+		temp_sprite->y_pos = blocks[blockNbr]->y_pos;
+		temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+		temp_sprite->CopyOntoBlock(blocks[blockNbr]->getFrame());
 		if(type[blockNbr] != 0)
 			type[blockNbr]+=200;
+	}
 		
 	return 1;
 }
@@ -551,18 +596,8 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 	unsigned int index;
 	for(index = 0; index < nbrOfBlocks; index++)
 	{	
-		if(isOccupied[index] == 1 || isOccupied[index] == 3)
+		if(isOccupied[index] == 1 || isOccupied[index] == 3 || isOccupied[index]== 4)
 			blocks[index]->renderSprite(buf);
-		if(isOccupied[index] == 4)
-		{
-			temp_sprite->copyBitmaps(&sheet[type[index]-200], 0);
-			temp_sprite->x_pos = blocks[index]->x_pos;
-			temp_sprite->y_pos = blocks[index]->y_pos;
-			temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-			temp_sprite->renderSprite(buf);
-			blocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-			blocks[index]->renderSprite(buf);
-		}
 	}
 
 	for(index = 0; index < nbrOfTypes; index++)

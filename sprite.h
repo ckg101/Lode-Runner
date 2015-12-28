@@ -17,8 +17,10 @@ class SPRITE
 		int copyBitmaps(IMAGE* image, int frame_nbr);
 		int setAnimationType(int a);
 		int renderSprite(IDirect3DSurface9* &backbuffer);
+		int CopyOntoBlock(IMAGE* image);
 		void nextFrame(void);
 		void setTransparencyColor(unsigned long color);
+		IMAGE* getFrame(void);
 		int x_pos;
 		int y_pos;
 	protected:
