@@ -326,13 +326,13 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	type = (unsigned int*)malloc(sizeof(unsigned int) * nbr_of_blocks);
 	if(type == NULL)
 		return -1;
-	memset((unsigned int*)type, (unsigned int)100, sizeof(unsigned int) * nbr_of_blocks);
+	memset((unsigned int*)type, (unsigned int)BLOCK_EMPTY, sizeof(unsigned int) * nbr_of_blocks);
 
 	// set each block as false to represent an empty block
 	isOccupied = (unsigned char*)malloc(sizeof(unsigned char) * nbr_of_blocks);
 	if(isOccupied == NULL)
 		return -1;
-	memset((unsigned char*)isOccupied, (unsigned char)0, sizeof(unsigned char) * nbr_of_blocks);
+	memset((unsigned char*)isOccupied, (unsigned char)IS_NOT_OCCUPIED, sizeof(unsigned char) * nbr_of_blocks);
 	nbrOfBlocks = nbr_of_blocks;
 
 	nbrOfTypes = nbr_of_types;
@@ -552,18 +552,24 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 		return 0;
 	if(_type >= nbrOfTypes)
 		return -1;
-	if(isOccupied[blockNbr] != 3)
-		blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
-	type[blockNbr] = _type;
-	if(isOccupied[blockNbr] == 3)
+	if(isOccupied[blockNbr] != IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
 	{
-		temp_sprite->copyBitmaps(&sheet[_type], 0);
-		temp_sprite->x_pos = blocks[blockNbr]->x_pos;
-		temp_sprite->y_pos = blocks[blockNbr]->y_pos;
-		temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-		temp_sprite->CopyOntoBlock(blocks[blockNbr]->getFrame());
-		if(type[blockNbr] != 0)
-			type[blockNbr]+=200;
+		blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
+		type[blockNbr] = _type;
+	}
+	if(isOccupied[blockNbr] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
+	{
+		// filter out which types can be added as a second layers
+		if(_type == BLOCK_GOLD_COIN || _type == BLOCK_LADDER || _type == BLOCK_LADDER_END || _type == BLOCK_BOMB_SMALL)
+		{
+			temp_sprite->copyBitmaps(&sheet[_type], 0);
+			temp_sprite->x_pos = blocks[blockNbr]->x_pos;
+			temp_sprite->y_pos = blocks[blockNbr]->y_pos;
+			temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			temp_sprite->CopyOntoBlock(blocks[blockNbr]->getFrame());
+			//if(type[blockNbr] != 0)
+				type[blockNbr] = type[blockNbr] + 200 + _type;
+		}
 	}
 		
 	return 1;
@@ -596,7 +602,8 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 	unsigned int index;
 	for(index = 0; index < nbrOfBlocks; index++)
 	{	
-		if(isOccupied[index] == 1 || isOccupied[index] == 3 || isOccupied[index]== 4)
+		if(isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER 
+			|| isOccupied[index]== IS_OCCUPIED_FULL)
 			blocks[index]->renderSprite(buf);
 	}
 
