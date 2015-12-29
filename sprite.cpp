@@ -511,11 +511,19 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	{
 		if(index == BLOCK_TELEPORT_ENTRY)
 		{
+			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
+			if(menu[index] == NULL)
+				return -1;
+			menu[index]->loadBitmaps(L"Graphics\\block12_");
+			menu[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
-		menu[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
-		if(menu[index] == NULL)
-			return -1;
-		menu[index]->copyBitmaps(&sheet[index], 0);
+		else
+		{
+			menu[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+			if(menu[index] == NULL)
+				return -1;
+			menu[index]->copyBitmaps(&sheet[index], 0);
+		}
 	}
 	
 	menu[nbrOfTypes] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
