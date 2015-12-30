@@ -5,7 +5,7 @@ class TITLESCREEN
 {
 	public:
 		TITLESCREEN(IDirect3DDevice9* d, int screen_width, int screen_height);
-		~TITLESCREEN(void);
+		~TITLESCREEN(void); 
 		int initialize(void);
 		void GetButtonCoordinates(unsigned int blockNbr, int &x, int &y);
 		unsigned int GetButtonNbr(int x, int y);

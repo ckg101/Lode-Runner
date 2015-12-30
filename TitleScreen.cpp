@@ -55,7 +55,7 @@ int TITLESCREEN::initialize(void)
 	buttonCoordinate[0].x = 78;
 	buttonCoordinate[0].y = 579;
 	buttonCoordinate[1].x = 221;
-	buttonCoordinate[1].y = 579;
+	buttonCoordinate[1].y = 579; 
 	buttonCoordinate[2].x = 361;
 	buttonCoordinate[2].y = 579;
 	buttonCoordinate[3].x = 782;

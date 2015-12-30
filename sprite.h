@@ -111,7 +111,7 @@ class CURSOR
 	public:
 		CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height);
 		CURSOR(IDirect3DDevice9* &d, int screen_width, int screen_height);
-		~CURSOR();
+		~CURSOR(); 
 		int SetType(unsigned int type_nbr);
 		unsigned int GetType(void);
 		void Render(IDirect3DSurface9* &backbuffer);

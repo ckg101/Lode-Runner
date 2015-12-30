@@ -810,7 +810,7 @@ int CURSOR::SetBlockCursor(int c)
 {
 	if(blockCursor < 256 && blockCursor >= 0)
 	{
-		blockCursor = c;
+		blockCursor = c; 
 		return 1;
 	}
 	else if(blockCursor >= 256 && blockCursor < 256+32)
