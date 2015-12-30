@@ -14,6 +14,7 @@ SOUND::SOUND()
 	xaudio = NULL;
 	pSourceVoice = NULL;
 	wavdata = NULL;
+	isMIDIPlaying = false;
 }
 
 SOUND::SOUND(IXAudio2 *xa)
@@ -28,13 +29,11 @@ SOUND::~SOUND()
     free(wavdata);
 }
 
-unsigned long SOUND::playMIDIFile(HWND hWndNotify, wchar_t* MIDIFileName)
+unsigned long SOUND::loadMIDIFile(HWND hWnd_Notify, wchar_t* MIDIFileName)
 {
-	UINT wDeviceID;
     DWORD dwReturn;
-    MCI_OPEN_PARMS mciOpenParms;
-    MCI_PLAY_PARMS mciPlayParms;
-    MCI_STATUS_PARMS mciStatusParms;
+	hWndNotify = hWnd_Notify;
+    
     //MCI_SEQ_SET_PARMS mciSeqSetParms;
 	wchar_t errortxt[129];
 	
@@ -78,19 +77,36 @@ unsigned long SOUND::playMIDIFile(HWND hWndNotify, wchar_t* MIDIFileName)
         }
     }
 
-    // Begin playback. The window procedure function for the parent 
+   
+
+    return 0;
+}
+
+unsigned long SOUND::playMIDIFile(void)
+{
+	DWORD dwReturn;
+	
+	 // Begin playback. The window procedure function for the parent 
     // window will be notified with an MM_MCINOTIFY message when 
     // playback is complete. At this time, the window procedure closes 
     // the device.
     mciPlayParms.dwCallback = (DWORD) hWndNotify;
+	mciSendCommand(wDeviceID ,MCI_SEEK,MCI_SEEK_TO_START,(DWORD)&mciSeekParms);
     if (dwReturn = mciSendCommand(wDeviceID, MCI_PLAY, MCI_NOTIFY, 
         (DWORD)(LPVOID) &mciPlayParms))
     {
         mciSendCommand(wDeviceID, MCI_CLOSE, 0, NULL);
         return (dwReturn);
     }
+	isMIDIPlaying = true;
+	return 0;
+}
 
-    return 0;
+unsigned long SOUND::stopMIDIFile(void)
+{
+	mciSendCommand(wDeviceID,MCI_STOP,MCI_WAIT,(DWORD)&mciGenericParms);
+	isMIDIPlaying = false;
+	return 0;
 }
 
 int SOUND::loadWAVFile(wchar_t* fileName)
@@ -178,4 +194,9 @@ int SOUND::playWAVFile(void)
 		return 0;
 	}
     return 1;
+}
+
+bool SOUND::getMIDIStatus(void)
+{
+	return isMIDIPlaying;
 }

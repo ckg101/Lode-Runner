@@ -104,7 +104,7 @@ int SPRITE::loadBitmaps(wchar_t* name)
 
 		// flip image becuase BMP is stored
 		// upside down
-		counter = bih.biWidth * bih.biHeight - 1;
+		/*counter = bih.biWidth * bih.biHeight - 1;
 		counter2 = 0;
 		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
 		for(int y = bih.biHeight; y > 0; y--)
@@ -115,6 +115,22 @@ int SPRITE::loadBitmaps(wchar_t* name)
 				counter--;
 				counter2++;
 			}
+		}*/
+		
+		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
+		counter = bih.biWidth * bih.biHeight-1-bih.biWidth;		// last pixel
+		counter2 = 0;
+		
+		while(counter2 < bih.biWidth * bih.biHeight)
+		{
+			for(int x = 0; x < bih.biWidth; x++)
+			{
+				ltemp_image[counter2] = lBits[counter];
+				counter++;
+				counter2++;
+			}
+			
+			counter-=bih.biWidth*2;
 		}
 
 		memcpy((unsigned long*)lBits, (unsigned long*)ltemp_image, sizeof(unsigned long) * bih.biWidth * bih.biHeight);

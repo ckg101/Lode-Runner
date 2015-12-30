@@ -11,6 +11,7 @@
 #include "sound.h"
 #include "controls.h"
 #include "sprite.h"
+#include "TitleScreen.h"
  
 //#pragma comment(lib, "d3d9.lib")
 //#pragma comment(lib, "D3dx9.lib")
@@ -21,6 +22,9 @@
 #define SCREEN_HEIGHT 768
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
+#define GAME_MODE_TITLE	0
+#define GAME_MODE_EDITOR	1
+#define GAME_MODE_PLAY	2
  
 // global declarations
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
@@ -39,7 +43,9 @@ SPRITE* sprite;
 CURSOR* editorCursor;
 BACKGROUND background;
 PLATFORM* platform;
+TITLESCREEN* titleScreen;
 int frameCounter;
+int gameMode;
 time_t seconds;
 bool isRunning;
 
@@ -124,7 +130,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//wavfile->loadWAVFile(L"MusicMono.wav");
 	//wavfile->startWAVFile();
 
-	//music.playMIDIFile(NULL, L"jungle.mid");
+	music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
+	music.playMIDIFile();
 	//CreateSurface();
 	
 	graphics->LoadBitmapImage(L"Graphics\\background1.bmp", background.surface, &background.parameters);
@@ -140,6 +147,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	if(!platform->initialize(256, 32))
 		MessageBoxW(NULL, L"Error Initializing Platform", L"Error", MB_OK);
 	platform->loadBlocks(L"Graphics\\block");
+	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
+	gameMode = GAME_MODE_TITLE;
 	frameCounter = 0;
 	//platform->addPlatform(0, BLOCK_REGULAR);
 	//platform->addPlatform(1, 31);
@@ -160,11 +169,20 @@ int WINAPI WinMain(HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
  
- 
         if(msg.message == WM_QUIT)
 		{
 			isRunning = false;
             break;
+		}
+
+		if(msg.message == MM_MCINOTIFY)
+		{
+			// if the MIDI file stops playing then repeat
+			if(msg.wParam == MCI_NOTIFY_SUCCESSFUL)
+			{
+				if(music.getMIDIStatus())
+					music.playMIDIFile();
+			}
 		}
  
         //if(KEY_DOWN(VK_ESCAPE))
@@ -303,36 +321,44 @@ void RenderFrame(void)
 		if(frameCounter < 61)
 		{
 	IDirect3DSurface9* backbuffer = NULL;
+	d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+ 
+	d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
 
 	ProcessKeyboardInput(controls->GetKeyboardInput());
 	ProcessMouseInput(&controls->GetMouseInput());
+
+	if(gameMode == GAME_MODE_TITLE)
+	{
+		titleScreen->Render(backbuffer);
+	}
+
+	else if(gameMode == GAME_MODE_EDITOR)
+	{
 	
-	//wavfile->playWAVFile();
-    // clear the window to a black
-    d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
- 
-	d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
-	
-  
+		//wavfile->playWAVFile();
+		// clear the window to a black
+		
 	
 
-	//render sprites
-	//sprite->renderSprite(background.surface);
+		//render sprites
+		//sprite->renderSprite(background.surface);
 
-	RECT dest;
-	dest.bottom = src.bottom;
-	dest.top = 0;
-	dest.left = 0;
-	dest.right = src.right;
-	d3ddev->StretchRect(background.surface, 
+		RECT dest;
+		dest.bottom = src.bottom;
+		dest.top = 0;
+		dest.left = 0;
+		dest.right = src.right;
+		d3ddev->StretchRect(background.surface, 
 						&background.parameters, 
 						backbuffer, 
 						&dest, 
 						D3DTEXF_NONE);
 	
-	//sprite->renderSprite(backbuffer);
-	platform->renderPlatform(backbuffer);
-	editorCursor->Render(backbuffer);
+		//sprite->renderSprite(backbuffer);
+		platform->renderPlatform(backbuffer);
+		editorCursor->Render(backbuffer);
+	}
  
     d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
 		}
@@ -362,26 +388,43 @@ void SetBackgroundColor(int r, int g, int b)
 
 void ProcessKeyboardInput(unsigned char k)
 {
-	switch(k)
+	if(gameMode == GAME_MODE_TITLE)
 	{
-		case 1:
-			//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
-			PostMessage(hWnd, WM_DESTROY, 0, 0);
-		break;
-		case 205:		// right key is pressed
-			//editor_cursor->x_pos++;
-			editorCursor->SetType(editorCursor->GetType()+1);
-			//editor_cursor->copyBitmaps(platform->getImage(3), 0);
-		break;
-		case 203:		// left key is pressed
-			//editor_cursor->x_pos--;
-		break;
-		case 208:		// down key is pressed
-			//editor_cursor->y_pos++;
-		break;
-		case 200:		// up key is pressed
-			//editor_cursor->y_pos--;
-		break;
+		switch(k)
+		{
+			case DIK_ESCAPE:
+				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
+				PostMessage(hWnd, WM_DESTROY, 0, 0);
+			break;
+			case DIK_SPACE:
+				gameMode = GAME_MODE_EDITOR;
+				music.stopMIDIFile();
+			break;
+		}
+	}
+	else if(gameMode == GAME_MODE_EDITOR)
+	{
+		switch(k)
+		{
+			case 1:
+				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
+				PostMessage(hWnd, WM_DESTROY, 0, 0);
+			break;
+			case 205:		// right key is pressed
+				//editor_cursor->x_pos++;
+				editorCursor->SetType(editorCursor->GetType()+1);
+				//editor_cursor->copyBitmaps(platform->getImage(3), 0);
+			break;
+			case 203:		// left key is pressed
+				//editor_cursor->x_pos--;
+			break;
+			case 208:		// down key is pressed
+				//editor_cursor->y_pos++;
+			break;
+			case 200:		// up key is pressed
+				//editor_cursor->y_pos--;
+			break;
+		}
 	}
 }
 
@@ -391,40 +434,43 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 	wchar_t str[256];
 	POINT p;
 
-	platform->GetBlockCoordinates(editorCursor->GetBlockCursor(), x, y);
-	// cursor for the level editor
-
-	// Get the cursor position and then get the corresponding platform block number according
-	// to the coordinates of the cursor
-	p = editorCursor->GetCursorPosition();
-	
-	editorCursor->SetBlockCursor(platform->getBlockNbr(p.x, p.y));
-	editorCursor->MoveCursorX(mouseState->lX);
-	editorCursor->MoveCursorY(mouseState->lY);
-
-	if(mouseState->rgbButtons[0] & 0x80)
+	if(gameMode == GAME_MODE_EDITOR)
 	{
-		if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == 0 || 
-			platform->getIsOccupied(editorCursor->GetBlockCursor()) == 3)
+		platform->GetBlockCoordinates(editorCursor->GetBlockCursor(), x, y);
+		// cursor for the level editor
+
+		// Get the cursor position and then get the corresponding platform block number according
+		// to the coordinates of the cursor
+		p = editorCursor->GetCursorPosition();
+	
+		editorCursor->SetBlockCursor(platform->getBlockNbr(p.x, p.y));
+		editorCursor->MoveCursorX(mouseState->lX);
+		editorCursor->MoveCursorY(mouseState->lY);
+
+		if(mouseState->rgbButtons[0] & 0x80)
 		{
-			platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
-			platform->setBlock(editorCursor->GetBlockCursor());
+			if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == 0 || 
+				platform->getIsOccupied(editorCursor->GetBlockCursor()) == 3)
+			{
+				platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
+				platform->setBlock(editorCursor->GetBlockCursor());
+			}
+			if(platform->getIsSelected(editorCursor->GetBlockCursor()) == false)
+			{
+				platform->setBlock(editorCursor->GetBlockCursor());
+				editorCursor->SetType(platform->getSelectedTypeNbr());
+			}
 		}
-		if(platform->getIsSelected(editorCursor->GetBlockCursor()) == false)
-		{
-			platform->setBlock(editorCursor->GetBlockCursor());
-			editorCursor->SetType(platform->getSelectedTypeNbr());
-		}
-	}
-	if(mouseState->rgbButtons[1] & 0x80)
-		MessageBoxW(NULL, L"Right Mouse Press", L"Action", MB_OK);
-	if(mouseState->rgbButtons[2] & 0x80)
-		MessageBoxW(NULL, L"Middle Mouse Press", L"Action", MB_OK);
+		if(mouseState->rgbButtons[1] & 0x80)
+			MessageBoxW(NULL, L"Right Mouse Press", L"Action", MB_OK);
+		if(mouseState->rgbButtons[2] & 0x80)
+			MessageBoxW(NULL, L"Middle Mouse Press", L"Action", MB_OK);
 		//mouseState->lX = mouseState->lX - pOrigin.lX;
 		//mouseState->lY = mouseState.lY - pOrigin.lY;
 	
-	// move the selection box to the appropriate position
-	editorCursor->SetSelectionX_Pos(x);
-	editorCursor->SetSelectionY_Pos(y);
+		// move the selection box to the appropriate position
+		editorCursor->SetSelectionX_Pos(x);
+		editorCursor->SetSelectionY_Pos(y);
+	}
 	
 }

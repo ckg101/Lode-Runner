@@ -24,15 +24,26 @@ class SOUND
 		SOUND();
 		SOUND(IXAudio2* xa);
 		~SOUND();
-		unsigned long playMIDIFile(HWND hWndNotify, wchar_t* MIDIFileName);
+		unsigned long loadMIDIFile(HWND hWndNotify, wchar_t* MIDIFileName);
+		unsigned long playMIDIFile(void);
+		unsigned long stopMIDIFile(void);
 		int loadWAVFile(wchar_t* fileName);
 		int startWAVFile(void);
 		int playWAVFile(void);
-	protected:
+		bool getMIDIStatus(void);
+	private:
 		IXAudio2* xaudio;
 		IXAudio2SourceVoice* pSourceVoice;
 		unsigned char* wavdata;
 		BOOL isRunning;
+		UINT wDeviceID;
+		MCI_OPEN_PARMS mciOpenParms;
+		MCI_PLAY_PARMS mciPlayParms;
+		MCI_STATUS_PARMS mciStatusParms;
+		MCI_SEEK_PARMS mciSeekParms;
+		MCI_GENERIC_PARMS mciGenericParms;
+		HWND hWndNotify;
+		bool isMIDIPlaying;
 };
 
 #endif
