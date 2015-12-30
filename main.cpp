@@ -41,6 +41,7 @@ SOUND music;
 SOUND* wavfile;
 SPRITE* sprite;
 CURSOR* editorCursor;
+CURSOR* titleCursor;
 BACKGROUND background;
 PLATFORM* platform;
 TITLESCREEN* titleScreen;
@@ -140,6 +141,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	sprite->loadBitmaps(L"Graphics\\explosion");
 	sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	editorCursor = new CURSOR(d3ddev, 1, SCREEN_WIDTH, SCREEN_HEIGHT);
+	titleCursor = new CURSOR(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	controls->CreateKeyboard(hWnd);
 	controls->CreateMouse(hWnd);
 
@@ -148,6 +150,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		MessageBoxW(NULL, L"Error Initializing Platform", L"Error", MB_OK);
 	platform->loadBlocks(L"Graphics\\block");
 	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
+	titleScreen->initialize();
 	gameMode = GAME_MODE_TITLE;
 	frameCounter = 0;
 	//platform->addPlatform(0, BLOCK_REGULAR);
@@ -331,6 +334,7 @@ void RenderFrame(void)
 	if(gameMode == GAME_MODE_TITLE)
 	{
 		titleScreen->Render(backbuffer);
+		titleCursor->Render(backbuffer);
 	}
 
 	else if(gameMode == GAME_MODE_EDITOR)
@@ -431,10 +435,40 @@ void ProcessKeyboardInput(unsigned char k)
 void ProcessMouseInput(DIMOUSESTATE* mouseState)
 {
 	int x, y;
+	int result;
 	wchar_t str[256];
 	POINT p;
 
-	if(gameMode == GAME_MODE_EDITOR)
+	if(gameMode == GAME_MODE_TITLE)
+	{
+		titleScreen->GetButtonCoordinates(titleCursor->GetBlockCursor(), x, y);
+		p = titleCursor->GetCursorPosition();	
+		result = titleScreen->GetButtonNbr(p.x, p.y);
+		titleCursor->SetButtonCursor(result);	
+		if(result != 10)
+		{
+			titleCursor->SetSelectionX_Pos(x);
+			titleCursor->SetSelectionY_Pos(y);
+		}
+		titleCursor->MoveCursorX(mouseState->lX);
+		titleCursor->MoveCursorY(mouseState->lY);
+
+		if(mouseState->rgbButtons[0] & 0x80)
+		{
+			if(result == 2)
+			{
+				gameMode = GAME_MODE_EDITOR;
+				music.stopMIDIFile();
+			}
+			if(result == 3)
+			{
+				PostMessage(hWnd, WM_DESTROY, 0, 0);
+			}
+		}
+
+		
+	}
+	else if(gameMode == GAME_MODE_EDITOR)
 	{
 		platform->GetBlockCoordinates(editorCursor->GetBlockCursor(), x, y);
 		// cursor for the level editor

@@ -726,6 +726,25 @@ CURSOR::CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, in
 	screenHeight = screen_height;
 }
 
+CURSOR::CURSOR(IDirect3DDevice9* &d, int screen_width, int screen_height)
+{
+	cursorGraphic = NULL;
+	selectionGraphic = NULL;
+	cursorGraphic = new SPRITE(d, 1, screen_width, screen_height); 
+	cursorGraphic->loadBitmaps(L"Graphics\\block33_");
+	cursorGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	cursorGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	selectionGraphic = new SPRITE(d, 1, screen_width, screen_height); 
+	selectionGraphic->loadBitmaps(L"Graphics\\TitleSelection");
+	selectionGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	selectionGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	typeNbr = 0;
+	blockCursor = 0;
+	screenWidth = screen_width;
+	screenHeight = screen_height;
+	displaySelectionGraphic = false;
+}
+
 CURSOR::~CURSOR()
 {
 	if(cursorGraphic)
@@ -747,7 +766,8 @@ unsigned int CURSOR::GetType(void)
 
 void CURSOR::Render(IDirect3DSurface9* &backbuffer)
 {
-	selectionGraphic->renderSprite(backbuffer);
+	if(displaySelectionGraphic == true)
+		selectionGraphic->renderSprite(backbuffer);
 	cursorGraphic->renderSprite(backbuffer);
 }
 
@@ -798,5 +818,17 @@ int CURSOR::SetBlockCursor(int c)
 		blockCursor = c;
 		return 2;
 	}
+	return 0;
+}
+
+int CURSOR::SetButtonCursor(int c)
+{
+	if(c < 4 && c >= 0)
+	{
+		displaySelectionGraphic = true;
+		blockCursor = c;
+		return 1;
+	}
+	displaySelectionGraphic = false;
 	return 0;
 }
