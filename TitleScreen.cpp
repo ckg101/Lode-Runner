@@ -38,7 +38,7 @@ int TITLESCREEN::initialize(void)
 	int x = 0;
 	int y = 0;
 	int counter = 0;
-	nbrOfButtons = 4;
+	nbrOfButtons = 6;
 
 	buttonCoordinate = (POINT*)malloc(sizeof(POINT) * nbrOfButtons);
 	if(buttonCoordinate == NULL)
@@ -52,14 +52,18 @@ int TITLESCREEN::initialize(void)
 
 	
 	// set the coordinates of the blocks
-	buttonCoordinate[0].x = 78;
-	buttonCoordinate[0].y = 579;
-	buttonCoordinate[1].x = 221;
-	buttonCoordinate[1].y = 579; 
-	buttonCoordinate[2].x = 361;
-	buttonCoordinate[2].y = 579;
-	buttonCoordinate[3].x = 782;
-	buttonCoordinate[3].y = 579;
+	buttonCoordinate[TITLESCREEN_1PLAYER_BUTTON].x = 78;
+	buttonCoordinate[TITLESCREEN_1PLAYER_BUTTON].y = 579;
+	buttonCoordinate[TITLESCREEN_2PLAYER_BUTTON].x = 221;
+	buttonCoordinate[TITLESCREEN_2PLAYER_BUTTON].y = 579; 
+	buttonCoordinate[TITLESCREEN_EDITOR_BUTTON].x = 361;
+	buttonCoordinate[TITLESCREEN_EDITOR_BUTTON].y = 579;
+	buttonCoordinate[TITLESCREEN_LOAD_BUTTON].x = 497;
+	buttonCoordinate[TITLESCREEN_LOAD_BUTTON].y = 579;
+	buttonCoordinate[TITLESCREEN_OPTIONS_BUTTON].x = 636;
+	buttonCoordinate[TITLESCREEN_OPTIONS_BUTTON].y = 579;
+	buttonCoordinate[TITLESCREEN_EXIT_BUTTON].x = 782;
+	buttonCoordinate[TITLESCREEN_EXIT_BUTTON].y = 579;
 
 	return 1;
 }

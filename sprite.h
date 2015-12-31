@@ -42,8 +42,19 @@
 #define BLOCK_REGULAR_WITH_LADDER		(200+BLOCK_REGULAR+BLOCK_LADDER)
 #define BLOCK_REGULAR_WITH_LADDER_END	(200+BLOCK_REGULAR+BLOCK_LADDER_END)
 #define BLOCK_REGULAR_WITH_BOMB_SMALL	(200+BLOCK_REGULAR+BLOCK_BOMB_SMALL)
+#define BLOCK_TELEPORT_ENTRY1		300
+#define BLOCK_TELEPORT_ENTRY2		331
+#define BLOCK_TELEPORT_ENTRY3		302
+#define BLOCK_TELEPORT_ENTRY4		303
+#define BLOCK_TELEPORT_ENTRY5		304
+#define BLOCK_TELEPORT_EXIT1		305
+#define BLOCK_TELEPORT_EXIT2		306
+#define BLOCK_TELEPORT_EXIT3		307
+#define BLOCK_TELEPORT_EXIT4		308
+#define BLOCK_TELEPORT_EXIT5		309
 #define IS_NOT_OCCUPIED					0
 #define IS_OCCUPIED						1
+#define IS_OCCUPIED_TELEPORT			2
 #define IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER	3
 #define IS_OCCUPIED_FULL				4
 
@@ -60,6 +71,7 @@ class SPRITE
 		void nextFrame(void);
 		void setTransparencyColor(unsigned long color);
 		IMAGE* getFrame(void);
+		IMAGE* getFrame(unsigned int frameNbr);
 		int x_pos;
 		int y_pos;
 	protected:
@@ -73,64 +85,6 @@ class SPRITE
 		unsigned long transparencyColor;
 };
 
-class PLATFORM
-{
-	public:
-		PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height);
-		~PLATFORM();
-		int initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types);
-		int addPlatform(unsigned int blockNbr, unsigned int _type);
-		void deinitialize(void);
-		int loadBlocks(wchar_t* name);
-		void setBlock(unsigned int blockNbr);
-		void renderPlatform(IDirect3DSurface9* &buf);
-		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
-		unsigned int getBlockNbr(int x, int y);
-		unsigned char getIsOccupied(unsigned int blockNbr);
-		bool getIsSelected(unsigned int blockNbr);
-		unsigned int getSelectedTypeNbr(void);
-		IMAGE* getImage(int type);
-	private:
-		SPRITE** blocks;
-		SPRITE* temp_sprite;
-		IMAGE* sheet;			// this holds the sprite sheet
-		SPRITE** menu;
-		unsigned char* isOccupied;
-		bool* isSelected;
-		unsigned int* type;		// hold the type ID of each block
-		unsigned int nbrOfBlocks;
-		unsigned int nbrOfTypes;
-		int screenWidth;
-		int screenHeight;
-		IDirect3DDevice9* d3ddev;
 
-};
-
-class CURSOR
-{
-	public:
-		CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, int screen_height);
-		CURSOR(IDirect3DDevice9* &d, int screen_width, int screen_height);
-		~CURSOR(); 
-		int SetType(unsigned int type_nbr);
-		unsigned int GetType(void);
-		void Render(IDirect3DSurface9* &backbuffer);
-		void SetSelectionX_Pos(int x);
-		void SetSelectionY_Pos(int y);
-		void MoveCursorX(int qty);
-		void MoveCursorY(int qty);
-		int GetBlockCursor(void);
-		int SetBlockCursor(int c);
-		int SetButtonCursor(int c);
-		POINT GetCursorPosition(void);
-	private:
-		int blockCursor;
-		SPRITE* cursorGraphic;
-		SPRITE* selectionGraphic;
-		unsigned int typeNbr;			// ID for the image to be displayed as cursor from PLATFORM sheet
-		int screenWidth;
-		int screenHeight;
-		bool displaySelectionGraphic;
-};
 
 #endif

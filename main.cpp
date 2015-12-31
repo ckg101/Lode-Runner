@@ -12,6 +12,8 @@
 #include "controls.h"
 #include "sprite.h"
 #include "TitleScreen.h"
+#include "cursor.h"
+#include "platform.h"
  
 //#pragma comment(lib, "d3d9.lib")
 //#pragma comment(lib, "D3dx9.lib")
@@ -38,7 +40,7 @@ RECT src;
 GRAPHICS* graphics;
 CONTROLS* controls;
 SOUND music;
-SOUND* wavfile;
+SOUND* buttonpress;
 SPRITE* sprite;
 CURSOR* editorCursor;
 CURSOR* titleCursor;
@@ -124,16 +126,14 @@ int WINAPI WinMain(HINSTANCE hInstance,
     // set up and initialize Direct3D
     initD3D(hWnd);
 	initDInput(hWnd);
-	//initXAudio(hWnd);
+	initXAudio(hWnd);
 	graphics = new GRAPHICS(d3ddev);
 	controls = new CONTROLS(dinput);
-	//wavfile = new SOUND(xaudio);
-	//wavfile->loadWAVFile(L"MusicMono.wav");
-	//wavfile->startWAVFile();
+	buttonpress = new SOUND(xaudio);
+	buttonpress->loadWAVFile(L"Sound\\buttonpress.wav");
 
 	music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
 	music.playMIDIFile();
-	//CreateSurface();
 	
 	graphics->LoadBitmapImage(L"Graphics\\background1.bmp", background.surface, &background.parameters);
 	src = background.parameters;
@@ -320,9 +320,10 @@ void RenderFrame(void)
 	{
 		frameCounter++;
 		temp_time = time(NULL) - seconds;
-	
+
 		if(frameCounter < 61)
 		{
+			buttonpress->playWAVFile();
 	IDirect3DSurface9* backbuffer = NULL;
 	d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
  
@@ -333,6 +334,7 @@ void RenderFrame(void)
 
 	if(gameMode == GAME_MODE_TITLE)
 	{
+		
 		titleScreen->Render(backbuffer);
 		titleCursor->Render(backbuffer);
 	}
@@ -410,9 +412,11 @@ void ProcessKeyboardInput(unsigned char k)
 	{
 		switch(k)
 		{
-			case 1:
+			case DIK_ESCAPE:
 				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
-				PostMessage(hWnd, WM_DESTROY, 0, 0);
+				//PostMessage(hWnd, WM_DESTROY, 0, 0);
+				gameMode = GAME_MODE_TITLE;
+				music.playMIDIFile();
 			break;
 			case 205:		// right key is pressed
 				//editor_cursor->x_pos++;
@@ -445,7 +449,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 		p = titleCursor->GetCursorPosition();	
 		result = titleScreen->GetButtonNbr(p.x, p.y);
 		titleCursor->SetButtonCursor(result);	
-		if(result != 10)
+		if(result != TITLESCREEN_INVALID_BUTTON)
 		{
 			titleCursor->SetSelectionX_Pos(x);
 			titleCursor->SetSelectionY_Pos(y);
@@ -455,14 +459,28 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 
 		if(mouseState->rgbButtons[0] & 0x80)
 		{
-			if(result == 2)
+			switch(result)
 			{
-				gameMode = GAME_MODE_EDITOR;
-				music.stopMIDIFile();
-			}
-			if(result == 3)
-			{
-				PostMessage(hWnd, WM_DESTROY, 0, 0);
+				case TITLESCREEN_1PLAYER_BUTTON:
+					
+				break;
+				case TITLESCREEN_2PLAYER_BUTTON:
+					
+				break;
+				case TITLESCREEN_EDITOR_BUTTON:
+					gameMode = GAME_MODE_EDITOR;
+					music.stopMIDIFile();
+					buttonpress->startWAVFile();
+				break;
+				case TITLESCREEN_LOAD_BUTTON:
+					
+				break;
+				case TITLESCREEN_OPTIONS_BUTTON:
+					
+				break;
+				case TITLESCREEN_EXIT_BUTTON:
+					PostMessage(hWnd, WM_DESTROY, 0, 0);
+				break;
 			}
 		}
 
@@ -483,13 +501,15 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 
 		if(mouseState->rgbButtons[0] & 0x80)
 		{
-			if(platform->getIsOccupied(editorCursor->GetBlockCursor()) == 0 || 
-				platform->getIsOccupied(editorCursor->GetBlockCursor()) == 3)
+			short res;
+			res = platform->getIsOccupied(editorCursor->GetBlockCursor());
+			if(res == IS_NOT_OCCUPIED || 
+				res == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER || res == IS_OCCUPIED_TELEPORT)
 			{
 				platform->addPlatform(editorCursor->GetBlockCursor(), editorCursor->GetType());
 				platform->setBlock(editorCursor->GetBlockCursor());
 			}
-			if(platform->getIsSelected(editorCursor->GetBlockCursor()) == false)
+			if(platform->getIsSelected(editorCursor->GetBlockCursor()) == true)
 			{
 				platform->setBlock(editorCursor->GetBlockCursor());
 				editorCursor->SetType(platform->getSelectedTypeNbr());
