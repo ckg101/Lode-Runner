@@ -88,13 +88,13 @@ void CURSOR::SetSelectionY_Pos(int y)
 
 void CURSOR::MoveCursorX(int qty)
 {
-	if(cursorGraphic->x_pos+qty < screenWidth-48 && cursorGraphic->x_pos+qty >= 0)
+	if(cursorGraphic->x_pos+qty < screenWidth-24 && cursorGraphic->x_pos+qty >= 0)
 		cursorGraphic->x_pos+=qty;
 }
 
 void CURSOR::MoveCursorY(int qty)
 {
-	if(cursorGraphic->y_pos+qty < screenHeight-47 && cursorGraphic->y_pos+qty >=0)
+	if(cursorGraphic->y_pos+qty < screenHeight-23 && cursorGraphic->y_pos+qty >=0)
 		cursorGraphic->y_pos+=qty;
 }
 
@@ -113,17 +113,17 @@ int CURSOR::GetBlockCursor(void)
 
 int CURSOR::SetBlockCursor(int c)
 {
-	if(blockCursor < 256 && blockCursor >= 0)
+	if(blockCursor < 1024 && blockCursor >= 0)
 	{
 		blockCursor = c; 
 		return 1;
 	}
-	else if(blockCursor >= 256 && blockCursor < 256+32)
+	else if(blockCursor >= 1024 && blockCursor < 1024+32)
 	{
 		blockCursor = c;
 		return 2;
 	}
-	else if(blockCursor == 256+BLOCK_SAVE_BUTTON)
+	else if(blockCursor == 1024+BLOCK_SAVE_BUTTON)
 	{
 		blockCursor = c;
 		return 3;

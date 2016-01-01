@@ -20,13 +20,16 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	screenWidth = screen_width;
 	screenHeight = screen_height;
 	nbrOfBlocks = 0;
+	nbrOfWorlds = 0;
 	blocks = NULL;
 	isOccupied = NULL;
 	isSelected = NULL;
+	background = NULL;
 	sheet = NULL;
 	menu = NULL;
 	type = NULL;
 	temp_sprite = NULL;
+	currentWorld = WORLD_JUNGLE;
 }
 
 PLATFORM::~PLATFORM()
@@ -41,10 +44,12 @@ PLATFORM::~PLATFORM()
 		free(isSelected);
 	if(type)
 		free(type);
+	if(background)
+		free(background);
 }
 
 // nbr_of_blocks MUST BE SQUARE
-int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
+int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, unsigned char nbr_of_worlds)
 {
 	// initial coordinates of the first block
 	int x = 0;
@@ -82,10 +87,10 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 			// set the coordinates of the blocks
 			blocks[counter]->x_pos = x;
 			blocks[counter]->y_pos = y;
-			x+=48;
+			x+=24;
 			counter++;
 		}
-		y+=48;
+		y+=24;
 		x = 0;
 	}
 
@@ -108,6 +113,20 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	for(unsigned int index = 0; index < nbrOfTypes; index++)
 	{
 		sheet[index].image = NULL;
+	}
+
+	// load the backgrounds
+	nbrOfWorlds = nbr_of_worlds;
+	background = (SPRITE**) malloc(sizeof(SPRITE*) * nbrOfWorlds);
+	wchar_t txt[255];
+	for(unsigned int index = 0; index < nbrOfWorlds; index++)
+	{
+		background[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+		if(background[index] == NULL)
+			return -8;
+		wsprintf(txt, L"Graphics\\world%d_", index+1);
+		background[index]->loadBitmaps(txt);
+		background[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	}
 
 	temp_sprite = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
@@ -138,6 +157,14 @@ void PLATFORM::deinitialize(void)
 		{
 			delete menu[index];
 			menu[index] = NULL;
+		}
+	}
+	for(index = 0; index < nbrOfWorlds; index++)
+	{
+		if(background[index])
+		{
+			delete background[index];
+			background[index] = NULL;
 		}
 	}
 	delete temp_sprite;
@@ -292,12 +319,12 @@ int PLATFORM::loadBlocks(wchar_t* name)
 			// set the coordinates of the blocks
 			menu[counter]->x_pos = x;
 			menu[counter]->y_pos = y;
-			x+=48;
+			x+=24;
 			counter++;
 			if(counter == nbrOfTypes)
 				break;
 		}
-		y+=48;
+		y+=24;
 		x=768;
 	}
 
@@ -360,7 +387,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 			temp_sprite->x_pos = blocks[blockNbr]->x_pos;
 			temp_sprite->y_pos = blocks[blockNbr]->y_pos;
 			temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-			temp_sprite->CopyOntoBlock(blocks[blockNbr]->getFrame());
+			temp_sprite->CopyOntoBlock(blocks[blockNbr]->getFrame(), 24, 24);
 			//if(type[blockNbr] != 0)
 				type[blockNbr] = type[blockNbr] + 200 + _type;
 		}
@@ -371,7 +398,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 
 void PLATFORM::setBlock(unsigned int blockNbr)
 {
-	if(blockNbr >= 0 && blockNbr < 256)
+	if(blockNbr >= 0 && blockNbr < 1024)
 	{
 		if(isOccupied[blockNbr] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
 			isOccupied[blockNbr]= IS_OCCUPIED_FULL;
@@ -387,19 +414,21 @@ void PLATFORM::setBlock(unsigned int blockNbr)
 			isOccupied[blockNbr] = IS_OCCUPIED_TELEPORT;
 		blocks[blockNbr]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	}
-	else if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
+	else if(blockNbr >= 1024 && blockNbr < 1024+nbrOfTypes)
 	{
 		memset((bool*)isSelected, (bool)false, sizeof(bool)*nbrOfTypes);
-		isSelected[blockNbr-256] = true;
-		menu[blockNbr-256]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-		menu[nbrOfTypes]->x_pos = menu[blockNbr-256]->x_pos;
-		menu[nbrOfTypes]->y_pos = menu[blockNbr-256]->y_pos;
+		isSelected[blockNbr-1024] = true;
+		menu[blockNbr-1024]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+		menu[nbrOfTypes]->x_pos = menu[blockNbr-1024]->x_pos;
+		menu[nbrOfTypes]->y_pos = menu[blockNbr-1024]->y_pos;
 	}
 }
 
 void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 {
 	unsigned int index;
+
+	background[currentWorld]->renderSprite(buf);
 	for(index = 0; index < nbrOfBlocks; index++)
 	{	
 		if(isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER 
@@ -425,12 +454,12 @@ void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
 		x = blocks[blockNbr]->x_pos;
 		y = blocks[blockNbr]->y_pos;
 	}
-	if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
+	if(blockNbr >= 1024 && blockNbr < 1024+nbrOfTypes)
 	{
-		x = menu[blockNbr-256]->x_pos;
-		y = menu[blockNbr-256]->y_pos;
+		x = menu[blockNbr-1024]->x_pos;
+		y = menu[blockNbr-1024]->y_pos;
 	}
-	if(blockNbr == 256+BLOCK_SAVE_BUTTON)
+	if(blockNbr == 1024+BLOCK_SAVE_BUTTON)
 	{
 		x = menu[33]->x_pos;
 		y = menu[33]->y_pos;
@@ -441,21 +470,21 @@ unsigned int PLATFORM::getBlockNbr(int x, int y)
 {
 	for(int index = 0; index < nbrOfBlocks; index++)
 	{
-		if(x >= blocks[index]->x_pos && x <= blocks[index]->x_pos+47)
-			if(y >= blocks[index]->y_pos && y <= blocks[index]->y_pos+47)
+		if(x >= blocks[index]->x_pos && x <= blocks[index]->x_pos+23)
+			if(y >= blocks[index]->y_pos && y <= blocks[index]->y_pos+23)
 				return index;
 	}
 
 	for(int index = 0; index < nbrOfTypes; index++)
 	{
 
-		if(x >= menu[index]->x_pos && x <= menu[index]->x_pos+47)
-			if(y >= menu[index]->y_pos && y <= menu[index]->y_pos+47)
-				return index+256;
+		if(x >= menu[index]->x_pos && x <= menu[index]->x_pos+23)
+			if(y >= menu[index]->y_pos && y <= menu[index]->y_pos+23)
+				return index+1024;
 	}
-	if(x >= menu[BLOCK_SAVE_BUTTON]->x_pos && x <= menu[BLOCK_SAVE_BUTTON]->x_pos+47)
-			if(y >= menu[BLOCK_SAVE_BUTTON]->y_pos && y <= menu[BLOCK_SAVE_BUTTON]->y_pos+47)
-				return 256+BLOCK_SAVE_BUTTON;
+	if(x >= menu[BLOCK_SAVE_BUTTON]->x_pos && x <= menu[BLOCK_SAVE_BUTTON]->x_pos+23)
+			if(y >= menu[BLOCK_SAVE_BUTTON]->y_pos && y <= menu[BLOCK_SAVE_BUTTON]->y_pos+23)
+				return 1024+BLOCK_SAVE_BUTTON;
 	return 0;
 }
 
@@ -468,7 +497,7 @@ unsigned short PLATFORM::getIsOccupied(unsigned int blockNbr)
 
 bool PLATFORM::getIsSelected(unsigned int blockNbr)
 {
-	return isSelected[blockNbr-256];
+	return isSelected[blockNbr-1024];
 }
 
 unsigned int PLATFORM::getSelectedTypeNbr(void)
@@ -484,4 +513,19 @@ unsigned int PLATFORM::getSelectedTypeNbr(void)
 IMAGE* PLATFORM::getImage(int type)
 {
 	return &sheet[type];
+}
+
+unsigned char PLATFORM::GetWorldNbr(void)
+{
+	return currentWorld;
+}
+
+int PLATFORM::SetWorldNbr(unsigned char w)
+{
+	if(w >= WORLD_JUNGLE && w <= WORLD_INDUSTRIAL)
+	{
+		currentWorld = w;
+		return 1;
+	}
+	return 0;
 }

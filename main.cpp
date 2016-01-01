@@ -146,7 +146,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	controls->CreateMouse(hWnd);
 
 	platform = new PLATFORM(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
-	if(!platform->initialize(256, 32))
+	if(!platform->initialize(1024, 32, 10))
 		MessageBoxW(NULL, L"Error Initializing Platform", L"Error", MB_OK);
 	platform->loadBlocks(L"Graphics\\block");
 	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -350,7 +350,7 @@ void RenderFrame(void)
 		//render sprites
 		//sprite->renderSprite(background.surface);
 
-		RECT dest;
+		/*RECT dest;
 		dest.bottom = src.bottom;
 		dest.top = 0;
 		dest.left = 0;
@@ -359,9 +359,8 @@ void RenderFrame(void)
 						&background.parameters, 
 						backbuffer, 
 						&dest, 
-						D3DTEXF_NONE);
+						D3DTEXF_NONE);*/
 	
-		//sprite->renderSprite(backbuffer);
 		platform->renderPlatform(backbuffer);
 		editorCursor->Render(backbuffer);
 	}
@@ -418,6 +417,10 @@ void ProcessKeyboardInput(unsigned char k)
 				gameMode = GAME_MODE_TITLE;
 				music.playMIDIFile();
 			break;
+			case DIK_W:
+				if(!platform->SetWorldNbr(platform->GetWorldNbr()+1))	// go to the next world with each stroke 
+					platform->SetWorldNbr(WORLD_JUNGLE);	// once last world is reached the next one is the first world
+			break;
 			case 205:		// right key is pressed
 				//editor_cursor->x_pos++;
 				editorCursor->SetType(editorCursor->GetType()+1);
@@ -462,10 +465,14 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			switch(result)
 			{
 				case TITLESCREEN_1PLAYER_BUTTON:
-					
+					buttonpress->startWAVFile();
+					MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_2PLAYER_BUTTON:
-					
+					buttonpress->startWAVFile();
+					MessageBoxW(hWnd, L"Not Implemented Yet", L"2 Player", MB_OK);
+					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_EDITOR_BUTTON:
 					gameMode = GAME_MODE_EDITOR;
@@ -473,12 +480,17 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					buttonpress->startWAVFile();
 				break;
 				case TITLESCREEN_LOAD_BUTTON:
-					
+					buttonpress->startWAVFile();
+					MessageBoxW(hWnd, L"Not Implemented Yet", L"Load Level", MB_OK);
+					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_OPTIONS_BUTTON:
-					
+					buttonpress->startWAVFile();
+					MessageBoxW(hWnd, L"Not Implemented Yet", L"Options", MB_OK);
+					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_EXIT_BUTTON:
+					buttonpress->startWAVFile();
 					PostMessage(hWnd, WM_DESTROY, 0, 0);
 				break;
 			}
@@ -514,7 +526,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				platform->setBlock(editorCursor->GetBlockCursor());
 				editorCursor->SetType(platform->getSelectedTypeNbr());
 			}
-			if(platform->getBlockNbr(p.x, p.y) == BLOCK_SAVE_BUTTON+256)
+			if(platform->getBlockNbr(p.x, p.y) == BLOCK_SAVE_BUTTON+1024)
 			{
 				buttonpress->startWAVFile();
 				MessageBoxW(hWnd, L"Not Implemented Yet", L"SAVE", MB_OK);
@@ -522,9 +534,13 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			controls->GetMouseInput();
 		}
 		if(mouseState->rgbButtons[1] & 0x80)
-			MessageBoxW(NULL, L"Right Mouse Press", L"Action", MB_OK);
+		{
+			MessageBoxW(NULL, L"Not Implemented Yet", L"Remove Block", MB_OK);
+		}
 		if(mouseState->rgbButtons[2] & 0x80)
-			MessageBoxW(NULL, L"Middle Mouse Press", L"Action", MB_OK);
+		{
+			//MessageBoxW(NULL, L"Middle Mouse Press", L"Action", MB_OK);
+		}
 		//mouseState->lX = mouseState->lX - pOrigin.lX;
 		//mouseState->lY = mouseState.lY - pOrigin.lY;
 	

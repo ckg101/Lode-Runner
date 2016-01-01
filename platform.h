@@ -7,7 +7,7 @@ class PLATFORM
 	public:
 		PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height);
 		~PLATFORM();
-		int initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types);
+		int initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, unsigned char nbr_of_worlds);
 		int addPlatform(unsigned int blockNbr, unsigned int _type);
 		void deinitialize(void);
 		int loadBlocks(wchar_t* name);
@@ -19,11 +19,16 @@ class PLATFORM
 		bool getIsSelected(unsigned int blockNbr);
 		unsigned int getSelectedTypeNbr(void);
 		IMAGE* getImage(int type);
+		unsigned char GetWorldNbr(void);
+		int SetWorldNbr(unsigned char w);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;
 		IMAGE* sheet;			// this holds the sprite sheet
 		SPRITE** menu;
+		SPRITE** background;
+		unsigned char currentWorld;
+		unsigned char nbrOfWorlds;
 		unsigned short* isOccupied;
 		bool* isSelected;
 		unsigned int* type;		// hold the type ID of each block

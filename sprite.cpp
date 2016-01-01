@@ -244,7 +244,7 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		return 1;
 }
 
-int SPRITE::CopyOntoBlock(IMAGE* frame)
+int SPRITE::CopyOntoBlock(IMAGE* frame, unsigned int width, unsigned int height)
 {
 	HRESULT hr;
 		
@@ -257,11 +257,11 @@ int SPRITE::CopyOntoBlock(IMAGE* frame)
 		//counter = bih.biWidth * bih.biHeight;
 
 		
-		for(int y = 0; y < 48; y++)
+		for(int y = 0; y < width; y++)
 		{
 			//counter = frames[frameState].parameters.right * y;
 			
-			for(int x = 0; x < 48; x++)
+			for(int x = 0; x < height; x++)
 			{
 				if(lFrame[counter2] == transparencyColor)
 				{

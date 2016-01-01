@@ -58,6 +58,16 @@
 #define IS_OCCUPIED_TELEPORT			2
 #define IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER	3
 #define IS_OCCUPIED_FULL				4
+#define WORLD_JUNGLE	0
+#define WORLD_FUNGUS	1
+#define WORLD_ANCIENT	2
+#define WORLD_CRYSTAL	3
+#define WORLD_ICE		4
+#define WORLD_FOSSIL	5
+#define WORLD_LAVA		6
+#define WORLD_PHOSPHORUS	7
+#define WORLD_DARK			8
+#define WORLD_INDUSTRIAL	9 
 
 class SPRITE
 {
@@ -68,7 +78,7 @@ class SPRITE
 		int copyBitmaps(IMAGE* image, int frame_nbr);
 		int setAnimationType(int a);
 		int renderSprite(IDirect3DSurface9* &backbuffer);
-		int CopyOntoBlock(IMAGE* image);
+		int CopyOntoBlock(IMAGE* image, unsigned int width, unsigned int height);
 		void nextFrame(void);
 		void setTransparencyColor(unsigned long color);
 		IMAGE* getFrame(void);
