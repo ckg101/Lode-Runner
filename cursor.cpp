@@ -123,6 +123,11 @@ int CURSOR::SetBlockCursor(int c)
 		blockCursor = c;
 		return 2;
 	}
+	else if(blockCursor == 256+BLOCK_SAVE_BUTTON)
+	{
+		blockCursor = c;
+		return 3;
+	}
 	return 0;
 }
 

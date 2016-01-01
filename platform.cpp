@@ -63,7 +63,7 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	isOccupied = (unsigned short*)malloc(sizeof(unsigned short) * nbr_of_blocks);
 	if(isOccupied == NULL)
 		return -1;
-	memset((unsigned char*)isOccupied, (unsigned char)IS_NOT_OCCUPIED, sizeof(unsigned char) * nbr_of_blocks);
+	memset((unsigned short*)isOccupied, (unsigned short)IS_NOT_OCCUPIED, sizeof(unsigned short) * nbr_of_blocks);
 	nbrOfBlocks = nbr_of_blocks;
 
 	nbrOfTypes = nbr_of_types;
@@ -94,11 +94,11 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types)
 	if(sheet == NULL)
 		return -3;
 
-	menu = (SPRITE**)malloc(sizeof(SPRITE*) * (nbrOfTypes+1));
+	menu = (SPRITE**)malloc(sizeof(SPRITE*) * (nbrOfTypes+2));
 	if(menu == NULL)
 		return -4;
 	
-	memset(menu, 0, sizeof(SPRITE*)*(nbrOfTypes+1));
+	memset(menu, 0, sizeof(SPRITE*)*(nbrOfTypes+2));
 
 	isSelected = (bool*)malloc(sizeof(bool) * nbr_of_types);
 	if(isSelected == NULL)
@@ -132,7 +132,7 @@ void PLATFORM::deinitialize(void)
 		if(sheet[index].image)
 			free(sheet[index].image);
 	}
-	for(index = 0; index < nbrOfTypes+1; index++)
+	for(index = 0; index < nbrOfTypes+2; index++)
 	{
 		if(menu[index])
 		{
@@ -242,13 +242,13 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	{
 		if(index == BLOCK_TELEPORT_ENTRY)
 		{
-			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
-			if(menu[index] == NULL)
+			menu[BLOCK_TELEPORT_ENTRY] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
+			if(menu[BLOCK_TELEPORT_ENTRY] == NULL)
 				return -1;
-			menu[index]->loadBitmaps(L"Graphics\\block12_");
-			menu[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(L"Graphics\\block12_");
+			menu[BLOCK_TELEPORT_ENTRY]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
-		if(index == BLOCK_TELEPORT_EXIT)
+		else if(index == BLOCK_TELEPORT_EXIT)
 		{
 			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
 			if(menu[index] == NULL)
@@ -272,6 +272,13 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	menu[nbrOfTypes]->loadBitmaps(L"Graphics\\block34_");
 	menu[nbrOfTypes]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
+	menu[nbrOfTypes+1] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(menu[nbrOfTypes+1] == NULL)
+		return -1;
+
+	menu[nbrOfTypes+1]->loadBitmaps(L"Graphics\\block35_");
+	menu[nbrOfTypes+1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+
 	x = 768;
 	y = 0;
 	counter = 0;
@@ -293,6 +300,10 @@ int PLATFORM::loadBlocks(wchar_t* name)
 		y+=48;
 		x=768;
 	}
+
+	menu[nbrOfTypes+1]->x_pos = x;
+	menu[nbrOfTypes+1]->y_pos = y;
+	
 	return 1;
 }
 
@@ -320,7 +331,8 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 	}
 
 	// do the same for the exit teleport block
-	if(isOccupied[blockNbr] == IS_OCCUPIED_TELEPORT && _type == BLOCK_TELEPORT_EXIT)
+	else if(isOccupied[blockNbr] == IS_OCCUPIED_TELEPORT &&
+		_type == BLOCK_TELEPORT_EXIT)
 	{
 		if(type[blockNbr] >= BLOCK_TELEPORT_EXIT1 && type[blockNbr] <= BLOCK_TELEPORT_EXIT5)
 		{
@@ -403,6 +415,7 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 			menu[nbrOfTypes]->renderSprite(buf);
 		}
 	}
+	menu[nbrOfTypes+1]->renderSprite(buf);
 }
 
 void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
@@ -412,10 +425,15 @@ void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
 		x = blocks[blockNbr]->x_pos;
 		y = blocks[blockNbr]->y_pos;
 	}
-	else if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
+	if(blockNbr >= 256 && blockNbr < 256+nbrOfTypes)
 	{
 		x = menu[blockNbr-256]->x_pos;
 		y = menu[blockNbr-256]->y_pos;
+	}
+	if(blockNbr == 256+BLOCK_SAVE_BUTTON)
+	{
+		x = menu[33]->x_pos;
+		y = menu[33]->y_pos;
 	}
 }
 
@@ -430,10 +448,14 @@ unsigned int PLATFORM::getBlockNbr(int x, int y)
 
 	for(int index = 0; index < nbrOfTypes; index++)
 	{
+
 		if(x >= menu[index]->x_pos && x <= menu[index]->x_pos+47)
 			if(y >= menu[index]->y_pos && y <= menu[index]->y_pos+47)
 				return index+256;
 	}
+	if(x >= menu[BLOCK_SAVE_BUTTON]->x_pos && x <= menu[BLOCK_SAVE_BUTTON]->x_pos+47)
+			if(y >= menu[BLOCK_SAVE_BUTTON]->y_pos && y <= menu[BLOCK_SAVE_BUTTON]->y_pos+47)
+				return 256+BLOCK_SAVE_BUTTON;
 	return 0;
 }
 

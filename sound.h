@@ -35,6 +35,9 @@ class SOUND
 		IXAudio2* xaudio;
 		IXAudio2SourceVoice* pSourceVoice;
 		unsigned char* wavdata;
+		WAVEFORMATEX wfx;
+		WAVFILEHEADER wfh;
+		wchar_t errormsg[256];
 		BOOL isRunning;
 		UINT wDeviceID;
 		MCI_OPEN_PARMS mciOpenParms;

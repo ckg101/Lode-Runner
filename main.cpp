@@ -514,6 +514,12 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				platform->setBlock(editorCursor->GetBlockCursor());
 				editorCursor->SetType(platform->getSelectedTypeNbr());
 			}
+			if(platform->getBlockNbr(p.x, p.y) == BLOCK_SAVE_BUTTON+256)
+			{
+				buttonpress->startWAVFile();
+				MessageBoxW(hWnd, L"Not Implemented Yet", L"SAVE", MB_OK);
+			}
+			controls->GetMouseInput();
 		}
 		if(mouseState->rgbButtons[1] & 0x80)
 			MessageBoxW(NULL, L"Right Mouse Press", L"Action", MB_OK);

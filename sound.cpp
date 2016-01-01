@@ -113,8 +113,7 @@ int SOUND::loadWAVFile(wchar_t* fileName)
 {
 	HRESULT hr;
 	FILE* fp;
-	WAVFILEHEADER wfh;
-	wchar_t errormsg[256];
+	
 	//DSBUFFERDESC dsbufdesc;
 	//dsbufdesc.dwBufferBytes;
 	//dsound->CreateSoundBuffer(&dsbufdesc, &soundBuffer, NULL);
@@ -125,7 +124,7 @@ int SOUND::loadWAVFile(wchar_t* fileName)
 	fread((unsigned char*)wavdata, wfh.subchunkSize, 1, fp);
 	fclose(fp);
 
-	WAVEFORMATEX wfx;
+	
 
 	wfx.cbSize = wfh.cksize;
 	wfx.nAvgBytesPerSec = wfh.nAvgBytesPerSec;
@@ -144,6 +143,20 @@ int SOUND::loadWAVFile(wchar_t* fileName)
         return hr;
     }
 
+	
+
+   
+
+    // Wait till the escape key is released
+    //while( GetAsyncKeyState( VK_ESCAPE ) )
+        //Sleep( 10 );
+
+	return 1;
+}
+
+int SOUND::startWAVFile(void)
+{
+	HRESULT hr;
 	// Submit the wave sample data using an XAUDIO2_BUFFER structure
     XAUDIO2_BUFFER buffer = {0};
     buffer.pAudioData = wavdata;
@@ -158,19 +171,6 @@ int SOUND::loadWAVFile(wchar_t* fileName)
         free(wavdata);
         return hr;
     }
-
-   
-
-    // Wait till the escape key is released
-    //while( GetAsyncKeyState( VK_ESCAPE ) )
-        //Sleep( 10 );
-
-	return 1;
-}
-
-int SOUND::startWAVFile(void)
-{
-	HRESULT hr;
 	 hr = pSourceVoice->Start(0, XAUDIO2_COMMIT_NOW) ;
 	 isRunning = TRUE;
 	 return 1;
