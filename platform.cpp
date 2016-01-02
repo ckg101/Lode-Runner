@@ -124,7 +124,7 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 		background[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 		if(background[index] == NULL)
 			return -8;
-		wsprintf(txt, L"Graphics\\world%d_", index+1);
+		wsprintf(txt, L"Graphics\\world%d\\world%d_", index+1,index+1);
 		background[index]->loadBitmaps(txt);
 		background[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	}
@@ -191,6 +191,186 @@ int PLATFORM::loadBlocks(wchar_t* name)
 		counter = 0;
 		counter2 = 0;
 		swprintf(fileName, L"%s%d_0.bmp", name,index+1);
+		fp = _wfopen(fileName, L"rb");
+		if (fp == NULL)
+		{
+			MessageBox(NULL, L"file not exist", L"error", MB_OK);
+			return 0;
+		}
+		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);
+		fread(&bih, sizeof(BITMAPINFOHEADER), 1, fp);
+
+		sheet[index].image = (unsigned long*)malloc(bih.biHeight * bih.biWidth * 4);
+		temp_image = (unsigned char*)malloc(bfh.bfSize);
+		if(sheet[index].image == NULL)
+		{
+			MessageBox(NULL, L"Malloc image Error", L"error", MB_OK);
+			return 0;
+		}
+
+		fread((unsigned char*)temp_image, bfh.bfSize, 1, fp);
+		fclose(fp);
+
+		// create memory for image
+		
+		sheet[index].parameters.top = 0;
+		sheet[index].parameters.bottom = bih.biHeight;
+		sheet[index].parameters.left = 0;
+		sheet[index].parameters.right = bih.biWidth;
+
+		//frames->surface->LockRect(&locked_rect, NULL, 0);
+		//pBits = (unsigned char*) locked_rect.pBits;
+		lBits = sheet[index].image;
+		//pBits -= locked_rect.Pitch;
+		//lBits = (unsigned long*) frames[index].image;
+
+		//counter = bih.biWidth * bih.biHeight;
+
+		for(int y = 0; y < bih.biHeight; y++)
+		{
+			for(int x = 0; x < bih.biWidth; x ++)
+			{
+				lBits[counter] = D3DCOLOR_XRGB(temp_image[counter2+2],temp_image[counter2+1],temp_image[counter2]);
+				counter2+=3;
+				counter++;
+			}
+		}
+
+		free(temp_image);
+
+
+		// flip image becuase BMP is stored
+		// upside down
+		counter = bih.biWidth * bih.biHeight - 1;
+		counter2 = 0;
+		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
+		for(int y = bih.biHeight; y > 0; y--)
+		{
+			for(int x = 0; x < bih.biWidth; x++)
+			{
+				ltemp_image[counter2] = lBits[counter];
+				counter--;
+				counter2++;
+			}
+		}
+
+		memcpy((unsigned long*)lBits, (unsigned long*)ltemp_image, sizeof(unsigned long) * bih.biWidth * bih.biHeight);
+
+		free(ltemp_image);
+		
+		index++;
+	}
+
+	int x, y;
+	
+	// load the menu
+	
+	for(unsigned int index = 0; index < nbrOfTypes; index++)
+	{
+		if(index == BLOCK_TELEPORT_ENTRY)
+		{
+			menu[BLOCK_TELEPORT_ENTRY] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
+			if(menu[BLOCK_TELEPORT_ENTRY] == NULL)
+				return -1;
+			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(L"Graphics\\block12_");
+			menu[BLOCK_TELEPORT_ENTRY]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+		}
+		else if(index == BLOCK_TELEPORT_EXIT)
+		{
+			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
+			if(menu[index] == NULL)
+				return -1;
+			menu[index]->loadBitmaps(L"Graphics\\block13_");
+			menu[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+		}
+		else
+		{
+			menu[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+			if(menu[index] == NULL)
+				return -1;
+			menu[index]->copyBitmaps(&sheet[index], 0);
+		}
+	}
+	
+	menu[nbrOfTypes] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(menu[nbrOfTypes] == NULL)
+		return -1;
+
+	menu[nbrOfTypes]->loadBitmaps(L"Graphics\\block34_");
+	menu[nbrOfTypes]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+
+	menu[nbrOfTypes+1] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(menu[nbrOfTypes+1] == NULL)
+		return -1;
+
+	menu[nbrOfTypes+1]->loadBitmaps(L"Graphics\\block35_");
+	menu[nbrOfTypes+1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+
+	x = 768;
+	y = 0;
+	counter = 0;
+	menu[counter]->x_pos = x;
+	menu[counter]->y_pos = y;
+
+	for(unsigned int index_y = 0; index_y < 7; index_y++)
+	{
+		for(unsigned int index_x = 0; index_x < 5; index_x++)
+		{
+			// set the coordinates of the blocks
+			menu[counter]->x_pos = x;
+			menu[counter]->y_pos = y;
+			x+=24;
+			counter++;
+			if(counter == nbrOfTypes)
+				break;
+		}
+		y+=24;
+		x=768;
+	}
+
+	menu[nbrOfTypes+1]->x_pos = x;
+	menu[nbrOfTypes+1]->y_pos = y;
+	
+	return 1;
+}
+
+int PLATFORM::LoadBlocks(unsigned char world)
+{
+	BITMAPFILEHEADER bfh;
+	BITMAPINFOHEADER bih;
+	FILE* fp = NULL;
+	unsigned long* lBits;
+	int counter;
+	int counter2;
+	wchar_t fileName[255];
+	unsigned char* temp_image = NULL;
+	unsigned long* ltemp_image = NULL;
+	unsigned int index = 0;
+
+	for(index = 0; index < nbrOfTypes; index++)
+	{
+		if(sheet[index].image)
+		{
+			free(sheet[index].image);
+			sheet[index].image = NULL;
+		}
+		if(menu[index])
+		{
+			delete menu[index];
+			menu[index] = NULL;
+		}
+	}
+
+	index = 0;
+	while(index < nbrOfTypes)
+	{
+		
+		counter = 0;
+		counter2 = 0;
+		if((index >=0 && index <= 3) || (index == 19))
+			swprintf(fileName, L"Graphics\\world%d\\block%d_0.bmp", world+1,index+1);
+		else
+			swprintf(fileName, L"Graphics\\block%d_0.bmp", index+1);
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
@@ -528,4 +708,56 @@ int PLATFORM::SetWorldNbr(unsigned char w)
 		return 1;
 	}
 	return 0;
+}
+
+void PLATFORM::ResetLevelToCurrentWorld(void)
+{
+	unsigned int _type;
+
+	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	{	
+		if(isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER 
+			|| isOccupied[index]== IS_OCCUPIED_FULL || isOccupied[index] == IS_OCCUPIED_TELEPORT)
+		{
+			_type = type[index];
+			if((_type >= 0 && _type <= 3) || (_type == 19))
+				blocks[index]->copyBitmaps(&sheet[_type], 0);
+			else if( _type == BLOCK_REGULAR_WITH_GOLD_COIN)
+			{
+				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
+				temp_sprite->copyBitmaps(&sheet[BLOCK_GOLD_COIN], 0);
+				temp_sprite->x_pos = blocks[index]->x_pos;
+				temp_sprite->y_pos = blocks[index]->y_pos;
+				temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+				temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+			}
+			else if(_type == BLOCK_REGULAR_WITH_LADDER)
+			{
+				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
+				temp_sprite->copyBitmaps(&sheet[BLOCK_LADDER], 0);
+				temp_sprite->x_pos = blocks[index]->x_pos;
+				temp_sprite->y_pos = blocks[index]->y_pos;
+				temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+				temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+			}
+			else if(_type == BLOCK_REGULAR_WITH_LADDER_END)
+			{
+				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
+				temp_sprite->copyBitmaps(&sheet[BLOCK_LADDER_END], 0);
+				temp_sprite->x_pos = blocks[index]->x_pos;
+				temp_sprite->y_pos = blocks[index]->y_pos;
+				temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+				temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+			}
+			else if(_type == BLOCK_REGULAR_WITH_BOMB_SMALL)
+			{
+				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
+				temp_sprite->copyBitmaps(&sheet[BLOCK_BOMB_SMALL], 0);
+				temp_sprite->x_pos = blocks[index]->x_pos;
+				temp_sprite->y_pos = blocks[index]->y_pos;
+				temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+				temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+			}
+		}
+	}
 }

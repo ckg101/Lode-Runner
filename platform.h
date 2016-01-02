@@ -11,6 +11,7 @@ class PLATFORM
 		int addPlatform(unsigned int blockNbr, unsigned int _type);
 		void deinitialize(void);
 		int loadBlocks(wchar_t* name);
+		int LoadBlocks(unsigned char world);
 		void setBlock(unsigned int blockNbr);
 		void renderPlatform(IDirect3DSurface9* &buf);
 		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
@@ -21,6 +22,7 @@ class PLATFORM
 		IMAGE* getImage(int type);
 		unsigned char GetWorldNbr(void);
 		int SetWorldNbr(unsigned char w);
+		void ResetLevelToCurrentWorld(void);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

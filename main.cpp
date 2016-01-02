@@ -148,7 +148,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	platform = new PLATFORM(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	if(!platform->initialize(1024, 32, 10))
 		MessageBoxW(NULL, L"Error Initializing Platform", L"Error", MB_OK);
-	platform->loadBlocks(L"Graphics\\block");
+	//platform->loadBlocks(L"Graphics\\block");
+	platform->LoadBlocks(WORLD_JUNGLE);
 	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	titleScreen->initialize();
 	gameMode = GAME_MODE_TITLE;
@@ -204,6 +205,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	delete editorCursor;
 	platform->deinitialize();
 	delete platform;
+	delete buttonpress;
     return msg.wParam;
 }
  
@@ -418,8 +420,19 @@ void ProcessKeyboardInput(unsigned char k)
 				music.playMIDIFile();
 			break;
 			case DIK_W:
+				Sleep(500);
 				if(!platform->SetWorldNbr(platform->GetWorldNbr()+1))	// go to the next world with each stroke 
+				{
 					platform->SetWorldNbr(WORLD_JUNGLE);	// once last world is reached the next one is the first world
+					platform->LoadBlocks(WORLD_JUNGLE);
+					platform->ResetLevelToCurrentWorld();
+				}
+				else
+				{
+					platform->LoadBlocks(platform->GetWorldNbr());
+					platform->ResetLevelToCurrentWorld();
+				}
+				controls->GetKeyboardInput();
 			break;
 			case 205:		// right key is pressed
 				//editor_cursor->x_pos++;
@@ -536,6 +549,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 		if(mouseState->rgbButtons[1] & 0x80)
 		{
 			MessageBoxW(NULL, L"Not Implemented Yet", L"Remove Block", MB_OK);
+			controls->GetMouseInput();
 		}
 		if(mouseState->rgbButtons[2] & 0x80)
 		{
