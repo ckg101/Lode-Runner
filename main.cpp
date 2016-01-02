@@ -34,17 +34,17 @@ LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
 IDirect3DSurface9* surface;
 IDirectInput8* dinput;	// the pointer to our DirectInput interface
 IDirectInputDevice8* dinput_keyboard;	
-IDirectSound8* dsound;
+//IDirectSound8* dsound;
 IXAudio2* xaudio;
 RECT src;
-GRAPHICS* graphics;
+//GRAPHICS* graphics;
 CONTROLS* controls;
 SOUND music;
 SOUND* buttonpress;
-SPRITE* sprite;
+//SPRITE* sprite;
 CURSOR* editorCursor;
 CURSOR* titleCursor;
-BACKGROUND background;
+//BACKGROUND background;
 PLATFORM* platform;
 TITLESCREEN* titleScreen;
 int frameCounter;
@@ -57,8 +57,8 @@ bool isRunning;
 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
 int initDInput(HWND hWnd);	// sets up and initializes DirectInput
-int initDSound(HWND hWnd);	// sets up and initializes DirectSound
-int initXAudio(HWND hWnd);
+//int initDSound(HWND hWnd);	// sets up and initializes DirectSound
+int initXAudio(HWND hWnd);		// sets up and initializes XAudio
 void RenderFrame(void);    // renders a single frame
 void cleanD3D(void);    // closes Direct3D and releases memory
 void cleanDInput(void);
@@ -69,6 +69,7 @@ IDirect3DSurface9* LoadBitmapImg2(char* fileName);
 int LoadBitmapImg3(char* fileName, IDirect3DSurface9* &s);
 void ProcessKeyboardInput(unsigned char k);
 void ProcessMouseInput(DIMOUSESTATE* mouseState);
+HRESULT BasicFileOpen();
  
 // the handle for the window, filled by a function
 HWND hWnd;
@@ -88,7 +89,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
  
     // this struct holds information for the window class
     WNDCLASSEX wc;
-	DIMOUSESTATE mouseState;
+	//DIMOUSESTATE mouseState;
  
     // clear out the window class for use
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -127,7 +128,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     initD3D(hWnd);
 	initDInput(hWnd);
 	initXAudio(hWnd);
-	graphics = new GRAPHICS(d3ddev);
+	//graphics = new GRAPHICS(d3ddev);
 	controls = new CONTROLS(dinput);
 	buttonpress = new SOUND(xaudio);
 	buttonpress->loadWAVFile(L"Sound\\buttonpress.wav");
@@ -135,11 +136,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
 	music.playMIDIFile();
 	
-	graphics->LoadBitmapImage(L"Graphics\\background1.bmp", background.surface, &background.parameters);
-	src = background.parameters;
-	sprite = new SPRITE(d3ddev, 9, SCREEN_WIDTH, SCREEN_HEIGHT);
-	sprite->loadBitmaps(L"Graphics\\explosion");
-	sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	//graphics->LoadBitmapImage(L"Graphics\\background1.bmp", background.surface, &background.parameters);
+	//src = background.parameters;
+	//sprite = new SPRITE(d3ddev, 9, SCREEN_WIDTH, SCREEN_HEIGHT);
+	//sprite->loadBitmaps(L"Graphics\\explosion");
+	//sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	editorCursor = new CURSOR(d3ddev, 1, SCREEN_WIDTH, SCREEN_HEIGHT);
 	titleCursor = new CURSOR(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	controls->CreateKeyboard(hWnd);
@@ -198,14 +199,18 @@ int WINAPI WinMain(HINSTANCE hInstance,
     // clean up DirectX and COM
     cleanD3D();
 	cleanDInput();
-	delete graphics;
+	//delete graphics;
+	xaudio->Release();
+//	delete xaudio;
 	delete controls;
 	//delete wavfile;
-	delete sprite;
+	//delete sprite;
 	delete editorCursor;
+	delete titleCursor;
 	platform->deinitialize();
 	delete platform;
 	delete buttonpress;
+	delete titleScreen;
     return msg.wParam;
 }
  
@@ -273,7 +278,7 @@ int initDInput(HWND hWnd)
 
 }
 
-int initDSound(HWND hWnd)
+/*int initDSound(HWND hWnd)
 {
 	HRESULT hr;
 	hr = DirectSoundCreate8(&DSDEVID_DefaultPlayback, &dsound, NULL);
@@ -283,7 +288,7 @@ int initDSound(HWND hWnd)
 		return 0;
 	}
 	return 1;
-}
+}*/
 
 int initXAudio(HWND hWnd)
 {
@@ -456,7 +461,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 {
 	int x, y;
 	int result;
-	wchar_t str[256];
+	//wchar_t str[256];
 	POINT p;
 
 	if(gameMode == GAME_MODE_TITLE)
@@ -543,6 +548,11 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			{
 				buttonpress->startWAVFile();
 				MessageBoxW(hWnd, L"Not Implemented Yet", L"SAVE", MB_OK);
+			}
+			if(platform->getBlockNbr(p.x, p.y) == BLOCK_LOAD_BUTTON+1024)
+			{
+				buttonpress->startWAVFile();
+				MessageBoxW(hWnd, L"Not Implemented Yet", L"LOAD", MB_OK);
 			}
 			controls->GetMouseInput();
 		}

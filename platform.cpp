@@ -99,11 +99,11 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 	if(sheet == NULL)
 		return -3;
 
-	menu = (SPRITE**)malloc(sizeof(SPRITE*) * (nbrOfTypes+2));
+	menu = (SPRITE**)malloc(sizeof(SPRITE*) * (nbrOfTypes+3));
 	if(menu == NULL)
 		return -4;
 	
-	memset(menu, 0, sizeof(SPRITE*)*(nbrOfTypes+2));
+	memset(menu, 0, sizeof(SPRITE*)*(nbrOfTypes+3));
 
 	isSelected = (bool*)malloc(sizeof(bool) * nbr_of_types);
 	if(isSelected == NULL)
@@ -151,7 +151,7 @@ void PLATFORM::deinitialize(void)
 		if(sheet[index].image)
 			free(sheet[index].image);
 	}
-	for(index = 0; index < nbrOfTypes+2; index++)
+	for(index = 0; index < nbrOfTypes+3; index++)
 	{
 		if(menu[index])
 		{
@@ -194,7 +194,7 @@ int PLATFORM::loadBlocks(wchar_t* name)
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
-			MessageBox(NULL, L"file not exist", L"error", MB_OK);
+			MessageBox(NULL, L"file not exist", fileName, MB_OK);
 			return 0;
 		}
 		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);
@@ -374,7 +374,7 @@ int PLATFORM::LoadBlocks(unsigned char world)
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
-			MessageBox(NULL, L"file not exist", L"error", MB_OK);
+			MessageBox(NULL, L"file not exist", fileName, MB_OK);
 			return 0;
 		}
 		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);
@@ -486,6 +486,12 @@ int PLATFORM::LoadBlocks(unsigned char world)
 	menu[nbrOfTypes+1]->loadBitmaps(L"Graphics\\block35_");
 	menu[nbrOfTypes+1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
+	menu[nbrOfTypes+2] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	if(menu[nbrOfTypes+2] == NULL)
+		return -1;
+	menu[nbrOfTypes+2]->loadBitmaps(L"Graphics\\block36_");
+	menu[nbrOfTypes+2]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+
 	x = 768;
 	y = 0;
 	counter = 0;
@@ -510,6 +516,8 @@ int PLATFORM::LoadBlocks(unsigned char world)
 
 	menu[nbrOfTypes+1]->x_pos = x;
 	menu[nbrOfTypes+1]->y_pos = y;
+	menu[nbrOfTypes+2]->x_pos = x+24;
+	menu[nbrOfTypes+2]->y_pos = y;
 	
 	return 1;
 }
@@ -625,6 +633,7 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 		}
 	}
 	menu[nbrOfTypes+1]->renderSprite(buf);
+	menu[nbrOfTypes+2]->renderSprite(buf);
 }
 
 void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
@@ -643,6 +652,11 @@ void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
 	{
 		x = menu[33]->x_pos;
 		y = menu[33]->y_pos;
+	}
+	if(blockNbr == 1024+BLOCK_LOAD_BUTTON)
+	{
+		x = menu[34]->x_pos;
+		y = menu[34]->y_pos;
 	}
 }
 
@@ -665,6 +679,9 @@ unsigned int PLATFORM::getBlockNbr(int x, int y)
 	if(x >= menu[BLOCK_SAVE_BUTTON]->x_pos && x <= menu[BLOCK_SAVE_BUTTON]->x_pos+23)
 			if(y >= menu[BLOCK_SAVE_BUTTON]->y_pos && y <= menu[BLOCK_SAVE_BUTTON]->y_pos+23)
 				return 1024+BLOCK_SAVE_BUTTON;
+	if(x >= menu[BLOCK_LOAD_BUTTON]->x_pos && x <= menu[BLOCK_LOAD_BUTTON]->x_pos+23)
+			if(y >= menu[BLOCK_LOAD_BUTTON]->y_pos && y <= menu[BLOCK_LOAD_BUTTON]->y_pos+23)
+				return 1024+BLOCK_LOAD_BUTTON;
 	return 0;
 }
 

@@ -128,6 +128,11 @@ int CURSOR::SetBlockCursor(int c)
 		blockCursor = c;
 		return 3;
 	}
+	else if(blockCursor == 1024+BLOCK_LOAD_BUTTON)
+	{
+		blockCursor = c;
+		return 4;
+	}
 	return 0;
 }
 
