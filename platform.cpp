@@ -74,6 +74,7 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 	for(unsigned int index = 0; index < nbrOfBlocks; index++)
 	{
 		blocks[index] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+		blocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 		if(blocks[index] == NULL)
 			return -2;
 	}
@@ -419,7 +420,7 @@ int PLATFORM::LoadBlocks(unsigned char world)
 
 		// flip image becuase BMP is stored
 		// upside down
-		counter = bih.biWidth * bih.biHeight - 1;
+		/*counter = bih.biWidth * bih.biHeight - 1;
 		counter2 = 0;
 		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
 		for(int y = bih.biHeight; y > 0; y--)
@@ -430,7 +431,24 @@ int PLATFORM::LoadBlocks(unsigned char world)
 				counter--;
 				counter2++;
 			}
+		}*/
+
+		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
+		counter = bih.biWidth * bih.biHeight-bih.biWidth;		// last pixel
+		counter2 = 0;
+		
+		while(counter2 < bih.biWidth * bih.biHeight)
+		{
+			for(int x = 0; x < bih.biWidth; x++)
+			{
+				ltemp_image[counter2] = lBits[counter];
+				counter++;
+				counter2++;
+			}
+			
+			counter-=bih.biWidth*2;
 		}
+
 
 		memcpy((unsigned long*)lBits, (unsigned long*)ltemp_image, sizeof(unsigned long) * bih.biWidth * bih.biHeight);
 
@@ -537,6 +555,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 	//then set the teleport number.  Maximum amount of teleports allowed in each level are 5
 	if(isOccupied[blockNbr] == IS_OCCUPIED_TELEPORT && _type == BLOCK_TELEPORT_ENTRY)
 	{
+		Sleep(250);
 		if(type[blockNbr] >= BLOCK_TELEPORT_ENTRY1 && type[blockNbr] <= BLOCK_TELEPORT_ENTRY5)
 		{
 			blocks[blockNbr]->copyBitmaps(menu[BLOCK_TELEPORT_ENTRY]->getFrame(type[blockNbr]-300+1), 0);
@@ -553,6 +572,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 	else if(isOccupied[blockNbr] == IS_OCCUPIED_TELEPORT &&
 		_type == BLOCK_TELEPORT_EXIT)
 	{
+		Sleep(250);
 		if(type[blockNbr] >= BLOCK_TELEPORT_EXIT1 && type[blockNbr] <= BLOCK_TELEPORT_EXIT5)
 		{
 			blocks[blockNbr]->copyBitmaps(menu[BLOCK_TELEPORT_EXIT]->getFrame(type[blockNbr]-305+1), 0);
@@ -567,7 +587,8 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 	// if the type of block does not allow another block to be placed inside
 	else if(isOccupied[blockNbr] != IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
 	{
-		blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
+		//blocks[blockNbr]->copyBitmaps(&sheet[_type], 0);
+		blocks[blockNbr]->copyBitmaps(menu[_type]->getFrame(0), 0);
 		type[blockNbr] = _type;
 	}
 	else if(isOccupied[blockNbr] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
@@ -787,6 +808,7 @@ int PLATFORM::SaveLevel(void)
 {
 	IFileDialog *pfd;
 	wchar_t* fileName;
+	FILE* fp;
 
     if (SUCCEEDED(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
     {
@@ -805,6 +827,12 @@ int PLATFORM::SaveLevel(void)
                 {
                     MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
                 }
+
+				fp = _wfopen(fileName, L"wb");
+				fwrite((unsigned char*)&currentWorld, sizeof(unsigned char), 1, fp);
+				fwrite((unsigned int*)type, sizeof(unsigned int) * nbrOfBlocks, 1, fp);
+				fwrite((unsigned short*)isOccupied, sizeof(unsigned short) * nbrOfBlocks, 1, fp);
+				fclose(fp);
                 psi->Release();
             }
         }
@@ -817,6 +845,7 @@ int PLATFORM::LoadLevel(void)
 {
 	IFileDialog *pfd;
 	wchar_t* fileName;
+	FILE* fp;
 
     if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
     {
@@ -835,10 +864,31 @@ int PLATFORM::LoadLevel(void)
                 {
                     MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
                 }
+				ClearLevel();
+				fp = _wfopen(fileName, L"rb");
+				fread((unsigned char*)&currentWorld, sizeof(unsigned char), 1, fp);
+				fread((unsigned int*)type, sizeof(unsigned int) * nbrOfBlocks, 1, fp);
+				fread((unsigned short*)isOccupied, sizeof(unsigned short) * nbrOfBlocks, 1, fp);
+				fclose(fp);
+				LoadBlocks(currentWorld);
+				for(unsigned int index = 0; index < nbrOfBlocks; index++)
+				{
+					addPlatform(index, type[index]);
+				}
+				ResetLevelToCurrentWorld();
                 psi->Release();
             }
         }
         pfd->Release();
     }
 	return 1;
+}
+
+void PLATFORM::ClearLevel(void)
+{
+	currentWorld = WORLD_JUNGLE;
+	memset((unsigned int*)type, BLOCK_EMPTY, sizeof(unsigned int) * nbrOfBlocks);
+	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbrOfBlocks);
+	memset((bool*)isSelected, false, sizeof(bool) * nbrOfTypes);
+	LoadBlocks(currentWorld);
 }

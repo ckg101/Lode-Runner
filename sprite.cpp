@@ -118,7 +118,7 @@ int SPRITE::loadBitmaps(wchar_t* name)
 		}*/
 		
 		ltemp_image = (unsigned long*)malloc(bih.biWidth * bih.biHeight * 4);
-		counter = bih.biWidth * bih.biHeight-1-bih.biWidth;		// last pixel
+		counter = bih.biWidth * bih.biHeight-bih.biWidth;		// last pixel
 		counter2 = 0;
 		
 		while(counter2 < bih.biWidth * bih.biHeight)
@@ -134,7 +134,7 @@ int SPRITE::loadBitmaps(wchar_t* name)
 		}
 
 		memcpy((unsigned long*)lBits, (unsigned long*)ltemp_image, sizeof(unsigned long) * bih.biWidth * bih.biHeight);
-		free(ltemp_image);
+		free(ltemp_image); 
 		index++;
 	}
 	return 1;
@@ -189,6 +189,7 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		D3DLOCKED_RECT locked_rect;
 		int counter = 0;
 		int counter2 = 0;
+		int x, y;
 		
 		hr = backbuffer->LockRect(&locked_rect, NULL, 0);
 		if(FAILED(hr))
@@ -212,19 +213,16 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		lFrame = frames[frameState].image;
 		//counter = bih.biWidth * bih.biHeight;
 		
-		for(int y = 0; y < frames[frameState].parameters.bottom; y++)
+		for(y = 0; y < frames[frameState].parameters.bottom; y++)
 		{
 			//counter = frames[frameState].parameters.right * y;
 			
-			for(int x = 0; x < frames[frameState].parameters.right; x++)
+			for(x = 0; x < frames[frameState].parameters.right; x++)
 			{
-				if(lFrame[counter2] == transparencyColor)
+				if(lFrame[counter2] != transparencyColor)
 				{
-					// do nothing
-				}
-				else
 					lBits[counter] = lFrame[counter2];
-				
+				}			
 				counter++;
 				counter2++;
 			}

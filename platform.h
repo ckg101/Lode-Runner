@@ -25,6 +25,7 @@ class PLATFORM
 		void ResetLevelToCurrentWorld(void);
 		int SaveLevel(void);
 		int LoadLevel(void);
+		void ClearLevel(void);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

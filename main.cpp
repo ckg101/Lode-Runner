@@ -421,6 +421,7 @@ void ProcessKeyboardInput(unsigned char k)
 				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
 				//PostMessage(hWnd, WM_DESTROY, 0, 0);
 				gameMode = GAME_MODE_TITLE;
+				platform->ClearLevel();
 				music.playMIDIFile();
 			break;
 			case DIK_W:
