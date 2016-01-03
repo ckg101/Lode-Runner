@@ -23,6 +23,8 @@ class PLATFORM
 		unsigned char GetWorldNbr(void);
 		int SetWorldNbr(unsigned char w);
 		void ResetLevelToCurrentWorld(void);
+		int SaveLevel(void);
+		int LoadLevel(void);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

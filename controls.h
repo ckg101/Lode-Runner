@@ -16,6 +16,8 @@ class CONTROLS
 		~CONTROLS();
 		int CreateKeyboard(HWND hWnd);
 		int CreateMouse(HWND hWnd);
+		void UnacquireMouse(void);
+		void AcquireMouse(void);
 		unsigned char GetKeyboardInput(void);
 		DIMOUSESTATE GetMouseInput(void);
 	protected:

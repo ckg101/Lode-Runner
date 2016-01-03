@@ -2,12 +2,10 @@
 #include <windowsx.h>
 #include <d3d9.h>
 #include <D3dx9core.h>
-#include <dinput.h>
 #include <stdio.h>
-#include <mmsystem.h>
-#include <dsound.h>
-#include <xaudio2.h>
 #include <math.h>
+#include <comdef.h>
+#include <ShObjIdl.h>
 
 #include "platform.h"
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -526,9 +524,15 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 {
 	if(blockNbr >= nbrOfBlocks)
 		return 0;
-	if(_type >= nbrOfTypes)
+	if(_type >= nbrOfTypes && _type != BLOCK_EMPTY)
 		return -1;
 
+	if(_type == BLOCK_EMPTY)
+	{
+		type[blockNbr] == BLOCK_EMPTY;
+		isOccupied[blockNbr] = IS_NOT_OCCUPIED;
+		return 1;
+	}
 	//Check to see if a teleport entry block is placed already
 	//then set the teleport number.  Maximum amount of teleports allowed in each level are 5
 	if(isOccupied[blockNbr] == IS_OCCUPIED_TELEPORT && _type == BLOCK_TELEPORT_ENTRY)
@@ -777,4 +781,64 @@ void PLATFORM::ResetLevelToCurrentWorld(void)
 			}
 		}
 	}
+}
+
+int PLATFORM::SaveLevel(void)
+{
+	IFileDialog *pfd;
+	wchar_t* fileName;
+
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+    {
+        if (SUCCEEDED(pfd->Show(NULL)))
+        {
+            IShellItem *psi;
+            if (SUCCEEDED(pfd->GetResult(&psi)))
+            {
+                //PWSTR pszPath;
+               /* if (SUCCEEDED(GetIDListName(psi, &pszPath)))
+                {
+                    MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
+                    CoTaskMemFree(pszPath);
+                }*/
+				if(!SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &fileName)))
+                {
+                    MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
+                }
+                psi->Release();
+            }
+        }
+        pfd->Release();
+    }
+	return 1;
+}
+
+int PLATFORM::LoadLevel(void)
+{
+	IFileDialog *pfd;
+	wchar_t* fileName;
+
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+    {
+        if (SUCCEEDED(pfd->Show(NULL)))
+        {
+            IShellItem *psi;
+            if (SUCCEEDED(pfd->GetResult(&psi)))
+            {
+                //PWSTR pszPath;
+               /* if (SUCCEEDED(GetIDListName(psi, &pszPath)))
+                {
+                    MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
+                    CoTaskMemFree(pszPath);
+                }*/
+				if(!SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &fileName)))
+                {
+                    MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
+                }
+                psi->Release();
+            }
+        }
+        pfd->Release();
+    }
+	return 1;
 }

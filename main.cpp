@@ -69,7 +69,6 @@ IDirect3DSurface9* LoadBitmapImg2(char* fileName);
 int LoadBitmapImg3(char* fileName, IDirect3DSurface9* &s);
 void ProcessKeyboardInput(unsigned char k);
 void ProcessMouseInput(DIMOUSESTATE* mouseState);
-HRESULT BasicFileOpen();
  
 // the handle for the window, filled by a function
 HWND hWnd;
@@ -461,6 +460,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 {
 	int x, y;
 	int result;
+	short res;
 	//wchar_t str[256];
 	POINT p;
 
@@ -531,7 +531,6 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 
 		if(mouseState->rgbButtons[0] & 0x80)
 		{
-			short res;
 			res = platform->getIsOccupied(editorCursor->GetBlockCursor());
 			if(res == IS_NOT_OCCUPIED || 
 				res == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER || res == IS_OCCUPIED_TELEPORT)
@@ -547,18 +546,28 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			if(platform->getBlockNbr(p.x, p.y) == BLOCK_SAVE_BUTTON+1024)
 			{
 				buttonpress->startWAVFile();
-				MessageBoxW(hWnd, L"Not Implemented Yet", L"SAVE", MB_OK);
+				//MessageBoxW(hWnd, L"Not Implemented Yet", L"SAVE", MB_OK);
+				controls->UnacquireMouse();
+				platform->SaveLevel();
 			}
 			if(platform->getBlockNbr(p.x, p.y) == BLOCK_LOAD_BUTTON+1024)
 			{
 				buttonpress->startWAVFile();
-				MessageBoxW(hWnd, L"Not Implemented Yet", L"LOAD", MB_OK);
+				//MessageBoxW(hWnd, L"Not Implemented Yet", L"LOAD", MB_OK);
+				controls->UnacquireMouse();
+				platform->LoadLevel();
 			}
 			controls->GetMouseInput();
 		}
 		if(mouseState->rgbButtons[1] & 0x80)
 		{
-			MessageBoxW(NULL, L"Not Implemented Yet", L"Remove Block", MB_OK);
+			res = platform->getIsOccupied(editorCursor->GetBlockCursor());
+			if(res == IS_OCCUPIED || IS_OCCUPIED_FULL ||
+				res == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER || res == IS_OCCUPIED_TELEPORT)
+			{
+				platform->addPlatform(editorCursor->GetBlockCursor(), BLOCK_EMPTY);
+			}
+			//MessageBoxW(NULL, L"Not Implemented Yet", L"Remove Block", MB_OK);
 			controls->GetMouseInput();
 		}
 		if(mouseState->rgbButtons[2] & 0x80)
@@ -574,3 +583,4 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 	}
 	
 }
+

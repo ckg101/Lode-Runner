@@ -147,3 +147,12 @@ CONTROLS::~CONTROLS()
 	dinput_mouse->Release();
 }
 
+void CONTROLS::UnacquireMouse(void)
+{
+	dinput_mouse->Unacquire();
+}
+
+void CONTROLS::AcquireMouse(void)
+{
+	dinput_mouse->Acquire();
+}
