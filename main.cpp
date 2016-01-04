@@ -485,7 +485,8 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			{
 				case TITLESCREEN_1PLAYER_BUTTON:
 					buttonpress->startWAVFile();
-					MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					gameMode = GAME_MODE_PLAY;
 					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_2PLAYER_BUTTON:
