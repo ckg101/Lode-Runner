@@ -28,6 +28,7 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	type = NULL;
 	temp_sprite = NULL;
 	currentWorld = WORLD_JUNGLE;
+	isPlaying = false;
 }
 
 PLATFORM::~PLATFORM()
@@ -646,19 +647,25 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 	{	
 		if(isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER 
 			|| isOccupied[index]== IS_OCCUPIED_FULL || isOccupied[index] == IS_OCCUPIED_TELEPORT)
-			blocks[index]->renderSprite(buf);
-	}
-
-	for(index = 0; index < nbrOfTypes; index++)
-	{
-		menu[index]->renderSprite(buf);
-		if(isSelected[index])
 		{
-			menu[nbrOfTypes]->renderSprite(buf);
+			if(isPlaying == true && type[index] != BLOCK_PLAYER1)
+				blocks[index]->renderSprite(buf);
 		}
 	}
-	menu[nbrOfTypes+1]->renderSprite(buf);
-	menu[nbrOfTypes+2]->renderSprite(buf);
+
+	if(isPlaying == false)
+	{
+		for(index = 0; index < nbrOfTypes; index++)
+		{
+			menu[index]->renderSprite(buf);
+			if(isSelected[index])
+			{
+				menu[nbrOfTypes]->renderSprite(buf);
+			}
+		}
+		menu[nbrOfTypes+1]->renderSprite(buf);
+		menu[nbrOfTypes+2]->renderSprite(buf);
+	}
 }
 
 void PLATFORM::GetBlockCoordinates(unsigned int blockNbr, int &x, int &y)
@@ -884,6 +891,25 @@ int PLATFORM::LoadLevel(void)
 	return 1;
 }
 
+int PLATFORM::LoadLevel(wchar_t* fileName)
+{
+	FILE* fp;
+
+	ClearLevel();
+	fp = _wfopen(fileName, L"rb");
+	fread((unsigned char*)&currentWorld, sizeof(unsigned char), 1, fp);
+	fread((unsigned int*)type, sizeof(unsigned int) * nbrOfBlocks, 1, fp);
+	fread((unsigned short*)isOccupied, sizeof(unsigned short) * nbrOfBlocks, 1, fp);
+	fclose(fp);
+	LoadBlocks(currentWorld);
+	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	{
+		addPlatform(index, type[index]);
+	}
+	ResetLevelToCurrentWorld();
+	return 1;
+}
+
 void PLATFORM::ClearLevel(void)
 {
 	currentWorld = WORLD_JUNGLE;
@@ -891,4 +917,43 @@ void PLATFORM::ClearLevel(void)
 	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbrOfBlocks);
 	memset((bool*)isSelected, false, sizeof(bool) * nbrOfTypes);
 	LoadBlocks(currentWorld);
+}
+
+POINT PLATFORM::GetStartingCoordinatesOfPlayer(unsigned int playerNbr)
+{
+	POINT p;
+	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	{
+		if(playerNbr == 0)
+		{
+			if(type[index] == BLOCK_PLAYER1)
+			{
+				p.x = blocks[index]->x_pos;
+				p.y = blocks[index]->y_pos;
+				return p;
+			}
+		}
+		else if(playerNbr == 1)
+		{
+			if(type[index] == BLOCK_PLAYER2)
+			{
+				p.x = blocks[index]->x_pos;
+				p.y = blocks[index]->y_pos;
+				return p;
+			}
+		}
+	}
+	p.x = 0;
+	p.y = 0;
+	return p;
+}
+
+void PLATFORM::SetIsPlaying(bool status)
+{
+	isPlaying = status;
+}
+
+bool PLATFORM::GetIsPlaying(void)
+{
+	return isPlaying;
 }

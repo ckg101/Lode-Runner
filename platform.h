@@ -25,7 +25,11 @@ class PLATFORM
 		void ResetLevelToCurrentWorld(void);
 		int SaveLevel(void);
 		int LoadLevel(void);
+		int LoadLevel(wchar_t* fileName);
 		void ClearLevel(void);
+		POINT GetStartingCoordinatesOfPlayer(unsigned int playerNbr);
+		void SetIsPlaying(bool status);
+		bool GetIsPlaying(void);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;
@@ -41,6 +45,7 @@ class PLATFORM
 		unsigned int nbrOfTypes;
 		int screenWidth;
 		int screenHeight;
+		bool isPlaying;
 		IDirect3DDevice9* d3ddev;
 
 };

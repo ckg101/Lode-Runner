@@ -14,6 +14,7 @@
 #include "TitleScreen.h"
 #include "cursor.h"
 #include "platform.h"
+#include "gameplay.h"
  
 //#pragma comment(lib, "d3d9.lib")
 //#pragma comment(lib, "D3dx9.lib")
@@ -47,6 +48,7 @@ CURSOR* titleCursor;
 //BACKGROUND background;
 PLATFORM* platform;
 TITLESCREEN* titleScreen;
+GAMEPLAY* gameplay;
 int frameCounter;
 int gameMode;
 time_t seconds;
@@ -152,6 +154,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	platform->LoadBlocks(WORLD_JUNGLE);
 	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	titleScreen->initialize();
+	gameplay = new GAMEPLAY(d3ddev, platform, hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
 	gameMode = GAME_MODE_TITLE;
 	frameCounter = 0;
 	//platform->addPlatform(0, BLOCK_REGULAR);
@@ -210,6 +213,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	delete platform;
 	delete buttonpress;
 	delete titleScreen;
+	delete gameplay;
     return msg.wParam;
 }
  
@@ -370,6 +374,10 @@ void RenderFrame(void)
 		platform->renderPlatform(backbuffer);
 		editorCursor->Render(backbuffer);
 	}
+	else if(gameMode == GAME_MODE_PLAY)
+	{
+		gameplay->Render(backbuffer);
+	}
  
     d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
 		}
@@ -455,6 +463,35 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 		}
 	}
+	else if(gameMode == GAME_MODE_PLAY)
+	{
+		switch(k)
+		{
+			case DIK_ESCAPE:
+				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
+				//PostMessage(hWnd, WM_DESTROY, 0, 0);
+				gameMode = GAME_MODE_TITLE;
+				gameplay->Exit();
+				music.stopMIDIFile();
+				music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
+				music.playMIDIFile();
+			break;
+			case DIK_RIGHT:		// right key is pressed
+				//editor_cursor->x_pos++;
+				gameplay->MovePlayer1Right();
+				//editor_cursor->copyBitmaps(platform->getImage(3), 0);
+			break;
+			case DIK_LEFT:		// left key is pressed
+				gameplay->MovePlayer1Left();
+			break;
+			case 208:		// down key is pressed
+				//editor_cursor->y_pos++;
+			break;
+			case 200:		// up key is pressed
+				//editor_cursor->y_pos--;
+			break;
+		}
+	}
 }
 
 void ProcessMouseInput(DIMOUSESTATE* mouseState)
@@ -485,7 +522,12 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			{
 				case TITLESCREEN_1PLAYER_BUTTON:
 					buttonpress->startWAVFile();
-					MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					music.stopMIDIFile();
+					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					gameplay->LoadLevel(0);
+					gameMode = GAME_MODE_PLAY;
+					music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
+					music.playMIDIFile();
 					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_2PLAYER_BUTTON:
@@ -496,7 +538,9 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				case TITLESCREEN_EDITOR_BUTTON:
 					gameMode = GAME_MODE_EDITOR;
 					music.stopMIDIFile();
+					platform->ClearLevel();
 					buttonpress->startWAVFile();
+					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();

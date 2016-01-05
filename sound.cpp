@@ -105,6 +105,8 @@ unsigned long SOUND::playMIDIFile(void)
 unsigned long SOUND::stopMIDIFile(void)
 {
 	mciSendCommand(wDeviceID,MCI_STOP,MCI_WAIT,(DWORD)&mciGenericParms);
+		mciSendCommand(MCI_ALL_DEVICE_ID, MCI_CLOSE, MCI_WAIT, 
+		NULL);
 	isMIDIPlaying = false;
 	return 0;
 }
