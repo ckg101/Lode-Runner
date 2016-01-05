@@ -12,6 +12,7 @@ class GAMEPLAY
 		void MovePlayer1Up(void);
 		void MovePlayer1Down(void);
 		int LoadLevel(unsigned int levelNbr);
+		int LoadLevel(void);
 		void Exit(void);
 		wchar_t* GetMusicFileName(void);
 

@@ -853,9 +853,13 @@ int PLATFORM::LoadLevel(void)
 	IFileDialog *pfd;
 	wchar_t* fileName;
 	FILE* fp;
+	HRESULT hr;
+
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
     if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
-    {
+    {	
+		pfd->SetOptions(FOS_ALLNONSTORAGEITEMS);
         if (SUCCEEDED(pfd->Show(NULL)))
         {
             IShellItem *psi;
@@ -867,7 +871,8 @@ int PLATFORM::LoadLevel(void)
                     MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
                     CoTaskMemFree(pszPath);
                 }*/
-				if(!SUCCEEDED(psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &fileName)))
+				hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &fileName);
+				if(!SUCCEEDED(hr))
                 {
                     MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
                 }

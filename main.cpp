@@ -447,20 +447,6 @@ void ProcessKeyboardInput(unsigned char k)
 				}
 				controls->GetKeyboardInput();
 			break;
-			case 205:		// right key is pressed
-				//editor_cursor->x_pos++;
-				editorCursor->SetType(editorCursor->GetType()+1);
-				//editor_cursor->copyBitmaps(platform->getImage(3), 0);
-			break;
-			case 203:		// left key is pressed
-				//editor_cursor->x_pos--;
-			break;
-			case 208:		// down key is pressed
-				//editor_cursor->y_pos++;
-			break;
-			case 200:		// up key is pressed
-				//editor_cursor->y_pos--;
-			break;
 		}
 	}
 	else if(gameMode == GAME_MODE_PLAY)
@@ -468,8 +454,6 @@ void ProcessKeyboardInput(unsigned char k)
 		switch(k)
 		{
 			case DIK_ESCAPE:
-				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
-				//PostMessage(hWnd, WM_DESTROY, 0, 0);
 				gameMode = GAME_MODE_TITLE;
 				gameplay->Exit();
 				music.stopMIDIFile();
@@ -477,18 +461,16 @@ void ProcessKeyboardInput(unsigned char k)
 				music.playMIDIFile();
 			break;
 			case DIK_RIGHT:		// right key is pressed
-				//editor_cursor->x_pos++;
 				gameplay->MovePlayer1Right();
-				//editor_cursor->copyBitmaps(platform->getImage(3), 0);
 			break;
 			case DIK_LEFT:		// left key is pressed
 				gameplay->MovePlayer1Left();
 			break;
-			case 208:		// down key is pressed
-				//editor_cursor->y_pos++;
+			case DIK_DOWN:		// down key is pressed
+				gameplay->MovePlayer1Down();
 			break;
-			case 200:		// up key is pressed
-				//editor_cursor->y_pos--;
+			case DIK_UP:		// up key is pressed
+				gameplay->MovePlayer1Up();
 			break;
 		}
 	}
@@ -544,7 +526,13 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				break;
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();
-					MessageBoxW(hWnd, L"Not Implemented Yet", L"Load Level", MB_OK);
+					Sleep(250);
+					music.stopMIDIFile();
+					controls->UnacquireMouse();
+					gameplay->LoadLevel();
+					gameMode = GAME_MODE_PLAY;
+					music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
+					music.playMIDIFile();
 					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_OPTIONS_BUTTON:

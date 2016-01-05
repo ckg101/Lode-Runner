@@ -75,6 +75,17 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	return 1;
 }
 
+int GAMEPLAY::LoadLevel(void)
+{
+	POINT p;
+	platform->LoadLevel();
+	p = platform->GetStartingCoordinatesOfPlayer(0);
+	player[0]->x_pos = p.x;
+	player[0]->y_pos = p.y;
+	platform->SetIsPlaying(true);
+	return 1;
+}
+
 void GAMEPLAY::Exit(void)
 {
 	platform->SetIsPlaying(false);
