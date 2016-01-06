@@ -277,30 +277,6 @@ int SPRITE::CopyOntoBlock(IMAGE* frame, unsigned int width, unsigned int height)
 		return 1;
 }
 
-void SPRITE::nextFrame(void)
-{
-	if(frameState > 8)
-		frameState = 0;
-	else if(frameState < 8)
-		frameState++;
-	else
-		frameState = 0;
-}
-
-void SPRITE::prevFrame(void)
-{
-	if(frameState < 9)
-	{
-		frameState = 9;
-	}
-	else if(frameState < 17)
-	{
-		frameState++;
-	}
-	else
-		frameState = 9;
-}
-
 void SPRITE::setTransparencyColor(unsigned long color)
 {
 	transparencyColor = color;

@@ -20,10 +20,10 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_widt
 	player = NULL;
 	musicFileName = NULL;
 
-	player = (SPRITE**) malloc(sizeof(SPRITE*) * 2);
+	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new SPRITE(d, 18, screen_width, screen_height);
+		player[index] = new PLAYER(d, 24, screen_width, screen_height);
 	}
 
 	player[0]->loadBitmaps(L"Graphics\\block29_");
@@ -107,15 +107,17 @@ void GAMEPLAY::MovePlayer1Right(void)
 void GAMEPLAY::MovePlayer1Left(void)
 {
 	player[0]->x_pos-=3;
-	player[0]->prevFrame();
+	player[0]->backFrame();
 }
 
 void GAMEPLAY::MovePlayer1Down(void)
 {
-	player[0]->y_pos++;
+	player[0]->y_pos+=3;
+	player[0]->downFrame();
 }
 
 void GAMEPLAY::MovePlayer1Up(void)
 {
-	player[0]->y_pos--;
+	player[0]->y_pos-=3;
+	player[0]->upFrame();
 }

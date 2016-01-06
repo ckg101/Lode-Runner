@@ -1,6 +1,8 @@
 #ifndef GAMEPLAY_H
 #define GAMEPLAY_H
 
+#include "player.h"
+
 class GAMEPLAY
 {
 	public:
@@ -19,7 +21,7 @@ class GAMEPLAY
 	private:
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
-		SPRITE** player;
+		PLAYER** player;
 		SPRITE** monk;
 		wchar_t** musicFileName;
 		unsigned int gold;
