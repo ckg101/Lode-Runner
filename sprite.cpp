@@ -232,13 +232,13 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 		if(animationType == ANIMATION_AUTOMATIC_LOOP)
 		{
 			frameState++;
-		}
-		if(animationType == ANIMATION_TRIGGERED_SEQ)
-		{
-			// do not advance frameState
-		}
-		if(frameState == nbrOfFrames)
+			if(frameState == nbrOfFrames)
 				frameState = 0;
+		}
+		//if(animationType == ANIMATION_TRIGGERED_SEQ)
+		//{
+			// do not advance frameState
+		//}
 		return 1;
 }
 
@@ -279,7 +279,26 @@ int SPRITE::CopyOntoBlock(IMAGE* frame, unsigned int width, unsigned int height)
 
 void SPRITE::nextFrame(void)
 {
-	frameState++;
+	if(frameState > 8)
+		frameState = 0;
+	else if(frameState < 8)
+		frameState++;
+	else
+		frameState = 0;
+}
+
+void SPRITE::prevFrame(void)
+{
+	if(frameState < 9)
+	{
+		frameState = 9;
+	}
+	else if(frameState < 17)
+	{
+		frameState++;
+	}
+	else
+		frameState = 9;
 }
 
 void SPRITE::setTransparencyColor(unsigned long color)

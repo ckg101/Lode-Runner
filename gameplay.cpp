@@ -23,13 +23,15 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_widt
 	player = (SPRITE**) malloc(sizeof(SPRITE*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new SPRITE(d, 1, screen_width, screen_height);
+		player[index] = new SPRITE(d, 18, screen_width, screen_height);
 	}
 
 	player[0]->loadBitmaps(L"Graphics\\block29_");
 	player[0]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-	player[1]->loadBitmaps(L"Graphics\\block30_");
-	player[1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	player[0]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	//player[1]->loadBitmaps(L"Graphics\\block30_");
+	//player[1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	//player[1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
 	musicFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 10);
 	
@@ -98,12 +100,14 @@ wchar_t* GAMEPLAY::GetMusicFileName(void)
 
 void GAMEPLAY::MovePlayer1Right(void)
 {
-	player[0]->x_pos++;
+	player[0]->x_pos+=3;
+	player[0]->nextFrame();
 }
 
 void GAMEPLAY::MovePlayer1Left(void)
 {
-	player[0]->x_pos--;
+	player[0]->x_pos-=3;
+	player[0]->prevFrame();
 }
 
 void GAMEPLAY::MovePlayer1Down(void)

@@ -81,6 +81,7 @@ class SPRITE
 		int renderSprite(IDirect3DSurface9* &backbuffer);
 		int CopyOntoBlock(IMAGE* image, unsigned int width, unsigned int height);
 		void nextFrame(void);
+		void prevFrame(void);
 		void setTransparencyColor(unsigned long color);
 		IMAGE* getFrame(void);
 		IMAGE* getFrame(unsigned int frameNbr);

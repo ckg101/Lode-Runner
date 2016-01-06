@@ -51,7 +51,7 @@ TITLESCREEN* titleScreen;
 GAMEPLAY* gameplay;
 int frameCounter;
 int gameMode;
-time_t seconds;
+unsigned long seconds;
 bool isRunning;
 
 //unsigned char keyboardState[256];
@@ -297,7 +297,7 @@ int initXAudio(HWND hWnd)
 {
 	HRESULT hr;
 	IXAudio2MasteringVoice* pMasterVoice = NULL;
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	xaudio = NULL;
 	hr = XAudio2Create(&xaudio, 0, XAUDIO2_DEFAULT_PROCESSOR);
 	if(hr != S_OK)
@@ -325,65 +325,87 @@ int initXAudio(HWND hWnd)
 // this is the function used to render a single frame
 void RenderFrame(void)
 {
-	time_t temp_time = time(NULL) - seconds;
+	unsigned long temp_time = GetTickCount() - seconds;
 	do
 	{
 		frameCounter++;
-		temp_time = time(NULL) - seconds;
+		temp_time = GetTickCount() - seconds;
 
+		if(gameMode == GAME_MODE_PLAY)
+		{
+			if(frameCounter < 61)
+			{
+				
+				buttonpress->playWAVFile();
+				IDirect3DSurface9* backbuffer = NULL;
+				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+ 
+				d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+
+				ProcessKeyboardInput(controls->GetKeyboardInput());
+				ProcessMouseInput(&controls->GetMouseInput());
+
+				gameplay->Render(backbuffer);
+				d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
+				
+			}
+		}
+		else
+		{
 		if(frameCounter < 61)
 		{
 			buttonpress->playWAVFile();
-	IDirect3DSurface9* backbuffer = NULL;
-	d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+			IDirect3DSurface9* backbuffer = NULL;
+			d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
  
-	d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+			d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
 
-	ProcessKeyboardInput(controls->GetKeyboardInput());
-	ProcessMouseInput(&controls->GetMouseInput());
+			ProcessKeyboardInput(controls->GetKeyboardInput());
+			ProcessMouseInput(&controls->GetMouseInput());
 
-	if(gameMode == GAME_MODE_TITLE)
-	{
+			if(gameMode == GAME_MODE_TITLE)
+			{
 		
-		titleScreen->Render(backbuffer);
-		titleCursor->Render(backbuffer);
-	}
+				titleScreen->Render(backbuffer);
+				titleCursor->Render(backbuffer);
+			}
 
-	else if(gameMode == GAME_MODE_EDITOR)
-	{
+			else if(gameMode == GAME_MODE_EDITOR)
+			{
 	
-		//wavfile->playWAVFile();
-		// clear the window to a black
+				//wavfile->playWAVFile();
+				// clear the window to a black
 		
 	
+	
+				//render sprites
+				//sprite->renderSprite(background.surface);
 
-		//render sprites
-		//sprite->renderSprite(background.surface);
-
-		/*RECT dest;
-		dest.bottom = src.bottom;
-		dest.top = 0;
-		dest.left = 0;
-		dest.right = src.right;
-		d3ddev->StretchRect(background.surface, 
+				/*RECT dest;
+				dest.bottom = src.bottom;
+				dest.top = 0;
+				dest.left = 0;
+				dest.right = src.right;
+				d3ddev->StretchRect(background.surface, 
 						&background.parameters, 
 						backbuffer, 
 						&dest, 
 						D3DTEXF_NONE);*/
 	
-		platform->renderPlatform(backbuffer);
-		editorCursor->Render(backbuffer);
-	}
-	else if(gameMode == GAME_MODE_PLAY)
-	{
-		gameplay->Render(backbuffer);
-	}
+				platform->renderPlatform(backbuffer);
+				editorCursor->Render(backbuffer);
+			}
+			else if(gameMode == GAME_MODE_PLAY)
+			{
+				gameplay->Render(backbuffer);
+			}
  
-    d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
+			 d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
+			}
 		}
-	}while(temp_time < 1);
+	}while(temp_time < 1000);
 
-	seconds = time(NULL);
+	seconds = GetTickCount();
 	frameCounter=0;
 }
  
