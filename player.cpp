@@ -20,41 +20,41 @@ PLAYER::~PLAYER()
 
 void PLAYER::nextFrame(void)
 {
-	if(frameState > 8)
-		frameState = 0;
-	else if(frameState < 8)
+	if(frameState > 10)
+		frameState = 1;
+	else if(frameState < 9)
 		frameState++;
 	else
-		frameState = 0;
+		frameState = 1;
 }
 
 void PLAYER::backFrame(void)
 {
-	if(frameState < 9)
+	if(frameState < 11 || frameState > 21)
 	{
-		frameState = 9;
+		frameState = 11;
 	}
-	else if(frameState < 17)
+	else if(frameState < 19)
 	{
 		frameState++;
 	}
 	else
-		frameState = 9;
+		frameState = 11;
 }
 
-void PLAYER::downFrame(void)
+void PLAYER::climbDownFrame(void)
 {
-	if(frameState != 18)
+	if(frameState != 21)
 	{
-		frameState = 18;
+		frameState = 21;
 	}
 }
 
-void PLAYER::upFrame(void)
+void PLAYER::climbUpFrame(void)
 {
-	if(frameState < 19 || frameState == 20)
+	if(frameState < 22 || frameState == 23)
 	{
-		frameState = 19;
+		frameState = 22;
 	}
 	else
 		frameState++;
@@ -62,4 +62,9 @@ void PLAYER::upFrame(void)
 
 void PLAYER::fallingFrame(void)
 {
+}
+
+void PLAYER::setFrameState(unsigned int index)
+{
+	frameState = index;
 }

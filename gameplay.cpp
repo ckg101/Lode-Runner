@@ -23,7 +23,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_widt
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 24, screen_width, screen_height);
+		player[index] = new PLAYER(d, 27, screen_width, screen_height);
 	}
 
 	player[0]->loadBitmaps(L"Graphics\\block29_");
@@ -100,24 +100,61 @@ wchar_t* GAMEPLAY::GetMusicFileName(void)
 
 void GAMEPLAY::MovePlayer1Right(void)
 {
-	player[0]->x_pos+=3;
-	player[0]->nextFrame();
+	unsigned int res;
+	// detect for hitting walls
+	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos+15, player[0]->y_pos));
+	if( res > BLOCK_HOLLOW)
+	{
+		player[0]->x_pos+=3;
+		player[0]->nextFrame();
+	}
+	else
+		player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
 }
 
 void GAMEPLAY::MovePlayer1Left(void)
 {
-	player[0]->x_pos-=3;
-	player[0]->backFrame();
+	unsigned int res;
+	// detect for hitting walls
+	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos-3, player[0]->y_pos));
+	if(res > BLOCK_HOLLOW)
+	 {
+		player[0]->x_pos-=3;
+		player[0]->backFrame();
+	}
+	else
+		player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
+	
 }
 
 void GAMEPLAY::MovePlayer1Down(void)
 {
-	player[0]->y_pos+=3;
-	player[0]->downFrame();
+	unsigned int res;
+	unsigned int blockNbr;
+	int x, y;
+	blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos+24);
+	res = platform->GetType(blockNbr);
+	if(res == BLOCK_LADDER)
+	{
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[0]->x_pos = x;
+		player[0]->y_pos+=3;
+		player[0]->climbDownFrame();
+	}
 }
 
 void GAMEPLAY::MovePlayer1Up(void)
 {
-	player[0]->y_pos-=3;
-	player[0]->upFrame();
+	unsigned int res;
+	unsigned int blockNbr;
+	int x, y;
+	blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos);
+	res = platform->GetType(blockNbr);
+	if(res == BLOCK_LADDER)
+	{
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[0]->x_pos = x;
+		player[0]->y_pos-=3;
+		player[0]->climbUpFrame();
+	}
 }

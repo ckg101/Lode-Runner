@@ -548,7 +548,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 
 	if(_type == BLOCK_EMPTY)
 	{
-		type[blockNbr] == BLOCK_EMPTY;
+		type[blockNbr] = BLOCK_EMPTY;
 		isOccupied[blockNbr] = IS_NOT_OCCUPIED;
 		return 1;
 	}
@@ -650,6 +650,10 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 		{
 			if(isPlaying == true && type[index] != BLOCK_PLAYER1)
 				blocks[index]->renderSprite(buf);
+			if(isPlaying == false)
+			{
+				blocks[index]->renderSprite(buf);
+			}
 		}
 	}
 
@@ -964,6 +968,11 @@ POINT PLATFORM::GetStartingCoordinatesOfPlayer(unsigned int playerNbr)
 void PLATFORM::SetIsPlaying(bool status)
 {
 	isPlaying = status;
+}
+
+unsigned int PLATFORM::GetType(unsigned int blockNbr)
+{
+	return type[blockNbr];
 }
 
 bool PLATFORM::GetIsPlaying(void)

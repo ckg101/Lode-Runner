@@ -10,9 +10,12 @@ public:
 
 	void nextFrame(void);
 	void backFrame(void);
-	void downFrame(void);
-	void upFrame(void);
+	void climbDownFrame(void);
+	void climbUpFrame(void);
 	void fallingFrame(void);
+	void setFrameState(unsigned int index);
+private:
+	int test;
 };
 
 #endif

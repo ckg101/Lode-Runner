@@ -30,6 +30,7 @@ class PLATFORM
 		POINT GetStartingCoordinatesOfPlayer(unsigned int playerNbr);
 		void SetIsPlaying(bool status);
 		bool GetIsPlaying(void);
+		unsigned int GetType(unsigned int blockNbr);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

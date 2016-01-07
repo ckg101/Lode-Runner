@@ -28,6 +28,9 @@
 #define GAME_MODE_TITLE	0
 #define GAME_MODE_EDITOR	1
 #define GAME_MODE_PLAY	2
+
+enum GAME_SPEED
+{	SPEED5 = 0, SPEED4 = 25, SPEED3 = 50, SPEED2 = 75, SPEED1 = 100};
  
 // global declarations
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
@@ -333,9 +336,9 @@ void RenderFrame(void)
 
 		if(gameMode == GAME_MODE_PLAY)
 		{
-			if(frameCounter < 61)
+			if(frameCounter <61)
 			{
-				
+				Sleep(SPEED4);
 				buttonpress->playWAVFile();
 				IDirect3DSurface9* backbuffer = NULL;
 				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
@@ -453,6 +456,7 @@ void ProcessKeyboardInput(unsigned char k)
 				gameMode = GAME_MODE_TITLE;
 				platform->ClearLevel();
 				music.playMIDIFile();
+				Sleep(250);
 			break;
 			case DIK_W:
 				Sleep(500);
@@ -481,6 +485,7 @@ void ProcessKeyboardInput(unsigned char k)
 				music.stopMIDIFile();
 				music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
 				music.playMIDIFile();
+				controls->GetKeyboardInput();
 			break;
 			case DIK_RIGHT:		// right key is pressed
 				gameplay->MovePlayer1Right();
@@ -542,6 +547,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				case TITLESCREEN_EDITOR_BUTTON:
 					gameMode = GAME_MODE_EDITOR;
 					music.stopMIDIFile();
+					platform->SetIsPlaying(false);
 					platform->ClearLevel();
 					buttonpress->startWAVFile();
 					controls->GetMouseInput();
