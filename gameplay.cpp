@@ -5,7 +5,6 @@
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>
-#include <dsound.h>
 #include <xaudio2.h>
 #include <math.h>
 #include "sprite.h"
@@ -13,12 +12,14 @@
 #include "sound.h"
 #include "gameplay.h"
 
-GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height)
+GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height)
 {
 	d3ddev = d;
 	platform = p;
 	player = NULL;
 	musicFileName = NULL;
+	isFalling = false;
+	fallingSound = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -40,6 +41,11 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_widt
 		musicFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 		wsprintf(musicFileName[index], L"Sound\\world%d.MID", index+1);
 	}
+
+	fallingSound = new SOUND(xa);
+	fallingSound->loadWAVFile(L"Sound\\falling.wav");
+	landingSound = new SOUND(xa);
+	landingSound->loadWAVFile(L"Sound\\landing.wav");
 }
 
 GAMEPLAY::~GAMEPLAY(void)
@@ -58,6 +64,10 @@ GAMEPLAY::~GAMEPLAY(void)
 		}
 		free(musicFileName);
 	}
+	if(fallingSound)
+		delete fallingSound;
+	if(landingSound)
+		delete landingSound;
 }
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
@@ -115,8 +125,11 @@ void GAMEPLAY::MovePlayer1Right(void)
 void GAMEPLAY::MovePlayer1Left(void)
 {
 	unsigned int res;
+
+	if(isFalling == false)
+	{
 	// detect for hitting walls
-	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos-3, player[0]->y_pos));
+	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos-1, player[0]->y_pos));
 	if(res > BLOCK_HOLLOW)
 	 {
 		player[0]->x_pos-=3;
@@ -124,6 +137,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 	}
 	else
 		player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
+	}
 	
 }
 
@@ -134,7 +148,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 	int x, y;
 	blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos+24);
 	res = platform->GetType(blockNbr);
-	if(res == BLOCK_LADDER)
+	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
 	{
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[0]->x_pos = x;
@@ -145,16 +159,75 @@ void GAMEPLAY::MovePlayer1Down(void)
 
 void GAMEPLAY::MovePlayer1Up(void)
 {
-	unsigned int res;
-	unsigned int blockNbr;
+	unsigned int res, res2;
+	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
-	blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos);
+
+	blockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
+	prevBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos+23);
+	//currentBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
+	res2 = platform->GetType(prevBlockNbr);
 	res = platform->GetType(blockNbr);
-	if(res == BLOCK_LADDER)
+	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
 	{
+		//if(res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER || res2 == BLOCK_REGULAR)
+		
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->x_pos = x;
+			player[0]->y_pos-=3;
+			player[0]->climbUpFrame();
+		
+	}
+	else if (res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER)
+	{
+		
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->x_pos = x;
+			player[0]->y_pos-=1;
+			player[0]->climbUpFrame();
+	}
+	else
+	{
+		//platform->GetBlockCoordinates(blockNbr, x, y);
+		//player[0]->x_pos = x;
+		//player[0]->y_pos = y;
+		player[0]->setFrameState(0);
+	}
+
+}
+
+void GAMEPLAY::Gravity(void)
+{
+	unsigned int res, blockNbr;
+	int x, y;
+	blockNbr = platform->getBlockNbr(player[0]->x_pos+12, player[0]->y_pos+24);
+	res = platform->GetType(blockNbr);
+	//blockNbr2 = platform->getBlockNbr(player[0]->x_pos-10, player[0]->y_pos+24);
+	//res2 = platform->GetType(blockNbr2);
+	if(res == BLOCK_EMPTY)
+	{
+		blockNbr = platform->getBlockNbr(player[0]->x_pos+12, player[0]->y_pos);
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[0]->x_pos = x;
-		player[0]->y_pos-=3;
-		player[0]->climbUpFrame();
+		player[0]->y_pos+=3;
+		player[0]->fallingFrame();
+		if(isFalling == false)
+			fallingSound->startWAVFile();
+		isFalling = true;
 	}
+	else
+	{
+		if(isFalling == true)
+		{
+			fallingSound->stopWAVFile();
+			landingSound->startWAVFile();
+		}
+		isFalling = false;
+	}
+}
+
+void GAMEPLAY::Sounds(void)
+{
+	fallingSound->playWAVFile();
+	landingSound->playWAVFile();
 }

@@ -157,7 +157,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	platform->LoadBlocks(WORLD_JUNGLE);
 	titleScreen = new TITLESCREEN(d3ddev, SCREEN_WIDTH, SCREEN_HEIGHT);
 	titleScreen->initialize();
-	gameplay = new GAMEPLAY(d3ddev, platform, hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
+	gameplay = new GAMEPLAY(d3ddev, xaudio, platform, hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
 	gameMode = GAME_MODE_TITLE;
 	frameCounter = 0;
 	//platform->addPlatform(0, BLOCK_REGULAR);
@@ -340,6 +340,7 @@ void RenderFrame(void)
 			{
 				Sleep(SPEED4);
 				buttonpress->playWAVFile();
+				gameplay->Sounds();
 				IDirect3DSurface9* backbuffer = NULL;
 				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
  
@@ -347,6 +348,7 @@ void RenderFrame(void)
 
 				ProcessKeyboardInput(controls->GetKeyboardInput());
 				ProcessMouseInput(&controls->GetMouseInput());
+				gameplay->Gravity();
 
 				gameplay->Render(backbuffer);
 				d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame

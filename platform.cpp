@@ -61,13 +61,13 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 	type = (unsigned int*)malloc(sizeof(unsigned int) * nbr_of_blocks);
 	if(type == NULL)
 		return -1;
-	memset((unsigned int*)type, (unsigned int)BLOCK_EMPTY, sizeof(unsigned int) * nbr_of_blocks);
-
+	for(unsigned int index = 0; index < nbr_of_blocks; index++)
+		type[index] = BLOCK_EMPTY;
 	// set each block as false to represent an empty block
 	isOccupied = (unsigned short*)malloc(sizeof(unsigned short) * nbr_of_blocks);
 	if(isOccupied == NULL)
 		return -1;
-	memset((unsigned short*)isOccupied, (unsigned short)IS_NOT_OCCUPIED, sizeof(unsigned short) * nbr_of_blocks);
+	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbr_of_blocks);
 	nbrOfBlocks = nbr_of_blocks;
 
 	nbrOfTypes = nbr_of_types;
@@ -930,7 +930,8 @@ int PLATFORM::LoadLevel(wchar_t* fileName)
 void PLATFORM::ClearLevel(void)
 {
 	currentWorld = WORLD_JUNGLE;
-	memset((unsigned int*)type, BLOCK_EMPTY, sizeof(unsigned int) * nbrOfBlocks);
+	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+		type[index] = BLOCK_EMPTY;
 	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbrOfBlocks);
 	memset((bool*)isSelected, false, sizeof(bool) * nbrOfTypes);
 	LoadBlocks(currentWorld);

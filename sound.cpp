@@ -163,8 +163,10 @@ int SOUND::startWAVFile(void)
     XAUDIO2_BUFFER buffer = {0};
     buffer.pAudioData = wavdata;
     buffer.Flags = XAUDIO2_END_OF_STREAM;  // tell the source voice not to expect any data after this buffer
+	buffer.LoopBegin = 0;
     buffer.AudioBytes = wfh.subchunkSize;
 
+	pSourceVoice->FlushSourceBuffers();
     if( FAILED( hr = pSourceVoice->SubmitSourceBuffer( &buffer ) ) )
     {
         swprintf(errormsg, L"Error %#X submitting source buffer\n", hr );
@@ -196,6 +198,15 @@ int SOUND::playWAVFile(void)
 		return 0;
 	}
     return 1;
+}
+
+void SOUND::stopWAVFile(void)
+{
+	if(isRunning)
+	{
+		pSourceVoice->Stop();
+		isRunning = FALSE;
+	}
 }
 
 bool SOUND::getMIDIStatus(void)

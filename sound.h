@@ -30,6 +30,7 @@ class SOUND
 		int loadWAVFile(wchar_t* fileName);
 		int startWAVFile(void);
 		int playWAVFile(void);
+		void stopWAVFile(void);
 		bool getMIDIStatus(void);
 	private:
 		IXAudio2* xaudio;

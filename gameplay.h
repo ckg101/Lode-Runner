@@ -2,11 +2,12 @@
 #define GAMEPLAY_H
 
 #include "player.h"
+#include "sound.h"
 
 class GAMEPLAY
 {
 	public:
-		GAMEPLAY(IDirect3DDevice9* d, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height);
+		GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height);
 		~GAMEPLAY(void);
 		void Render(IDirect3DSurface9* &buf);
 		void MovePlayer1Right(void);
@@ -16,6 +17,8 @@ class GAMEPLAY
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
+		void Gravity(void);
+		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
 
 	private:
@@ -25,7 +28,9 @@ class GAMEPLAY
 		SPRITE** monk;
 		wchar_t** musicFileName;
 		unsigned int gold;
-
+		bool isFalling;
+		SOUND* fallingSound;
+		SOUND* landingSound;
 };
 
 #endif
