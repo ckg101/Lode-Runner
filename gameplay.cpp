@@ -110,33 +110,43 @@ wchar_t* GAMEPLAY::GetMusicFileName(void)
 
 void GAMEPLAY::MovePlayer1Right(void)
 {
-	unsigned int res;
-	// detect for hitting walls
-	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos+15, player[0]->y_pos));
-	if( res > BLOCK_HOLLOW)
+	unsigned int res, blockNbr;
+	int x, y;
+	if(isFalling == false)
 	{
-		player[0]->x_pos+=3;
-		player[0]->nextFrame();
+		blockNbr = platform->getBlockNbr(player[0]->x_pos+25, player[0]->y_pos);
+		// detect for hitting walls
+		res = platform->GetType(blockNbr);
+		if( res > BLOCK_HOLLOW && (player[0]->x_pos+24 < 767))
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->x_pos+=4;
+			player[0]->y_pos = y;
+			player[0]->nextFrame();
+		}
+		else
+			player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
 	}
-	else
-		player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
 }
 
 void GAMEPLAY::MovePlayer1Left(void)
 {
-	unsigned int res;
-
+	unsigned int res, blockNbr;
+	int x, y;
 	if(isFalling == false)
 	{
-	// detect for hitting walls
-	res = platform->GetType(platform->getBlockNbr(player[0]->x_pos-1, player[0]->y_pos));
-	if(res > BLOCK_HOLLOW)
-	 {
-		player[0]->x_pos-=3;
-		player[0]->backFrame();
-	}
-	else
-		player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
+		// detect for hitting walls
+			blockNbr = platform->getBlockNbr(player[0]->x_pos-1, player[0]->y_pos);
+			res = platform->GetType(blockNbr);
+		if(res > BLOCK_HOLLOW && (player[0]->x_pos > 0))
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->x_pos-=4;
+			player[0]->y_pos = y;
+			player[0]->backFrame();
+		}
+		else
+			player[0]->setFrameState(0);	// if hit a wall set the frame to the idle
 	}
 	
 }
@@ -152,7 +162,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 	{
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[0]->x_pos = x;
-		player[0]->y_pos+=3;
+		player[0]->y_pos+=4;
 		player[0]->climbDownFrame();
 	}
 }
@@ -168,13 +178,16 @@ void GAMEPLAY::MovePlayer1Up(void)
 	//currentBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
 	res2 = platform->GetType(prevBlockNbr);
 	res = platform->GetType(blockNbr);
-	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
+	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER && (player[0]->y_pos > 0))
 	{
 		//if(res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER || res2 == BLOCK_REGULAR)
 		
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			player[0]->x_pos = x;
-			player[0]->y_pos-=3;
+			if(player[0]->y_pos-4 < 0)
+				player[0]->y_pos = 0;
+			else
+				player[0]->y_pos-=4;
 			player[0]->climbUpFrame();
 		
 	}
@@ -183,7 +196,10 @@ void GAMEPLAY::MovePlayer1Up(void)
 		
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			player[0]->x_pos = x;
-			player[0]->y_pos-=1;
+			if(player[0]->y_pos-2 < 0)
+				player[0]->y_pos = 0;
+			else
+				player[0]->y_pos-=2;
 			player[0]->climbUpFrame();
 	}
 	else
@@ -204,12 +220,19 @@ void GAMEPLAY::Gravity(void)
 	res = platform->GetType(blockNbr);
 	//blockNbr2 = platform->getBlockNbr(player[0]->x_pos-10, player[0]->y_pos+24);
 	//res2 = platform->GetType(blockNbr2);
-	if(res == BLOCK_EMPTY)
+	if(res == BLOCK_EMPTY && (player[0]->y_pos <= 743))
 	{
 		blockNbr = platform->getBlockNbr(player[0]->x_pos+12, player[0]->y_pos);
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[0]->x_pos = x;
-		player[0]->y_pos+=3;
+		if(player[0]->y_pos+5 > 745)
+		{
+			blockNbr = platform->getBlockNbr(player[0]->x_pos, 760);
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->y_pos = y;
+		}
+		else
+			player[0]->y_pos+=5;
 		player[0]->fallingFrame();
 		if(isFalling == false)
 			fallingSound->startWAVFile();
@@ -221,6 +244,7 @@ void GAMEPLAY::Gravity(void)
 		{
 			fallingSound->stopWAVFile();
 			landingSound->startWAVFile();
+			player[0]->setFrameState(0);
 		}
 		isFalling = false;
 	}

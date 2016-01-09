@@ -191,7 +191,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			if(msg.wParam == MCI_NOTIFY_SUCCESSFUL)
 			{
 				if(music.getMIDIStatus())
+				{
+					//music.stopMIDIFile();
 					music.playMIDIFile();
+				}
 			}
 		}
  
