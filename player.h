@@ -14,6 +14,8 @@ public:
 	void climbUpFrame(void);
 	void fallingFrame(void);
 	void setFrameState(unsigned int index);
+	bool enterLevel(void);
+
 private:
 	int test;
 };

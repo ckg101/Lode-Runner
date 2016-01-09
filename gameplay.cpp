@@ -18,13 +18,16 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	platform = p;
 	player = NULL;
 	musicFileName = NULL;
+	soundFileName = NULL;
 	isFalling = false;
-	fallingSound = NULL;
+	//fallingSound = NULL;
+	isEnteringLevel = false;
+	soundEffect = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 27, screen_width, screen_height);
+		player[index] = new PLAYER(d, 37, screen_width, screen_height);
 	}
 
 	player[0]->loadBitmaps(L"Graphics\\block29_");
@@ -42,10 +45,28 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		wsprintf(musicFileName[index], L"Sound\\world%d.MID", index+1);
 	}
 
-	fallingSound = new SOUND(xa);
-	fallingSound->loadWAVFile(L"Sound\\falling.wav");
-	landingSound = new SOUND(xa);
-	landingSound->loadWAVFile(L"Sound\\landing.wav");
+	//fallingSound = new SOUND(xa);
+	//fallingSound->loadWAVFile(L"Sound\\falling.wav");
+	//landingSound = new SOUND(xa);
+	//landingSound->loadWAVFile(L"Sound\\landing.wav");
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 9);
+	for(unsigned int index = 0; index < 9; index++)
+	{
+		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
+	}
+	wsprintf(soundFileName[SOUND_BEGIN_LEVEL], L"Sound\\beginlevel.wav");
+	wsprintf(soundFileName[SOUND_FALLING], L"Sound\\falling.wav");
+	wsprintf(soundFileName[SOUND_LANDING], L"Sound\\landing.wav");
+
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 3);
+	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
+	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
+	soundEffect[SOUND_FALLING] = new SOUND(xa);
+	soundEffect[SOUND_FALLING]->loadWAVFile(soundFileName[SOUND_FALLING]);
+	soundEffect[SOUND_LANDING] = new SOUND(xa);
+	soundEffect[SOUND_LANDING]->loadWAVFile(soundFileName[SOUND_LANDING]);
+	
+	//soundEffect[SOUND_BEGIN_LEVEL]
 }
 
 GAMEPLAY::~GAMEPLAY(void)
@@ -64,14 +85,32 @@ GAMEPLAY::~GAMEPLAY(void)
 		}
 		free(musicFileName);
 	}
-	if(fallingSound)
-		delete fallingSound;
-	if(landingSound)
-		delete landingSound;
+	if(soundFileName)
+	{
+		for(unsigned int index = 0; index < 9; index++)
+		{
+			free(soundFileName[index]);
+		}
+		free(soundFileName);
+	}
+	if(soundEffect)
+	{
+		for(unsigned int index = 0; index < 3; index++)
+		{
+			free(soundEffect[index]);
+		}
+		free(soundEffect);
+	}
+	//if(fallingSound)
+	//	delete fallingSound;
+	//if(landingSound)
+	//	delete landingSound;
 }
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 {
+	if(isEnteringLevel == true)
+		Player1EntersLevel();
 	platform->renderPlatform(buf);
 	player[0]->renderSprite(buf);
 }
@@ -84,6 +123,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	player[0]->x_pos = p.x;
 	player[0]->y_pos = p.y;
 	platform->SetIsPlaying(true);
+	isEnteringLevel = true;
+	soundEffect[SOUND_BEGIN_LEVEL]->startWAVFile();
 	return 1;
 }
 
@@ -95,6 +136,8 @@ int GAMEPLAY::LoadLevel(void)
 	player[0]->x_pos = p.x;
 	player[0]->y_pos = p.y;
 	platform->SetIsPlaying(true);
+	isEnteringLevel = true;
+	soundEffect[SOUND_BEGIN_LEVEL]->startWAVFile();
 	return 1;
 }
 
@@ -112,7 +155,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 {
 	unsigned int res, blockNbr;
 	int x, y;
-	if(isFalling == false)
+	if(isFalling == false && isEnteringLevel == false)
 	{
 		blockNbr = platform->getBlockNbr(player[0]->x_pos+25, player[0]->y_pos);
 		// detect for hitting walls
@@ -133,7 +176,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 {
 	unsigned int res, blockNbr;
 	int x, y;
-	if(isFalling == false)
+	if(isFalling == false && isEnteringLevel == false)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(player[0]->x_pos-1, player[0]->y_pos);
@@ -156,14 +199,18 @@ void GAMEPLAY::MovePlayer1Down(void)
 	unsigned int res;
 	unsigned int blockNbr;
 	int x, y;
-	blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos+24);
-	res = platform->GetType(blockNbr);
-	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
+
+	if(isEnteringLevel == false)
 	{
-		platform->GetBlockCoordinates(blockNbr, x, y);
-		player[0]->x_pos = x;
-		player[0]->y_pos+=4;
-		player[0]->climbDownFrame();
+		blockNbr = platform->getBlockNbr(player[0]->x_pos+10, player[0]->y_pos+24);
+		res = platform->GetType(blockNbr);
+		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[0]->x_pos = x;
+			player[0]->y_pos+=4;
+			player[0]->climbDownFrame();
+		}
 	}
 }
 
@@ -173,41 +220,44 @@ void GAMEPLAY::MovePlayer1Up(void)
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
-	blockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
-	prevBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos+23);
-	//currentBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
-	res2 = platform->GetType(prevBlockNbr);
-	res = platform->GetType(blockNbr);
-	if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER && (player[0]->y_pos > 0))
+	if(isEnteringLevel == false)
 	{
+		blockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
+		prevBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos+23);
+		//currentBlockNbr = platform->getBlockNbr(player[0]->x_pos, player[0]->y_pos);
+		res2 = platform->GetType(prevBlockNbr);
+		res = platform->GetType(blockNbr);
+		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER && (player[0]->y_pos > 0))
+		{
 		//if(res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER || res2 == BLOCK_REGULAR)
 		
-			platform->GetBlockCoordinates(blockNbr, x, y);
-			player[0]->x_pos = x;
-			if(player[0]->y_pos-4 < 0)
-				player[0]->y_pos = 0;
-			else
-				player[0]->y_pos-=4;
-			player[0]->climbUpFrame();
+				platform->GetBlockCoordinates(blockNbr, x, y);
+				player[0]->x_pos = x;
+				if(player[0]->y_pos-4 < 0)
+					player[0]->y_pos = 0;
+				else
+					player[0]->y_pos-=4;
+				player[0]->climbUpFrame();
 		
-	}
-	else if (res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER)
-	{
+		}
+		else if (res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER)
+		{
 		
-			platform->GetBlockCoordinates(blockNbr, x, y);
-			player[0]->x_pos = x;
-			if(player[0]->y_pos-2 < 0)
-				player[0]->y_pos = 0;
-			else
-				player[0]->y_pos-=2;
-			player[0]->climbUpFrame();
-	}
-	else
-	{
-		//platform->GetBlockCoordinates(blockNbr, x, y);
-		//player[0]->x_pos = x;
-		//player[0]->y_pos = y;
-		player[0]->setFrameState(0);
+				platform->GetBlockCoordinates(blockNbr, x, y);
+				player[0]->x_pos = x;
+				if(player[0]->y_pos-2 < 0)
+					player[0]->y_pos = 0;
+				else
+					player[0]->y_pos-=2;
+				player[0]->climbUpFrame();
+		}
+		else
+		{
+			//platform->GetBlockCoordinates(blockNbr, x, y);
+			//player[0]->x_pos = x;
+			//player[0]->y_pos = y;
+			player[0]->setFrameState(0);
+		}
 	}
 
 }
@@ -235,15 +285,17 @@ void GAMEPLAY::Gravity(void)
 			player[0]->y_pos+=5;
 		player[0]->fallingFrame();
 		if(isFalling == false)
-			fallingSound->startWAVFile();
+			soundEffect[SOUND_FALLING]->startWAVFile();
 		isFalling = true;
 	}
 	else
 	{
 		if(isFalling == true)
 		{
-			fallingSound->stopWAVFile();
-			landingSound->startWAVFile();
+			soundEffect[SOUND_FALLING]->stopWAVFile();
+			//fallingSound->stopWAVFile();
+			//landingSound->startWAVFile();
+			soundEffect[SOUND_LANDING]->startWAVFile();
 			player[0]->setFrameState(0);
 		}
 		isFalling = false;
@@ -252,6 +304,16 @@ void GAMEPLAY::Gravity(void)
 
 void GAMEPLAY::Sounds(void)
 {
-	fallingSound->playWAVFile();
-	landingSound->playWAVFile();
+	//fallingSound->playWAVFile();
+	//landingSound->playWAVFile();
+	for(unsigned int index = 0; index < 3; index++)
+	{
+		soundEffect[index]->playWAVFile();
+	}
+}
+
+void GAMEPLAY::Player1EntersLevel(void)
+{
+	isEnteringLevel = player[0]->enterLevel();
+	Sleep(100);
 }

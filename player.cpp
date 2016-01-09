@@ -62,12 +62,29 @@ void PLAYER::climbUpFrame(void)
 
 void PLAYER::fallingFrame(void)
 {
-	if(frameState < 24)
+	if((frameState < 24) || (frameState > 26))
 		frameState = 24;
 	else if(frameState < 26)
 		frameState++;
 	else
 		frameState = 24;
+}
+
+bool PLAYER::enterLevel(void)
+{
+	if(frameState < 27 || frameState > 36)
+	{
+		frameState = 27;
+		return true;
+	}
+	else if(frameState < 36)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 0;
+	return false;
 }
 
 void PLAYER::setFrameState(unsigned int index)

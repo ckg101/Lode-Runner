@@ -4,6 +4,9 @@
 #include "player.h"
 #include "sound.h"
 
+enum SOUND_EFFECT
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING };
+
 class GAMEPLAY
 {
 	public:
@@ -20,6 +23,7 @@ class GAMEPLAY
 		void Gravity(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
+		void Player1EntersLevel(void);
 
 	private:
 		IDirect3DDevice9* d3ddev;
@@ -27,10 +31,13 @@ class GAMEPLAY
 		PLAYER** player;
 		SPRITE** monk;
 		wchar_t** musicFileName;
+		wchar_t** soundFileName;
 		unsigned int gold;
 		bool isFalling;
-		SOUND* fallingSound;
-		SOUND* landingSound;
+		bool isEnteringLevel;
+		//SOUND* fallingSound;
+		//SOUND* landingSound;
+		SOUND** soundEffect;
 };
 
 #endif
