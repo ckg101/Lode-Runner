@@ -2,11 +2,19 @@
 #define PLATFORM_H
 #include "sprite.h"
 
+typedef struct RESPAWN_BLOCK
+{
+	unsigned int nbrOfFrames;
+	unsigned int ID;
+	unsigned short occ;
+};
+
 class PLATFORM
 {
 	public:
 		PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height);
 		~PLATFORM();
+		friend class GAMEPLAY;
 		int initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, unsigned char nbr_of_worlds);
 		int addPlatform(unsigned int blockNbr, unsigned int _type);
 		void deinitialize(void);
@@ -31,6 +39,8 @@ class PLATFORM
 		void SetIsPlaying(bool status);
 		bool GetIsPlaying(void);
 		unsigned int GetType(unsigned int blockNbr);
+		void DestroyBlock(unsigned int blockNbr);
+		void RespawnBlock(unsigned int blockNbr);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;
@@ -42,6 +52,7 @@ class PLATFORM
 		unsigned short* isOccupied;
 		bool* isSelected;
 		unsigned int* type;		// hold the type ID of each block
+		RESPAWN_BLOCK* respawnBlock;
 		unsigned int nbrOfBlocks;
 		unsigned int nbrOfTypes;
 		int screenWidth;

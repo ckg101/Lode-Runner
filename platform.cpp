@@ -26,6 +26,7 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	sheet = NULL;
 	menu = NULL;
 	type = NULL;
+	respawnBlock = NULL;
 	temp_sprite = NULL;
 	currentWorld = WORLD_JUNGLE;
 	isPlaying = false;
@@ -43,6 +44,8 @@ PLATFORM::~PLATFORM()
 		free(isSelected);
 	if(type)
 		free(type);
+	if(respawnBlock)
+		free(respawnBlock);
 	if(background)
 		free(background);
 }
@@ -63,6 +66,12 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 		return -1;
 	for(unsigned int index = 0; index < nbr_of_blocks; index++)
 		type[index] = BLOCK_EMPTY;
+
+	respawnBlock = (RESPAWN_BLOCK*)malloc(sizeof(RESPAWN_BLOCK) * nbr_of_blocks);
+	if(respawnBlock == NULL)
+		return -1;
+	memset(respawnBlock,0,sizeof(unsigned int) * nbr_of_blocks);
+
 	// set each block as false to represent an empty block
 	isOccupied = (unsigned short*)malloc(sizeof(unsigned short) * nbr_of_blocks);
 	if(isOccupied == NULL)
@@ -643,6 +652,7 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 	unsigned int index;
 
 	background[currentWorld]->renderSprite(buf);
+
 	for(index = 0; index < nbrOfBlocks; index++)
 	{	
 		if(isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER 
@@ -653,6 +663,18 @@ void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
 			if(isPlaying == false)
 			{
 				blocks[index]->renderSprite(buf);
+			}
+		}
+		if(isPlaying == true)
+		{
+			if(respawnBlock[index].nbrOfFrames)
+			{
+				respawnBlock[index].nbrOfFrames--;
+				if(respawnBlock[index].nbrOfFrames == 1)
+				{
+					// display the block again
+					RespawnBlock(index);
+				}
 			}
 		}
 	}
@@ -948,6 +970,8 @@ POINT PLATFORM::GetStartingCoordinatesOfPlayer(unsigned int playerNbr)
 			{
 				p.x = blocks[index]->x_pos;
 				p.y = blocks[index]->y_pos;
+				type[index] = BLOCK_EMPTY;
+				isOccupied[index] = IS_NOT_OCCUPIED;
 				return p;
 			}
 		}
@@ -957,6 +981,8 @@ POINT PLATFORM::GetStartingCoordinatesOfPlayer(unsigned int playerNbr)
 			{
 				p.x = blocks[index]->x_pos;
 				p.y = blocks[index]->y_pos;
+				type[index] = BLOCK_EMPTY;
+				isOccupied[index] = IS_NOT_OCCUPIED;
 				return p;
 			}
 		}
@@ -979,4 +1005,21 @@ unsigned int PLATFORM::GetType(unsigned int blockNbr)
 bool PLATFORM::GetIsPlaying(void)
 {
 	return isPlaying;
+}
+
+void PLATFORM::DestroyBlock(unsigned int blockNbr)
+{
+	respawnBlock[blockNbr].ID = type[blockNbr];
+	respawnBlock[blockNbr].nbrOfFrames = 150;
+	respawnBlock[blockNbr].occ = isOccupied[blockNbr];
+
+	type[blockNbr] = BLOCK_EMPTY;
+	isOccupied[blockNbr] = IS_NOT_OCCUPIED;
+}
+
+void PLATFORM::RespawnBlock(unsigned int blockNbr)
+{
+	type[blockNbr] = respawnBlock[blockNbr].ID;
+	isOccupied[blockNbr] = respawnBlock[blockNbr].occ;
+	memset((RESPAWN_BLOCK*)&respawnBlock[blockNbr],0, sizeof(RESPAWN_BLOCK));
 }

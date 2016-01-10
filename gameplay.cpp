@@ -28,6 +28,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isEnteringLevelSound = false;
 	isDiggingRight = false;
 	isDiggingLeft = false;	
+	nbrOfGold = 0;
+	gold = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -64,8 +66,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_FALLING], L"Sound\\falling.wav");
 	wsprintf(soundFileName[SOUND_LANDING], L"Sound\\landing.wav");
 	wsprintf(soundFileName[SOUND_DIGGER], L"Sound\\digger.wav");
+	wsprintf(soundFileName[SOUND_GOLD], L"Sound\\gold.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 4);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 5);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -74,6 +77,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_LANDING]->loadWAVFile(soundFileName[SOUND_LANDING]);
 	soundEffect[SOUND_DIGGER] = new SOUND(xa);
 	soundEffect[SOUND_DIGGER]->loadWAVFile(soundFileName[SOUND_DIGGER]);
+	soundEffect[SOUND_GOLD] = new SOUND(xa);
+	soundEffect[SOUND_GOLD]->loadWAVFile(soundFileName[SOUND_GOLD]);
 	
 	//soundEffect[SOUND_BEGIN_LEVEL]
 }
@@ -106,11 +111,24 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 3; index++)
+		for(unsigned int index = 0; index < 5; index++)
 		{
 			delete soundEffect[index];
 		}
 		free(soundEffect);
+	}
+	if(gold)
+	{
+		for(unsigned int index = 0; index < nbrOfGold; index++)
+		{
+			if(gold[index])
+			{
+				delete gold[index];
+				gold[index] = NULL;
+			}
+		}
+		free(gold);
+		gold = NULL;
 	}
 	//if(fallingSound)
 	//	delete fallingSound;
@@ -120,6 +138,9 @@ GAMEPLAY::~GAMEPLAY(void)
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 {
+	Gravity();
+	CollectGold();
+
 	if(isEnteringLevel == true)
 	{
 		if(isEnteringLevelSound == false)
@@ -144,17 +165,56 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		Sleep(50);
 		digger->renderSprite(buf);
 	}
+	
 
+	for(unsigned int index = 0; index < nbrOfGold; index++)
+	{
+		if(gold[index])
+			if(gold[index]->isCollected == false)
+				gold[index]->renderSprite(buf);
+	}
 	player[PLAYER1]->renderSprite(buf);
 }
 
 int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 {
+	unsigned int counter = 0;
 	platform->LoadLevel(L"level1.lvl");
+	wchar_t fileName[256];
 	POINT p;
 	p = platform->GetStartingCoordinatesOfPlayer(0);
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
+
+	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
+	{
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+			nbrOfGold++;
+	}
+	
+	gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
+	
+	for(unsigned int index = 0; index < nbrOfGold; index++)
+	{
+		gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+	}
+
+	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
+	{
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			wsprintf(fileName, L"Graphics\\block%d_", platform->type[index]+1);
+			gold[counter]->loadBitmaps(fileName);
+			gold[counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			gold[counter]->x_pos = p.x;
+			gold[counter]->y_pos = p.y;
+			counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+	}
+
 	platform->SetIsPlaying(true);
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
@@ -164,10 +224,44 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 int GAMEPLAY::LoadLevel(void)
 {
 	POINT p;
+	unsigned int counter = 0;
+	wchar_t fileName[256];
 	platform->LoadLevel();
 	p = platform->GetStartingCoordinatesOfPlayer(0);
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
+
+
+	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
+	{
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+			nbrOfGold++;
+	}
+	
+	gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
+	
+	for(unsigned int index = 0; index < nbrOfGold; index++)
+	{
+		gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+	}
+
+	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
+	{
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			wsprintf(fileName, L"Graphics\\block%d_", platform->type[index]+1);
+			gold[counter]->loadBitmaps(fileName);
+			gold[counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			gold[counter]->x_pos = p.x;
+			gold[counter]->y_pos = p.y;
+			counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+	}
+
+
 	platform->SetIsPlaying(true);
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
@@ -176,6 +270,19 @@ int GAMEPLAY::LoadLevel(void)
 
 void GAMEPLAY::Exit(void)
 {
+	if(gold)
+	{
+		for(unsigned int index = 0; index < nbrOfGold; index++)
+		{
+			if(gold[index])
+			{
+				delete gold[index];
+				gold[index] = NULL;
+			}
+		}
+		free(gold);
+		gold = NULL;
+	}
 	platform->SetIsPlaying(false);
 }
 
@@ -307,8 +414,8 @@ void GAMEPLAY::MovePlayer1Up(void)
 
 void GAMEPLAY::DigRightPlayer1(void)
 {
-	unsigned int res, blockNbr, blockNbr2, currentBlockNbr;
-	unsigned int res2, res3;	// used for the ID of the block to the right and below the player
+	unsigned int res, blockNbr, blockNbr2;
+	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
 	{
@@ -327,6 +434,7 @@ void GAMEPLAY::DigRightPlayer1(void)
 			digger->x_pos = x;
 			digger->y_pos = y;
 			isDiggingRight = digger->digRightFrame();
+			platform->DestroyBlock(blockNbr2);
 			soundEffect[SOUND_DIGGER]->startWAVFile();
 		}
 		else
@@ -340,8 +448,8 @@ void GAMEPLAY::DigRightPlayer1(void)
 
 void GAMEPLAY::DigLeftPlayer1(void)
 {	
-	unsigned int res, blockNbr, blockNbr2, currentBlockNbr;
-	unsigned int res2, res3;	// used for the ID of the block to the right and below the player
+	unsigned int res, blockNbr, blockNbr2;   // blockNbr2 is the block to be destroyed
+	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
 	{
@@ -360,6 +468,7 @@ void GAMEPLAY::DigLeftPlayer1(void)
 			digger->x_pos = x;
 			digger->y_pos = y;
 			isDiggingLeft = digger->digLeftFrame();
+			platform->DestroyBlock(blockNbr2);
 			soundEffect[SOUND_DIGGER]->startWAVFile();
 		}
 		else
@@ -416,7 +525,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 4; index++)
+	for(unsigned int index = 0; index < 5; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}
@@ -425,4 +534,26 @@ void GAMEPLAY::Sounds(void)
 void GAMEPLAY::Player1EntersLevel(void)
 {
 	isEnteringLevel = player[PLAYER1]->enterLevel();
+}
+
+void GAMEPLAY::CollectGold(void)
+{
+	unsigned int res;
+	int x, y;
+	for(unsigned int index = 0; index < nbrOfGold; index++)
+	{
+		res = platform->getBlockNbr(gold[index]->x_pos, gold[index]->y_pos);
+		platform->GetBlockCoordinates(res,x,y);
+		if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+			&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+		{
+			if(gold[index]->isCollected == false)
+			{
+				gold[index]->isCollected = true;
+				// collect gold
+				player[PLAYER1]->goldCollected++;
+				soundEffect[SOUND_GOLD]->startWAVFile();
+			}
+		}
+	}
 }

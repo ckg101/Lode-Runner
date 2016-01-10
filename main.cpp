@@ -349,11 +349,11 @@ void RenderFrame(void)
  
 				d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
 
+				gameplay->Render(backbuffer);
+
 				ProcessKeyboardInput(controls->GetKeyboardInput());
 				ProcessMouseInput(&controls->GetMouseInput());
-				gameplay->Gravity();
-
-				gameplay->Render(backbuffer);
+				
 				d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
 				
 			}

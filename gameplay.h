@@ -4,9 +4,10 @@
 #include "player.h"
 #include "digger.h"
 #include "sound.h"
+#include "gold.h"
 
 enum SOUND_EFFECT
-{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER };
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD};
 
 class GAMEPLAY
 {
@@ -27,6 +28,7 @@ class GAMEPLAY
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
 		void Player1EntersLevel(void);
+		void CollectGold(void);
 
 	private:
 		IDirect3DDevice9* d3ddev;
@@ -34,9 +36,10 @@ class GAMEPLAY
 		PLAYER** player;
 		DIGGER* digger;
 		SPRITE** monk;
+		GOLD** gold;
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
-		unsigned int gold;
+		unsigned int nbrOfGold;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;
