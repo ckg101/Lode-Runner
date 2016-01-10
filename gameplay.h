@@ -2,10 +2,11 @@
 #define GAMEPLAY_H
 
 #include "player.h"
+#include "digger.h"
 #include "sound.h"
 
 enum SOUND_EFFECT
-{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING };
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER };
 
 class GAMEPLAY
 {
@@ -17,6 +18,8 @@ class GAMEPLAY
 		void MovePlayer1Left(void);
 		void MovePlayer1Up(void);
 		void MovePlayer1Down(void);
+		void DigRightPlayer1(void);
+		void DigLeftPlayer1(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -29,12 +32,16 @@ class GAMEPLAY
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
 		PLAYER** player;
+		DIGGER* digger;
 		SPRITE** monk;
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		unsigned int gold;
 		bool isFalling;
 		bool isEnteringLevel;
+		bool isEnteringLevelSound;
+		bool isDiggingRight;
+		bool isDiggingLeft;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

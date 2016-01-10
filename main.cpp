@@ -504,6 +504,12 @@ void ProcessKeyboardInput(unsigned char k)
 			case DIK_UP:		// up key is pressed
 				gameplay->MovePlayer1Up();
 			break;
+			case DIK_X:
+				gameplay->DigRightPlayer1();
+			break;
+			case DIK_Z:
+				gameplay->DigLeftPlayer1();
+			break;
 		}
 	}
 }
