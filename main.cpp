@@ -43,7 +43,7 @@ IXAudio2* xaudio;
 RECT src;
 //GRAPHICS* graphics;
 CONTROLS* controls;
-SOUND music;
+SOUND* music;
 SOUND* buttonpress;
 //SPRITE* sprite;
 CURSOR* editorCursor;
@@ -137,8 +137,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	buttonpress = new SOUND(xaudio);
 	buttonpress->loadWAVFile(L"Sound\\buttonpress.wav");
 
-	music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
-	music.playMIDIFile();
+	music = new SOUND(xaudio);
+	music->loadWAVFile(L"Sound\\LRMENU1.WAV");
+	music->startWAVFile();
 	
 	//graphics->LoadBitmapImage(L"Graphics\\background1.bmp", background.surface, &background.parameters);
 	//src = background.parameters;
@@ -185,7 +186,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
             break;
 		}
 
-		if(msg.message == MM_MCINOTIFY)
+		/*if(msg.message == MM_MCINOTIFY)
 		{
 			// if the MIDI file stops playing then repeat
 			if(msg.wParam == MCI_NOTIFY_SUCCESSFUL)
@@ -196,7 +197,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 					music.playMIDIFile();
 				}
 			}
-		}
+		}*/
  
         //if(KEY_DOWN(VK_ESCAPE))
 	            //PostMessage(hWnd, WM_DESTROY, 0, 0);
@@ -209,17 +210,27 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	cleanDInput();
 	//delete graphics;
 	xaudio->Release();
-//	delete xaudio;
-	delete controls;
+	if(controls)
+		delete controls;
 	//delete wavfile;
 	//delete sprite;
-	delete editorCursor;
-	delete titleCursor;
-	platform->deinitialize();
-	delete platform;
-	delete buttonpress;
-	delete titleScreen;
-	delete gameplay;
+	if(editorCursor)
+		delete editorCursor;
+	if(titleCursor)
+		delete titleCursor;
+	if(platform)
+	{
+		platform->deinitialize();
+		delete platform;
+	}
+	if(music)
+		delete music;
+	if(buttonpress)
+		delete buttonpress;
+	if(titleScreen)
+		delete titleScreen;
+	if(gameplay)
+		delete gameplay;
     return msg.wParam;
 }
  
@@ -363,6 +374,7 @@ void RenderFrame(void)
 		if(frameCounter < 61)
 		{
 			buttonpress->playWAVFile();
+			
 			IDirect3DSurface9* backbuffer = NULL;
 			d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
  
@@ -373,14 +385,15 @@ void RenderFrame(void)
 
 			if(gameMode == GAME_MODE_TITLE)
 			{
-		
+				if(!music->playWAVFile())
+					music->startWAVFile();
 				titleScreen->Render(backbuffer);
 				titleCursor->Render(backbuffer);
 			}
 
 			else if(gameMode == GAME_MODE_EDITOR)
 			{
-	
+				
 				//wavfile->playWAVFile();
 				// clear the window to a black
 		
@@ -447,7 +460,7 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 			case DIK_SPACE:
 				gameMode = GAME_MODE_EDITOR;
-				music.stopMIDIFile();
+				music->stopWAVFile();
 			break;
 		}
 	}
@@ -460,7 +473,7 @@ void ProcessKeyboardInput(unsigned char k)
 				//PostMessage(hWnd, WM_DESTROY, 0, 0);
 				gameMode = GAME_MODE_TITLE;
 				platform->ClearLevel();
-				music.playMIDIFile();
+				music->startWAVFile();
 				Sleep(250);
 			break;
 			case DIK_W:
@@ -487,9 +500,8 @@ void ProcessKeyboardInput(unsigned char k)
 			case DIK_ESCAPE:
 				gameMode = GAME_MODE_TITLE;
 				gameplay->Exit();
-				music.stopMIDIFile();
-				music.loadMIDIFile(hWnd, L"Sound\\LRMENU1.MID");
-				music.playMIDIFile();
+				Sleep(250);
+				music->startWAVFile();
 				controls->GetKeyboardInput();
 			break;
 			case DIK_RIGHT:		// right key is pressed
@@ -542,12 +554,13 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 			{
 				case TITLESCREEN_1PLAYER_BUTTON:
 					buttonpress->startWAVFile();
-					music.stopMIDIFile();
+					//music.stopMIDIFile();
+					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
 					gameplay->LoadLevel(0);
 					gameMode = GAME_MODE_PLAY;
-					music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
-					music.playMIDIFile();
+					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
+					//music.playMIDIFile();
 					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_2PLAYER_BUTTON:
@@ -557,7 +570,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				break;
 				case TITLESCREEN_EDITOR_BUTTON:
 					gameMode = GAME_MODE_EDITOR;
-					music.stopMIDIFile();
+					music->stopWAVFile();
 					platform->SetIsPlaying(false);
 					platform->ClearLevel();
 					buttonpress->startWAVFile();
@@ -566,12 +579,12 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();
 					Sleep(250);
-					music.stopMIDIFile();
+					music->stopWAVFile();
 					controls->UnacquireMouse();
 					gameplay->LoadLevel();
 					gameMode = GAME_MODE_PLAY;
-					music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
-					music.playMIDIFile();
+					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
+					//music.playMIDIFile();
 					controls->GetMouseInput();
 				break;
 				case TITLESCREEN_OPTIONS_BUTTON:
@@ -581,6 +594,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				break;
 				case TITLESCREEN_EXIT_BUTTON:
 					buttonpress->startWAVFile();
+					music->stopWAVFile();
 					PostMessage(hWnd, WM_DESTROY, 0, 0);
 				break;
 			}

@@ -30,6 +30,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isDiggingLeft = false;	
 	nbrOfGold = 0;
 	gold = NULL;
+	music = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -54,7 +55,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	for(unsigned int index = 0; index < 10; index++)
 	{
 		musicFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
-		wsprintf(musicFileName[index], L"Sound\\world%d.MID", index+1);
+		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
 	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 9);
@@ -79,6 +80,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_DIGGER]->loadWAVFile(soundFileName[SOUND_DIGGER]);
 	soundEffect[SOUND_GOLD] = new SOUND(xa);
 	soundEffect[SOUND_GOLD]->loadWAVFile(soundFileName[SOUND_GOLD]);
+
+	music = new SOUND(xa);
 	
 	//soundEffect[SOUND_BEGIN_LEVEL]
 }
@@ -130,6 +133,8 @@ GAMEPLAY::~GAMEPLAY(void)
 		free(gold);
 		gold = NULL;
 	}
+	if(music)
+		delete music;
 	//if(fallingSound)
 	//	delete fallingSound;
 	//if(landingSound)
@@ -138,6 +143,9 @@ GAMEPLAY::~GAMEPLAY(void)
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 {
+	if(!music->playWAVFile())
+		music->startWAVFile();
+	
 	Gravity();
 	CollectGold();
 
@@ -216,6 +224,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	}
 
 	platform->SetIsPlaying(true);
+	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
+	music->startWAVFile();
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
 	return 1;
@@ -261,7 +271,8 @@ int GAMEPLAY::LoadLevel(void)
 		}
 	}
 
-
+	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
+	music->startWAVFile();
 	platform->SetIsPlaying(true);
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
@@ -270,6 +281,7 @@ int GAMEPLAY::LoadLevel(void)
 
 void GAMEPLAY::Exit(void)
 {
+	music->stopWAVFile();
 	if(gold)
 	{
 		for(unsigned int index = 0; index < nbrOfGold; index++)

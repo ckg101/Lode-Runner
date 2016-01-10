@@ -20,6 +20,8 @@ SOUND::SOUND()
 SOUND::SOUND(IXAudio2 *xa)
 {
 	xaudio = xa;
+	wavdata = NULL;
+	pSourceVoice = NULL;
 }
 
 
@@ -120,6 +122,9 @@ int SOUND::loadWAVFile(wchar_t* fileName)
 	//DSBUFFERDESC dsbufdesc;
 	//dsbufdesc.dwBufferBytes;
 	//dsound->CreateSoundBuffer(&dsbufdesc, &soundBuffer, NULL);
+
+	if(wavdata)
+		free(wavdata);
 
 	fp = _wfopen(fileName, L"rb");
 	fread(&wfh, sizeof(WAVFILEHEADER), 1, fp);

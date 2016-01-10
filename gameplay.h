@@ -48,6 +48,7 @@ class GAMEPLAY
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;
+		SOUND* music;
 };
 
 #endif

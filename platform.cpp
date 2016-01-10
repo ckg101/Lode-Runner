@@ -921,6 +921,7 @@ int PLATFORM::LoadLevel(void)
 				{
 					addPlatform(index, type[index]);
 				}
+				CoTaskMemFree(fileName);
 				ResetLevelToCurrentWorld();
                 psi->Release();
             }
