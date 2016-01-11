@@ -28,6 +28,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isEnteringLevelSound = false;
 	isDiggingRight = false;
 	isDiggingLeft = false;	
+	isDrilling = 0;
 	nbrOfGold = 0;
 	gold = NULL;
 	music = NULL;
@@ -35,7 +36,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 37, screen_width, screen_height);
+		player[index] = new PLAYER(d, 47, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -68,8 +69,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_LANDING], L"Sound\\landing.wav");
 	wsprintf(soundFileName[SOUND_DIGGER], L"Sound\\digger.wav");
 	wsprintf(soundFileName[SOUND_GOLD], L"Sound\\gold.wav");
+	wsprintf(soundFileName[SOUND_DRILLING], L"Sound\\drilling.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 5);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 6);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -80,6 +82,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_DIGGER]->loadWAVFile(soundFileName[SOUND_DIGGER]);
 	soundEffect[SOUND_GOLD] = new SOUND(xa);
 	soundEffect[SOUND_GOLD]->loadWAVFile(soundFileName[SOUND_GOLD]);
+	soundEffect[SOUND_DRILLING] = new SOUND(xa);
+	soundEffect[SOUND_DRILLING]->loadWAVFile(soundFileName[SOUND_DRILLING]);
 
 	music = new SOUND(xa);
 	
@@ -114,7 +118,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 5; index++)
+		for(unsigned int index = 0; index < 6; index++)
 		{
 			delete soundEffect[index];
 		}
@@ -148,6 +152,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	
 	Gravity();
 	CollectGold();
+	Sounds();
 
 	if(isEnteringLevel == true)
 	{
@@ -172,6 +177,10 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		DigLeftPlayer1();
 		Sleep(50);
 		digger->renderSprite(buf);
+	}
+	if((isDrilling >=1) && (isDrilling <= 3))
+	{
+		DrillPlayer1();
 	}
 	
 
@@ -308,7 +317,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 	unsigned int res, blockNbr;
 	unsigned int res2;	// used for the ID of the block below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
 	{
 		// get the next block to determine if the player can move or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
@@ -334,7 +343,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 {
 	unsigned int res, res2, blockNbr;
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
@@ -362,7 +371,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 	unsigned int blockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false)
+	if(isEnteringLevel == false && isDrilling == 0)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+10, player[PLAYER1]->y_pos+24);
 		res = platform->GetType(blockNbr);
@@ -382,7 +391,7 @@ void GAMEPLAY::MovePlayer1Up(void)
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false)
+	if(isEnteringLevel == false && isDrilling == 0)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		prevBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+23);
@@ -429,7 +438,7 @@ void GAMEPLAY::DigRightPlayer1(void)
 	unsigned int res, blockNbr, blockNbr2;
 	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
 	{
 		// get the next block to determine if the player can dig or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
@@ -445,16 +454,17 @@ void GAMEPLAY::DigRightPlayer1(void)
 			platform->GetBlockCoordinates(blockNbr2, x, y);
 			digger->x_pos = x;
 			digger->y_pos = y;
-			isDiggingRight = digger->digRightFrame();
+			isDiggingRight = digger->digRightFrame();	
 			platform->DestroyBlock(blockNbr2);
 			soundEffect[SOUND_DIGGER]->startWAVFile();
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
 	}
-	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false &&isDiggingRight == true)
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false &&isDiggingRight == true && isDrilling == 0)
 	{
 		isDiggingRight = digger->digRightFrame();
+		
 	}
 }
 
@@ -463,7 +473,7 @@ void GAMEPLAY::DigLeftPlayer1(void)
 	unsigned int res, blockNbr, blockNbr2;   // blockNbr2 is the block to be destroyed
 	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
 	{
 		// get the next block to determine if the player can dig or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
@@ -486,9 +496,52 @@ void GAMEPLAY::DigLeftPlayer1(void)
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
 	}
-	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == true &&isDiggingRight == false)
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == true &&isDiggingRight == false && isDrilling == 0)
 	{
 		isDiggingLeft = digger->digLeftFrame();
+	}
+}
+
+void GAMEPLAY::DrillPlayer1(void)
+{
+	unsigned int res, blockNbr, currentBlockNbr; 
+	int x,y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0)
+	{
+		// get the block that needs to be drilled
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+26);
+		res = platform->GetType(blockNbr);
+		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+
+		if(res == BLOCK_SOLID)
+		{
+			platform->GetBlockCoordinates(currentBlockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			soundEffect[SOUND_DRILLING]->startWAVFile();
+			isDrilling = player[PLAYER1]->drillFrame();
+		}
+	}
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling)
+	{
+		player[PLAYER1]->y_pos+=1;
+		test = player[PLAYER1]->drillFrame();
+		if(test == false)
+			isDrilling++;
+		if(isDrilling == 4)
+		{
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+2);
+			platform->GetBlockCoordinates(blockNbr, x,y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->setFrameState(0);
+			platform->DestroyBlockPermanently(blockNbr);
+			isDrilling = 0;
+		}
 	}
 }
 
@@ -501,6 +554,8 @@ void GAMEPLAY::Gravity(void)
 	// get ID of current block
 	res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos));
 
+	if(isDrilling == 0)
+	{
 	if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos);
@@ -531,13 +586,14 @@ void GAMEPLAY::Gravity(void)
 		}
 		isFalling = false;
 	}
+	}
 }
 
 void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 5; index++)
+	for(unsigned int index = 0; index < 6; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

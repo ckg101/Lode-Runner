@@ -40,6 +40,7 @@ class PLATFORM
 		bool GetIsPlaying(void);
 		unsigned int GetType(unsigned int blockNbr);
 		void DestroyBlock(unsigned int blockNbr);
+		void DestroyBlockPermanently(unsigned int blockNbr);
 		void RespawnBlock(unsigned int blockNbr);
 	private:
 		SPRITE** blocks;

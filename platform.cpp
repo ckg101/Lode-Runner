@@ -957,6 +957,7 @@ void PLATFORM::ClearLevel(void)
 		type[index] = BLOCK_EMPTY;
 	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbrOfBlocks);
 	memset((bool*)isSelected, false, sizeof(bool) * nbrOfTypes);
+	memset((RESPAWN_BLOCK*)respawnBlock, 0, sizeof(RESPAWN_BLOCK) * nbrOfBlocks);
 	LoadBlocks(currentWorld);
 }
 
@@ -1012,6 +1013,16 @@ void PLATFORM::DestroyBlock(unsigned int blockNbr)
 {
 	respawnBlock[blockNbr].ID = type[blockNbr];
 	respawnBlock[blockNbr].nbrOfFrames = 150;
+	respawnBlock[blockNbr].occ = isOccupied[blockNbr];
+
+	type[blockNbr] = BLOCK_EMPTY;
+	isOccupied[blockNbr] = IS_NOT_OCCUPIED;
+}
+
+void PLATFORM::DestroyBlockPermanently(unsigned int blockNbr)
+{
+	//respawnBlock[blockNbr].ID = type[blockNbr];
+	//respawnBlock[blockNbr].nbrOfFrames = 150;
 	respawnBlock[blockNbr].occ = isOccupied[blockNbr];
 
 	type[blockNbr] = BLOCK_EMPTY;

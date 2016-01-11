@@ -7,7 +7,7 @@
 #include "gold.h"
 
 enum SOUND_EFFECT
-{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD};
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING};
 
 class GAMEPLAY
 {
@@ -21,6 +21,7 @@ class GAMEPLAY
 		void MovePlayer1Down(void);
 		void DigRightPlayer1(void);
 		void DigLeftPlayer1(void);
+		void DrillPlayer1(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -45,6 +46,7 @@ class GAMEPLAY
 		bool isEnteringLevelSound;
 		bool isDiggingRight;
 		bool isDiggingLeft;
+		unsigned char isDrilling;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

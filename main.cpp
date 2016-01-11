@@ -354,7 +354,7 @@ void RenderFrame(void)
 			{
 				Sleep(SPEED4);
 				buttonpress->playWAVFile();
-				gameplay->Sounds();
+				//gameplay->Sounds();
 				IDirect3DSurface9* backbuffer = NULL;
 				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
  
@@ -521,6 +521,9 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 			case DIK_Z:
 				gameplay->DigLeftPlayer1();
+			break;
+			case DIK_C:
+				gameplay->DrillPlayer1();
 			break;
 		}
 	}

@@ -19,6 +19,7 @@ public:
 	bool enterLevel(void);
 	bool digRightFrame(void);
 	bool digLeftFrame(void);
+	bool drillFrame(void);
 	unsigned int goldCollected;
 };
 

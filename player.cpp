@@ -71,6 +71,24 @@ void PLAYER::fallingFrame(void)
 		frameState = 24;
 }
 
+bool PLAYER::drillFrame(void)
+{
+	if((frameState <37) || (frameState > 46))
+	{
+		frameState = 37;
+		return true;
+	}
+	else if(frameState < 46)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 37;
+	return false;
+}
+
+
 bool PLAYER::enterLevel(void)
 {
 	if(frameState < 27 || frameState > 36)
