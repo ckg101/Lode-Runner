@@ -19,6 +19,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	platform = p;
 	player = NULL;
 	digger = NULL;
+	fallingrocks = NULL;
 	musicFileName = NULL;
 	soundFileName = NULL;
 	isFalling = false;
@@ -28,15 +29,19 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isEnteringLevelSound = false;
 	isDiggingRight = false;
 	isDiggingLeft = false;	
+	isPickingRight = 0;
 	isDrilling = 0;
+	
 	nbrOfGold = 0;
 	gold = NULL;
 	music = NULL;
 
+	memset(isFallingRocksRight, 0, sizeof(unsigned char) * 4);
+	memset(isFallingRocksIndex, 0, sizeof(IS_FALLING_ROCKS_INDEX) * 4);
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 47, screen_width, screen_height);
+		player[index] = new PLAYER(d, 60, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -47,6 +52,15 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	digger->loadBitmaps(L"Graphics\\block37_");
 	digger->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	digger->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+
+	fallingrocks = (FALLINGROCKS**)malloc(sizeof(FALLINGROCKS*) * 4);
+	for(unsigned int index = 0; index < 4; index++)
+	{
+		fallingrocks[index] = new FALLINGROCKS(d, 4, screen_width, screen_height);
+		fallingrocks[index]->loadBitmaps(L"Graphics\\block38_");
+		fallingrocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+		fallingrocks[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	}
 	//player[1]->loadBitmaps(L"Graphics\\block30_");
 	//player[1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	//player[1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
@@ -100,6 +114,14 @@ GAMEPLAY::~GAMEPLAY(void)
 	free(player);
 	if(digger)
 		delete digger;
+	if(fallingrocks)
+	{
+		for(unsigned int index = 0; index < 4; index++)
+		{
+			delete fallingrocks[index];
+		}
+		free(fallingrocks);
+	}
 	if(musicFileName)
 	{
 		for(unsigned int index = 0; index < 10; index++)
@@ -168,19 +190,32 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 
 	if(isDiggingRight == true)
 	{
+		digger->renderSprite(buf);
 		DigRightPlayer1();
 		Sleep(75);
-		digger->renderSprite(buf);
 	}
 	if(isDiggingLeft == true)
 	{
+		digger->renderSprite(buf);
 		DigLeftPlayer1();
 		Sleep(50);
-		digger->renderSprite(buf);
 	}
 	if((isDrilling >=1) && (isDrilling <= 3))
 	{
 		DrillPlayer1();
+	}
+	if(isPickingRight)
+	{
+		PickRightPlayer1();
+	}
+
+	for(unsigned int index = 0; index < 4; index++)
+	{
+		if(isFallingRocksIndex[index].is == true)
+		{
+			fallingrocks[index]->renderSprite(buf);
+			FallingRocksRight();
+		}
 	}
 	
 
@@ -317,14 +352,15 @@ void GAMEPLAY::MovePlayer1Right(void)
 	unsigned int res, blockNbr;
 	unsigned int res2;	// used for the ID of the block below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
+		&& isPickingRight == 0)
 	{
 		// get the next block to determine if the player can move or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
 		res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+25));
 		// detect for hitting walls
 		res = platform->GetType(blockNbr);
-		if( res > BLOCK_HOLLOW && (player[PLAYER1]->x_pos+24 < 767))
+		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && (player[PLAYER1]->x_pos+24 < 767))
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
@@ -343,13 +379,14 @@ void GAMEPLAY::MovePlayer1Left(void)
 {
 	unsigned int res, res2, blockNbr;
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& isPickingRight == 0)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
 			res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+25));
 			res = platform->GetType(blockNbr);
-		if(res > BLOCK_HOLLOW && (player[PLAYER1]->x_pos > 0))
+		if(res > BLOCK_HOLLOW && res != BLOCK_ROCKS && (player[PLAYER1]->x_pos > 0))
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
@@ -541,6 +578,131 @@ void GAMEPLAY::DrillPlayer1(void)
 			player[PLAYER1]->setFrameState(0);
 			platform->DestroyBlockPermanently(blockNbr);
 			isDrilling = 0;
+		}
+	}
+}
+
+void GAMEPLAY::PickRightPlayer1(void)
+{
+	unsigned int res, res2, blockNbr, currentBlockNbr, nextBlockNbr;
+	int x,y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingRight == 0)
+	{
+		// get the block that needs to be picked
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
+		res = platform->GetType(blockNbr);
+		
+		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+		res2 = platform->GetType(nextBlockNbr);
+		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+		{
+			
+			for(unsigned int index = 0; index < 4; index++)
+			{
+				if(isFallingRocksIndex[index].is == false)
+				{
+					platform->SetTypeToRocks(nextBlockNbr);
+					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
+					//isFallingRocksIndex[index].is = true;
+					break;
+				}
+			}
+			platform->GetBlockCoordinates(currentBlockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			
+			player[PLAYER1]->pickRightFrame();
+			isPickingRight++;
+
+		}
+	}
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingRight && (isPickingRight %3 == 0))
+	{
+		test = player[PLAYER1]->pickRightFrame();
+		if(test == false)
+		{
+			for(unsigned int index = 0; index < 4; index++)
+			{
+				if(isFallingRocksIndex[index].is == false)
+				{
+					isFallingRocksIndex[index].is = true;
+					break;
+				}
+			}
+			FallingRocksRight();
+		}
+		else
+			isPickingRight++;
+	}
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingRight && (isPickingRight %3))
+	{
+		isPickingRight++;
+	}
+}
+
+void GAMEPLAY::FallingRocksRight(void)
+{
+
+	for(unsigned int index = 0; index < 4; index++)
+	{
+		if(isFallingRocksIndex[index].is == true)
+		{
+			unsigned int res, blockNbr, belowBlockNbr; 
+			int x,y;
+			bool test;
+
+			if(isFallingRocksRight[index] == 0)
+			{
+				// get the block that needs to be picked
+				blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
+				res = platform->GetType(blockNbr);
+		
+				belowBlockNbr = isFallingRocksIndex[index].blockNbr; //platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+				isPickingRight = 0;
+				platform->GetBlockCoordinates(belowBlockNbr, x, y);
+				fallingrocks[index]->x_pos = x;
+				fallingrocks[index]->y_pos = y;
+				//soundEffect[SOUND_DRILLING]->startWAVFile();
+				fallingrocks[index]->reset();
+				fallingrocks[index]->frame();
+				
+				isFallingRocksRight[index]++;
+			}
+			else if((isFallingRocksRight[index] %2 == 0) && (isFallingRocksRight[index] < 8))
+			{
+					isFallingRocksRight[index]++;
+			}
+			else if((isFallingRocksRight[index] %2) && (isFallingRocksRight[index] < 8))
+			{
+				test = fallingrocks[index]->frame();
+				if(test == false)
+				{
+					isFallingRocksRight[index]++;
+				//	isFallingRocks = 0;
+				}
+				else
+					isFallingRocksRight[index]++;
+			}
+			else if(isFallingRocksRight[index] < 200)
+			{
+				isFallingRocksRight[index]++;
+			
+			}
+			else
+			{
+				belowBlockNbr = isFallingRocksIndex[index].blockNbr;
+				platform->RemoveRocks(belowBlockNbr);
+				isFallingRocksIndex[index].is = false;
+				isFallingRocksRight[index] = 0;
+			
+			}
+			//break;
 		}
 	}
 }

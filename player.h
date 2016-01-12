@@ -20,6 +20,7 @@ public:
 	bool digRightFrame(void);
 	bool digLeftFrame(void);
 	bool drillFrame(void);
+	bool pickRightFrame(void);
 	unsigned int goldCollected;
 };
 

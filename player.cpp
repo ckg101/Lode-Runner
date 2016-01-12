@@ -88,6 +88,23 @@ bool PLAYER::drillFrame(void)
 	return false;
 }
 
+bool PLAYER::pickRightFrame(void)
+{
+	if((frameState < 47) || (frameState > 59))
+	{
+		frameState = 47;
+		return true;
+	}
+	else if(frameState < 59)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 0;
+	return false;
+}
+
 
 bool PLAYER::enterLevel(void)
 {

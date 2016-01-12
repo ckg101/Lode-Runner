@@ -42,6 +42,8 @@ class PLATFORM
 		void DestroyBlock(unsigned int blockNbr);
 		void DestroyBlockPermanently(unsigned int blockNbr);
 		void RespawnBlock(unsigned int blockNbr);
+		void SetTypeToRocks(unsigned int blockNbr);
+		void RemoveRocks(unsigned int blockNbr);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

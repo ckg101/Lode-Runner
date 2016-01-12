@@ -5,6 +5,7 @@
 #include "digger.h"
 #include "sound.h"
 #include "gold.h"
+#include "fallingrocks.h"
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING};
@@ -22,6 +23,8 @@ class GAMEPLAY
 		void DigRightPlayer1(void);
 		void DigLeftPlayer1(void);
 		void DrillPlayer1(void);
+		void PickRightPlayer1(void);
+		void FallingRocksRight(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -36,6 +39,7 @@ class GAMEPLAY
 		PLATFORM* platform;
 		PLAYER** player;
 		DIGGER* digger;
+		FALLINGROCKS** fallingrocks;
 		SPRITE** monk;
 		GOLD** gold;
 		wchar_t** musicFileName;
@@ -47,6 +51,9 @@ class GAMEPLAY
 		bool isDiggingRight;
 		bool isDiggingLeft;
 		unsigned char isDrilling;
+		unsigned char isPickingRight;
+		unsigned char isFallingRocksRight[4];
+		IS_FALLING_ROCKS_INDEX isFallingRocksIndex[4];
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

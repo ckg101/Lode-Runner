@@ -525,6 +525,10 @@ void ProcessKeyboardInput(unsigned char k)
 			case DIK_C:
 				gameplay->DrillPlayer1();
 			break;
+			case DIK_V:
+				gameplay->PickRightPlayer1();
+				Sleep(250);
+			break;
 		}
 	}
 }

@@ -1035,3 +1035,13 @@ void PLATFORM::RespawnBlock(unsigned int blockNbr)
 	isOccupied[blockNbr] = respawnBlock[blockNbr].occ;
 	memset((RESPAWN_BLOCK*)&respawnBlock[blockNbr],0, sizeof(RESPAWN_BLOCK));
 }
+
+void PLATFORM::SetTypeToRocks(unsigned int blockNbr)
+{
+	type[blockNbr] = BLOCK_ROCKS;
+}
+
+void PLATFORM::RemoveRocks(unsigned int blockNbr)
+{
+	type[blockNbr] = BLOCK_EMPTY;
+}
