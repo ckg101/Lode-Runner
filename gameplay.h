@@ -8,7 +8,7 @@
 #include "fallingrocks.h"
 
 enum SOUND_EFFECT
-{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING};
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, SOUND_FALLINGROCKS};
 
 class GAMEPLAY
 {
@@ -24,7 +24,9 @@ class GAMEPLAY
 		void DigLeftPlayer1(void);
 		void DrillPlayer1(void);
 		void PickRightPlayer1(void);
+		void PickLeftPlayer1(void);
 		void FallingRocksRight(void);
+		void FallingRocksLeft(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -54,6 +56,8 @@ class GAMEPLAY
 		unsigned char isPickingRight;
 		unsigned char isFallingRocksRight[4];
 		IS_FALLING_ROCKS_INDEX isFallingRocksIndex[4];
+		unsigned char isPickingLeft;
+		unsigned char isFallingRocksLeft[4];
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

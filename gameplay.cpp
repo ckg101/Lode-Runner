@@ -30,6 +30,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isDiggingRight = false;
 	isDiggingLeft = false;	
 	isPickingRight = 0;
+	isPickingLeft = 0;
 	isDrilling = 0;
 	
 	nbrOfGold = 0;
@@ -38,10 +39,13 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 
 	memset(isFallingRocksRight, 0, sizeof(unsigned char) * 4);
 	memset(isFallingRocksIndex, 0, sizeof(IS_FALLING_ROCKS_INDEX) * 4);
+	memset(isFallingRocksLeft, 0, sizeof(unsigned char) * 4);
+	
+
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 60, screen_width, screen_height);
+		player[index] = new PLAYER(d, 73, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -84,8 +88,10 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_DIGGER], L"Sound\\digger.wav");
 	wsprintf(soundFileName[SOUND_GOLD], L"Sound\\gold.wav");
 	wsprintf(soundFileName[SOUND_DRILLING], L"Sound\\drilling.wav");
+	wsprintf(soundFileName[SOUND_PICK], L"Sound\\pick.wav");
+	wsprintf(soundFileName[SOUND_FALLINGROCKS], L"Sound\\fallingrocks.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 6);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 8);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -98,6 +104,12 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_GOLD]->loadWAVFile(soundFileName[SOUND_GOLD]);
 	soundEffect[SOUND_DRILLING] = new SOUND(xa);
 	soundEffect[SOUND_DRILLING]->loadWAVFile(soundFileName[SOUND_DRILLING]);
+
+	soundEffect[SOUND_PICK] = new SOUND(xa);
+	soundEffect[SOUND_PICK]->loadWAVFile(soundFileName[SOUND_PICK]);
+
+	soundEffect[SOUND_FALLINGROCKS] = new SOUND(xa);
+	soundEffect[SOUND_FALLINGROCKS]->loadWAVFile(soundFileName[SOUND_FALLINGROCKS]);
 
 	music = new SOUND(xa);
 	
@@ -208,13 +220,20 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	{
 		PickRightPlayer1();
 	}
+	if(isPickingLeft)
+	{
+		PickLeftPlayer1();
+	}
 
 	for(unsigned int index = 0; index < 4; index++)
 	{
 		if(isFallingRocksIndex[index].is == true)
 		{
 			fallingrocks[index]->renderSprite(buf);
-			FallingRocksRight();
+			if(isFallingRocksIndex[index].direction == 0)
+				FallingRocksRight();
+			else
+				FallingRocksLeft();
 		}
 	}
 	
@@ -607,6 +626,7 @@ void GAMEPLAY::PickRightPlayer1(void)
 				{
 					platform->SetTypeToRocks(nextBlockNbr);
 					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
+					isFallingRocksIndex[index].direction = 0;
 					//isFallingRocksIndex[index].is = true;
 					break;
 				}
@@ -624,6 +644,8 @@ void GAMEPLAY::PickRightPlayer1(void)
 		&& isDrilling == 0 && isPickingRight && (isPickingRight %3 == 0))
 	{
 		test = player[PLAYER1]->pickRightFrame();
+		if(isPickingRight == 6)
+			soundEffect[SOUND_PICK]->startWAVFile();
 		if(test == false)
 		{
 			for(unsigned int index = 0; index < 4; index++)
@@ -646,6 +668,72 @@ void GAMEPLAY::PickRightPlayer1(void)
 	}
 }
 
+void GAMEPLAY::PickLeftPlayer1(void)
+{
+	unsigned int res, res2, blockNbr, currentBlockNbr, nextBlockNbr;
+	int x,y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingRight == 0 && isPickingLeft == 0)
+	{
+		// get the block that needs to be picked
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos-5);
+		res = platform->GetType(blockNbr);
+		
+		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
+		res2 = platform->GetType(nextBlockNbr);
+		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+		{
+			
+			for(unsigned int index = 0; index < 4; index++)
+			{
+				if(isFallingRocksIndex[index].is == false)
+				{
+					platform->SetTypeToRocks(nextBlockNbr);
+					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
+					isFallingRocksIndex[index].direction = 1;
+					break;
+				}
+			}
+			platform->GetBlockCoordinates(currentBlockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			
+			player[PLAYER1]->pickLeftFrame();
+			isPickingLeft++;
+
+		}
+	}
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingLeft && (isPickingLeft %3 == 0))
+	{
+		test = player[PLAYER1]->pickLeftFrame();
+		if(isPickingLeft == 6)
+			soundEffect[SOUND_PICK]->startWAVFile();
+		if(test == false)
+		{
+			for(unsigned int index = 0; index < 4; index++)
+			{
+				if(isFallingRocksIndex[index].is == false)
+				{
+					isFallingRocksIndex[index].is = true;
+					break;
+				}
+			}
+			FallingRocksLeft();
+		}
+		else
+			isPickingLeft++;
+	}
+	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
+		&& isDrilling == 0 && isPickingLeft && (isPickingLeft %3))
+	{
+		isPickingLeft++;
+	}
+}
+
 void GAMEPLAY::FallingRocksRight(void)
 {
 
@@ -660,15 +748,15 @@ void GAMEPLAY::FallingRocksRight(void)
 			if(isFallingRocksRight[index] == 0)
 			{
 				// get the block that needs to be picked
-				blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
-				res = platform->GetType(blockNbr);
+				//blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
+				//res = platform->GetType(blockNbr);
 		
 				belowBlockNbr = isFallingRocksIndex[index].blockNbr; //platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
 				isPickingRight = 0;
 				platform->GetBlockCoordinates(belowBlockNbr, x, y);
 				fallingrocks[index]->x_pos = x;
 				fallingrocks[index]->y_pos = y;
-				//soundEffect[SOUND_DRILLING]->startWAVFile();
+				soundEffect[SOUND_FALLINGROCKS]->startWAVFile();
 				fallingrocks[index]->reset();
 				fallingrocks[index]->frame();
 				
@@ -700,6 +788,67 @@ void GAMEPLAY::FallingRocksRight(void)
 				platform->RemoveRocks(belowBlockNbr);
 				isFallingRocksIndex[index].is = false;
 				isFallingRocksRight[index] = 0;
+			
+			}
+			//break;
+		}
+	}
+}
+
+void GAMEPLAY::FallingRocksLeft(void)
+{
+
+	for(unsigned int index = 0; index < 4; index++)
+	{
+		if(isFallingRocksIndex[index].is == true)
+		{
+			unsigned int res, blockNbr, belowBlockNbr; 
+			int x,y;
+			bool test;
+
+			if(isFallingRocksLeft[index] == 0)
+			{
+				// get the block that needs to be picked
+				//blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
+				//res = platform->GetType(blockNbr);
+		
+				belowBlockNbr = isFallingRocksIndex[index].blockNbr; //platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+				isPickingLeft = 0;
+				platform->GetBlockCoordinates(belowBlockNbr, x, y);
+				fallingrocks[index]->x_pos = x;
+				fallingrocks[index]->y_pos = y;
+				soundEffect[SOUND_FALLINGROCKS]->startWAVFile();
+				fallingrocks[index]->reset();
+				fallingrocks[index]->frame();
+				
+				isFallingRocksLeft[index]++;
+			}
+			else if((isFallingRocksLeft[index] %2 == 0) && (isFallingRocksLeft[index] < 8))
+			{
+					isFallingRocksLeft[index]++;
+			}
+			else if((isFallingRocksLeft[index] %2) && (isFallingRocksLeft[index] < 8))
+			{
+				test = fallingrocks[index]->frame();
+				if(test == false)
+				{
+					isFallingRocksLeft[index]++;
+				//	isFallingRocks = 0;
+				}
+				else
+					isFallingRocksLeft[index]++;
+			}
+			else if(isFallingRocksLeft[index] < 200)
+			{
+				isFallingRocksLeft[index]++;
+			
+			}
+			else
+			{
+				belowBlockNbr = isFallingRocksIndex[index].blockNbr;
+				platform->RemoveRocks(belowBlockNbr);
+				isFallingRocksIndex[index].is = false;
+				isFallingRocksLeft[index] = 0;
 			
 			}
 			//break;
@@ -755,7 +904,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 6; index++)
+	for(unsigned int index = 0; index < 8; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

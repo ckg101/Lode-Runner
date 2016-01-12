@@ -5,6 +5,7 @@ struct IS_FALLING_ROCKS_INDEX
 {
 	bool is;
 	unsigned int blockNbr;
+	unsigned int direction;
 };
 
 class FALLINGROCKS :
