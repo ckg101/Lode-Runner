@@ -7,6 +7,9 @@
 FALLINGROCKS::FALLINGROCKS(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_height) 
 		: SPRITE(d, nbr_of_frames, screen_width, screen_height)
 {
+	isOpen = true;
+	fell = false;
+	timer = 0;
 }
 
 FALLINGROCKS::~FALLINGROCKS(void)
