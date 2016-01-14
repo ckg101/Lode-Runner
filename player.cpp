@@ -150,6 +150,23 @@ bool PLAYER::pickLeftFrame(void)
 	return false;
 }
 
+bool PLAYER::ropeFrame(void)
+{
+	if((frameState < 83) || (frameState > 101))
+	{
+		frameState = 83;
+		return true;
+	}
+	else if(frameState < 101)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 0;
+	return false;
+}
+
 
 bool PLAYER::enterLevel(void)
 {

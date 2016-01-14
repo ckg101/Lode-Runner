@@ -533,6 +533,10 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->PickLeftPlayer1();
 				Sleep(150);
 			break;
+			case DIK_N:
+				gameplay->SetUpRopePlayer1();
+				Sleep(150);
+			break;
 		}
 	}
 }

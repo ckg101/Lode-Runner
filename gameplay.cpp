@@ -32,6 +32,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isPickingRight = 0;
 	isPickingLeft = 0;
 	isDrilling = 0;
+	isSettingUpRope = 0;
 	
 	nbrOfGold = 0;
 	gold = NULL;
@@ -40,7 +41,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 81, screen_width, screen_height);
+		player[index] = new PLAYER(d, 102, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -210,6 +211,10 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	if((isDrilling >=1) && (isDrilling <= 3))
 	{
 		DrillPlayer1();
+	}
+	if(isSettingUpRope)
+	{
+		SetUpRopePlayer1();
 	}
 	if(isPickingRight)
 	{
@@ -818,6 +823,48 @@ void GAMEPLAY::FallingRocks(void)
 				}
 			}
 		}
+	}
+	
+}
+
+void GAMEPLAY::SetUpRopePlayer1(void)
+{
+	unsigned int res, blockNbr;   	
+	int x, y;
+	bool test;
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& isSettingUpRope == 0)
+	{
+		// get the current block
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[PLAYER1]->x_pos = x;
+		player[PLAYER1]->y_pos = y;
+		player[PLAYER1]->ropeFrame();
+		isSettingUpRope++;
+			//soundEffect[SOUND_DIGGER]->startWAVFile();
+		
+
+	}
+	else if(isSettingUpRope %2)
+	{
+		test = player[PLAYER1]->ropeFrame();
+		if(test == false)
+		{
+			isSettingUpRope = 0;
+			player[PLAYER1]->setFrameState(0);
+		}
+		else
+			isSettingUpRope++;
+	}
+	else if(isSettingUpRope %2 == 0)
+	{
+		isSettingUpRope++;
+	}
+	else
+	{
+		player[PLAYER1]->setFrameState(0);	// if set the frame to the idle 
+		isSettingUpRope = 0;
 	}
 	
 }

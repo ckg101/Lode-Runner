@@ -26,6 +26,7 @@ class GAMEPLAY
 		void PickRightPlayer1(void);
 		void PickLeftPlayer1(void);
 		void FallingRocks(void);
+		void SetUpRopePlayer1(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -57,6 +58,7 @@ class GAMEPLAY
 		unsigned char isPickingLeft;
 		unsigned char isFallingRocksRight;
 		unsigned char isFallingRocksLeft;
+		unsigned char isSettingUpRope;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

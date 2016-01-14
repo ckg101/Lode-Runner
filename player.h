@@ -24,6 +24,7 @@ public:
 	bool drillFrame(void);
 	bool pickRightFrame(void);
 	bool pickLeftFrame(void);
+	bool ropeFrame(void);
 	unsigned int goldCollected;
 };
 
