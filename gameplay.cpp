@@ -614,30 +614,31 @@ void GAMEPLAY::PickRightPlayer1(void)
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
 		res = platform->GetType(blockNbr);
 		
-		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
-		res2 = platform->GetType(nextBlockNbr);
+		
+		//res2 = platform->GetType(nextBlockNbr);
 		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
 		{
 			
+			// find the next open spot and exit loop
 			for(unsigned int index = 0; index < 4; index++)
 			{
 				if(isFallingRocksIndex[index].is == false)
 				{
-					platform->SetTypeToRocks(nextBlockNbr);
+					currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+					platform->GetBlockCoordinates(currentBlockNbr, x, y);
+					player[PLAYER1]->x_pos = x;
+					player[PLAYER1]->y_pos = y;
+					// get the block where the rocks will fall onto
+					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+					platform->SetTypeToRocks(nextBlockNbr);  
 					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
-					isFallingRocksIndex[index].direction = 0;
+					isFallingRocksIndex[index].direction = 0;  // 0 for left 1 for right
 					//isFallingRocksIndex[index].is = true;
+					player[PLAYER1]->pickRightFrame();
+					isPickingRight++;
 					break;
 				}
 			}
-			platform->GetBlockCoordinates(currentBlockNbr, x, y);
-			player[PLAYER1]->x_pos = x;
-			player[PLAYER1]->y_pos = y;
-			
-			player[PLAYER1]->pickRightFrame();
-			isPickingRight++;
-
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -653,10 +654,10 @@ void GAMEPLAY::PickRightPlayer1(void)
 				if(isFallingRocksIndex[index].is == false)
 				{
 					isFallingRocksIndex[index].is = true;
+					FallingRocksRight();
 					break;
 				}
 			}
-			FallingRocksRight();
 		}
 		else
 			isPickingRight++;
@@ -681,9 +682,8 @@ void GAMEPLAY::PickLeftPlayer1(void)
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos-5);
 		res = platform->GetType(blockNbr);
 		
-		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
-		res2 = platform->GetType(nextBlockNbr);
+		
+		//res2 = platform->GetType(nextBlockNbr);
 		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
 		{
 			
@@ -691,19 +691,20 @@ void GAMEPLAY::PickLeftPlayer1(void)
 			{
 				if(isFallingRocksIndex[index].is == false)
 				{
+
+					currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+					platform->GetBlockCoordinates(currentBlockNbr, x, y);
+					player[PLAYER1]->x_pos = x;
+					player[PLAYER1]->y_pos = y;
+					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
 					platform->SetTypeToRocks(nextBlockNbr);
 					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
 					isFallingRocksIndex[index].direction = 1;
+					player[PLAYER1]->pickLeftFrame();
+					isPickingLeft++;
 					break;
 				}
 			}
-			platform->GetBlockCoordinates(currentBlockNbr, x, y);
-			player[PLAYER1]->x_pos = x;
-			player[PLAYER1]->y_pos = y;
-			
-			player[PLAYER1]->pickLeftFrame();
-			isPickingLeft++;
-
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
