@@ -37,15 +37,10 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	gold = NULL;
 	music = NULL;
 
-	memset(isFallingRocksRight, 0, sizeof(unsigned char) * 4);
-	memset(isFallingRocksIndex, 0, sizeof(IS_FALLING_ROCKS_INDEX) * 4);
-	memset(isFallingRocksLeft, 0, sizeof(unsigned char) * 4);
-	
-
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 73, screen_width, screen_height);
+		player[index] = new PLAYER(d, 81, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -224,16 +219,12 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	{
 		PickLeftPlayer1();
 	}
-
 	for(unsigned int index = 0; index < 4; index++)
 	{
-		if(isFallingRocksIndex[index].is == true)
+		if(fallingrocks[index]->isOpen == false)
 		{
 			fallingrocks[index]->renderSprite(buf);
-			if(isFallingRocksIndex[index].direction == 0)
-				FallingRocksRight();
-			else
-				FallingRocksLeft();
+			FallingRocks();
 		}
 	}
 	
@@ -379,15 +370,36 @@ void GAMEPLAY::MovePlayer1Right(void)
 		res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+25));
 		// detect for hitting walls
 		res = platform->GetType(blockNbr);
-		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && (player[PLAYER1]->x_pos+24 < 767))
-		{
+		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res != BLOCK_LADDER && (player[PLAYER1]->x_pos+24 < 767))
+		{	
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
 				player[PLAYER1]->x_pos+=1;
 			else
 				player[PLAYER1]->x_pos+=4;
+			if(isClimbingBar == true)
+			{
+				player[PLAYER1]->x_pos+=8;
+				isClimbingBar = false;
+			}
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->nextFrame();
+		}
+		else if(res == BLOCK_BAR)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->x_pos+=4;
+			player[PLAYER1]->nextBarFrame();
+			isClimbingBar = true;
+		}
+		else if(res == BLOCK_LADDER)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->x_pos+=4;
+			player[PLAYER1]->nextFrame();
+			isClimbingBar = true;
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
@@ -396,7 +408,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 
 void GAMEPLAY::MovePlayer1Left(void)
 {
-	unsigned int res, res2, blockNbr;
+	unsigned int res, res2, res3, blockNbr;
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isPickingRight == 0)
@@ -405,15 +417,37 @@ void GAMEPLAY::MovePlayer1Left(void)
 			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
 			res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+25));
 			res = platform->GetType(blockNbr);
-		if(res > BLOCK_HOLLOW && res != BLOCK_ROCKS && (player[PLAYER1]->x_pos > 0))
+			res3 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos-5));
+		if(res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res!=BLOCK_LADDER && (player[PLAYER1]->x_pos > 0))
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
 				player[PLAYER1]->x_pos-=1;
 			else
 				player[PLAYER1]->x_pos-=4;
+			if(isClimbingBar == true)
+			{
+				player[PLAYER1]->x_pos-=12;
+				isClimbingBar = false;
+			}
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->backFrame();
+		}
+		else if(res == BLOCK_BAR)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->x_pos-=4;
+			player[PLAYER1]->backBarFrame();
+			isClimbingBar = true;
+		}
+		else if(res == BLOCK_LADDER)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->x_pos-=4;
+			player[PLAYER1]->backFrame();
+			isClimbingBar = true;
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
@@ -438,6 +472,8 @@ void GAMEPLAY::MovePlayer1Down(void)
 			player[PLAYER1]->y_pos+=4;
 			player[PLAYER1]->climbDownFrame();
 		}
+		if(isClimbingBar == true)
+			isClimbingBar = false;
 	}
 }
 
@@ -614,31 +650,19 @@ void GAMEPLAY::PickRightPlayer1(void)
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
 		res = platform->GetType(blockNbr);
 		
-		
-		//res2 = platform->GetType(nextBlockNbr);
+		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+		res2 = platform->GetType(nextBlockNbr);
 		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
 		{
 			
-			// find the next open spot and exit loop
-			for(unsigned int index = 0; index < 4; index++)
-			{
-				if(isFallingRocksIndex[index].is == false)
-				{
-					currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-					platform->GetBlockCoordinates(currentBlockNbr, x, y);
-					player[PLAYER1]->x_pos = x;
-					player[PLAYER1]->y_pos = y;
-					// get the block where the rocks will fall onto
-					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
-					platform->SetTypeToRocks(nextBlockNbr);  
-					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
-					isFallingRocksIndex[index].direction = 0;  // 0 for left 1 for right
-					//isFallingRocksIndex[index].is = true;
-					player[PLAYER1]->pickRightFrame();
-					isPickingRight++;
-					break;
-				}
-			}
+			platform->GetBlockCoordinates(currentBlockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			
+			player[PLAYER1]->pickRightFrame();
+			isPickingRight++;
+
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -649,15 +673,27 @@ void GAMEPLAY::PickRightPlayer1(void)
 			soundEffect[SOUND_PICK]->startWAVFile();
 		if(test == false)
 		{
+			isPickingRight = 0;
+			player[PLAYER1]->setFrameState(0);
+
+			// find first open slot to play animation
 			for(unsigned int index = 0; index < 4; index++)
 			{
-				if(isFallingRocksIndex[index].is == false)
+				if(fallingrocks[index]->isOpen == true)
 				{
-					isFallingRocksIndex[index].is = true;
-					FallingRocksRight();
+					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+					nextBlockNbr++;
+					platform->SetTypeToRocks(nextBlockNbr);
+					platform->GetBlockCoordinates(nextBlockNbr, x, y);
+					fallingrocks[index]->isOpen = false;				// this triggers the fallingrocks animation
+					fallingrocks[index]->blockNbr = nextBlockNbr;
+					fallingrocks[index]->x_pos = x;
+					fallingrocks[index]->y_pos = y;
 					break;
 				}
 			}
+			
+			//FallingRocksRight();
 		}
 		else
 			isPickingRight++;
@@ -682,29 +718,19 @@ void GAMEPLAY::PickLeftPlayer1(void)
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos-5);
 		res = platform->GetType(blockNbr);
 		
-		
-		//res2 = platform->GetType(nextBlockNbr);
+		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
+		res2 = platform->GetType(nextBlockNbr);
 		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
 		{
 			
-			for(unsigned int index = 0; index < 4; index++)
-			{
-				if(isFallingRocksIndex[index].is == false)
-				{
+			platform->GetBlockCoordinates(currentBlockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			
+			player[PLAYER1]->pickLeftFrame();
+			isPickingLeft++;
 
-					currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-					platform->GetBlockCoordinates(currentBlockNbr, x, y);
-					player[PLAYER1]->x_pos = x;
-					player[PLAYER1]->y_pos = y;
-					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
-					platform->SetTypeToRocks(nextBlockNbr);
-					isFallingRocksIndex[index].blockNbr = nextBlockNbr;
-					isFallingRocksIndex[index].direction = 1;
-					player[PLAYER1]->pickLeftFrame();
-					isPickingLeft++;
-					break;
-				}
-			}
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -715,15 +741,26 @@ void GAMEPLAY::PickLeftPlayer1(void)
 			soundEffect[SOUND_PICK]->startWAVFile();
 		if(test == false)
 		{
+			isPickingLeft = 0;
+			player[PLAYER1]->setFrameState(0);
+			//FallingRocksLeft();
+
+			// find first open slot to play animation
 			for(unsigned int index = 0; index < 4; index++)
 			{
-				if(isFallingRocksIndex[index].is == false)
+				if(fallingrocks[index]->isOpen == true)
 				{
-					isFallingRocksIndex[index].is = true;
+					nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+					nextBlockNbr--;
+					platform->SetTypeToRocks(nextBlockNbr);
+					platform->GetBlockCoordinates(nextBlockNbr, x, y);
+					fallingrocks[index]->isOpen = false;				// this triggers the fallingrocks animation
+					fallingrocks[index]->blockNbr = nextBlockNbr;
+					fallingrocks[index]->x_pos = x;
+					fallingrocks[index]->y_pos = y;
 					break;
 				}
 			}
-			FallingRocksLeft();
 		}
 		else
 			isPickingLeft++;
@@ -735,126 +772,54 @@ void GAMEPLAY::PickLeftPlayer1(void)
 	}
 }
 
-void GAMEPLAY::FallingRocksRight(void)
+void GAMEPLAY::FallingRocks(void)
 {
-
-	for(unsigned int index = 0; index < 4; index++)
+	bool test;
+	for(unsigned int index =0; index < 4; index++)
 	{
-		if(isFallingRocksIndex[index].is == true)
+		if(fallingrocks[index]->isOpen == false)
 		{
-			unsigned int res, blockNbr, belowBlockNbr; 
-			int x,y;
-			bool test;
-
-			if(isFallingRocksRight[index] == 0)
+			if(fallingrocks[index]->timer == 0)	// if the beginning of animation
 			{
-				// get the block that needs to be picked
-				//blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
-				//res = platform->GetType(blockNbr);
-		
-				belowBlockNbr = isFallingRocksIndex[index].blockNbr; //platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
-				isPickingRight = 0;
-				platform->GetBlockCoordinates(belowBlockNbr, x, y);
-				fallingrocks[index]->x_pos = x;
-				fallingrocks[index]->y_pos = y;
-				soundEffect[SOUND_FALLINGROCKS]->startWAVFile();
-				fallingrocks[index]->reset();
 				fallingrocks[index]->frame();
-				
-				isFallingRocksRight[index]++;
+				fallingrocks[index]->timer++;
+				soundEffect[SOUND_FALLINGROCKS]->startWAVFile();
 			}
-			else if((isFallingRocksRight[index] %2 == 0) && (isFallingRocksRight[index] < 8))
+			else if(fallingrocks[index]->timer % 3 && fallingrocks[index]->fell == false) // slow down animation
 			{
-					isFallingRocksRight[index]++;
-			}
-			else if((isFallingRocksRight[index] %2) && (isFallingRocksRight[index] < 8))
-			{
-				test = fallingrocks[index]->frame();
-				if(test == false)
-				{
-					isFallingRocksRight[index]++;
-				//	isFallingRocks = 0;
-				}
-				else
-					isFallingRocksRight[index]++;
-			}
-			else if(isFallingRocksRight[index] < 200)
-			{
-				isFallingRocksRight[index]++;
-			
+				fallingrocks[index]->timer++;
 			}
 			else
 			{
-				belowBlockNbr = isFallingRocksIndex[index].blockNbr;
-				platform->RemoveRocks(belowBlockNbr);
-				isFallingRocksIndex[index].is = false;
-				isFallingRocksRight[index] = 0;
-			
-			}
-			//break;
-		}
-	}
-}
-
-void GAMEPLAY::FallingRocksLeft(void)
-{
-
-	for(unsigned int index = 0; index < 4; index++)
-	{
-		if(isFallingRocksIndex[index].is == true)
-		{
-			unsigned int res, blockNbr, belowBlockNbr; 
-			int x,y;
-			bool test;
-
-			if(isFallingRocksLeft[index] == 0)
-			{
-				// get the block that needs to be picked
-				//blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
-				//res = platform->GetType(blockNbr);
-		
-				belowBlockNbr = isFallingRocksIndex[index].blockNbr; //platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
-				isPickingLeft = 0;
-				platform->GetBlockCoordinates(belowBlockNbr, x, y);
-				fallingrocks[index]->x_pos = x;
-				fallingrocks[index]->y_pos = y;
-				soundEffect[SOUND_FALLINGROCKS]->startWAVFile();
-				fallingrocks[index]->reset();
-				fallingrocks[index]->frame();
-				
-				isFallingRocksLeft[index]++;
-			}
-			else if((isFallingRocksLeft[index] %2 == 0) && (isFallingRocksLeft[index] < 8))
-			{
-					isFallingRocksLeft[index]++;
-			}
-			else if((isFallingRocksLeft[index] %2) && (isFallingRocksLeft[index] < 8))
-			{
-				test = fallingrocks[index]->frame();
-				if(test == false)
+				if(fallingrocks[index]->fell == false)	
 				{
-					isFallingRocksLeft[index]++;
-				//	isFallingRocks = 0;
+
+					test = fallingrocks[index]->frame();
+					if(test == false)
+					{
+						fallingrocks[index]->fell = true;
+						fallingrocks[index]->timer++;
+					}
+					else
+						fallingrocks[index]->timer++;
 				}
 				else
-					isFallingRocksLeft[index]++;
+				{
+					if(fallingrocks[index]->timer < 200)			// if the rocks fell then wait 200 frames
+						fallingrocks[index]->timer++;				// before removing the rocks
+					else
+					{
+						fallingrocks[index]->isOpen = true;
+						fallingrocks[index]->fell = false;
+						fallingrocks[index]->reset();
+						fallingrocks[index]->timer = 0;
+						platform->RemoveRocks(fallingrocks[index]->blockNbr);
+					}
+				}
 			}
-			else if(isFallingRocksLeft[index] < 200)
-			{
-				isFallingRocksLeft[index]++;
-			
-			}
-			else
-			{
-				belowBlockNbr = isFallingRocksIndex[index].blockNbr;
-				platform->RemoveRocks(belowBlockNbr);
-				isFallingRocksIndex[index].is = false;
-				isFallingRocksLeft[index] = 0;
-			
-			}
-			//break;
 		}
 	}
+	
 }
 
 void GAMEPLAY::Gravity(void)
@@ -866,9 +831,9 @@ void GAMEPLAY::Gravity(void)
 	// get ID of current block
 	res2 = platform->GetType(platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos));
 
-	if(isDrilling == 0)
+	if(isDrilling == 0 && isClimbingBar == false)
 	{
-	if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
+	if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW || res == BLOCK_BAR) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos);
 		platform->GetBlockCoordinates(blockNbr, x, y);

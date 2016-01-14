@@ -43,6 +43,34 @@ void PLAYER::backFrame(void)
 		frameState = 11;
 }
 
+void PLAYER::backBarFrame(void)
+{
+	if(frameState < 77 || frameState > 80)
+	{
+		frameState = 77;
+	}
+	else if(frameState < 80)
+	{
+		frameState++;
+	}
+	else
+		frameState = 77;
+}
+
+void PLAYER::nextBarFrame(void)
+{
+	if(frameState < 73 || frameState > 76)
+	{
+		frameState = 73;
+	}
+	else if(frameState < 76)
+	{
+		frameState++;
+	}
+	else
+		frameState = 73;
+}
+
 void PLAYER::climbDownFrame(void)
 {
 	if(frameState != 21)

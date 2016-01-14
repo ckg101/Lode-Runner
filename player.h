@@ -12,6 +12,8 @@ public:
 
 	void nextFrame(void);
 	void backFrame(void);
+	void nextBarFrame(void);
+	void backBarFrame(void);
 	void climbDownFrame(void);
 	void climbUpFrame(void);
 	void fallingFrame(void);

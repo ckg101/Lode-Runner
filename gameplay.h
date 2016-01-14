@@ -25,8 +25,7 @@ class GAMEPLAY
 		void DrillPlayer1(void);
 		void PickRightPlayer1(void);
 		void PickLeftPlayer1(void);
-		void FallingRocksRight(void);
-		void FallingRocksLeft(void);
+		void FallingRocks(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -52,12 +51,12 @@ class GAMEPLAY
 		bool isEnteringLevelSound;
 		bool isDiggingRight;
 		bool isDiggingLeft;
+		bool isClimbingBar;
 		unsigned char isDrilling;
 		unsigned char isPickingRight;
-		unsigned char isFallingRocksRight[4];
-		IS_FALLING_ROCKS_INDEX isFallingRocksIndex[4];
 		unsigned char isPickingLeft;
-		unsigned char isFallingRocksLeft[4];
+		unsigned char isFallingRocksRight;
+		unsigned char isFallingRocksLeft;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

@@ -1,13 +1,6 @@
 #pragma once
 #include "sprite.h"
 
-struct IS_FALLING_ROCKS_INDEX
-{
-	bool is;
-	unsigned int blockNbr;
-	unsigned int direction;
-};
-
 class FALLINGROCKS :
 	public SPRITE
 {
@@ -16,4 +9,9 @@ public:
 	~FALLINGROCKS(void);
 	bool frame(void);
 	void reset(void);
+
+	bool isOpen;
+	unsigned int blockNbr;
+	unsigned int timer;
+	bool fell;
 };
