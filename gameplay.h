@@ -8,7 +8,8 @@
 #include "fallingrocks.h"
 
 enum SOUND_EFFECT
-{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, SOUND_FALLINGROCKS};
+{ SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
+  SOUND_FALLINGROCKS, SOUND_SETROPETRAP};
 
 class GAMEPLAY
 {
@@ -35,7 +36,7 @@ class GAMEPLAY
 		wchar_t* GetMusicFileName(void);
 		void Player1EntersLevel(void);
 		void CollectGold(void);
-
+		void PickupItem(void);
 	private:
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
@@ -44,9 +45,11 @@ class GAMEPLAY
 		FALLINGROCKS** fallingrocks;
 		SPRITE** monk;
 		GOLD** gold;
+		SPRITE** ropetrap;
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		unsigned int nbrOfGold;
+		unsigned int nbrOfRopetrap;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;

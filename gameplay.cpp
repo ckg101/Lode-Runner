@@ -33,10 +33,12 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isPickingLeft = 0;
 	isDrilling = 0;
 	isSettingUpRope = 0;
+	nbrOfRopetrap = 0;
 	
 	nbrOfGold = 0;
-	gold = NULL;
+	gold = NULL;		// allocated in LoadLevel()
 	music = NULL;
+	ropetrap = NULL;	// allocated in LoadLevel()
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -86,8 +88,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_DRILLING], L"Sound\\drilling.wav");
 	wsprintf(soundFileName[SOUND_PICK], L"Sound\\pick.wav");
 	wsprintf(soundFileName[SOUND_FALLINGROCKS], L"Sound\\fallingrocks.wav");
+	wsprintf(soundFileName[SOUND_SETROPETRAP], L"Sound\\setropetrap.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 8);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 9);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -100,6 +103,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_GOLD]->loadWAVFile(soundFileName[SOUND_GOLD]);
 	soundEffect[SOUND_DRILLING] = new SOUND(xa);
 	soundEffect[SOUND_DRILLING]->loadWAVFile(soundFileName[SOUND_DRILLING]);
+	soundEffect[SOUND_SETROPETRAP] = new SOUND(xa);
+	soundEffect[SOUND_SETROPETRAP]->loadWAVFile(soundFileName[SOUND_SETROPETRAP]);
 
 	soundEffect[SOUND_PICK] = new SOUND(xa);
 	soundEffect[SOUND_PICK]->loadWAVFile(soundFileName[SOUND_PICK]);
@@ -148,7 +153,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 6; index++)
+		for(unsigned int index = 0; index < 9; index++)
 		{
 			delete soundEffect[index];
 		}
@@ -167,6 +172,20 @@ GAMEPLAY::~GAMEPLAY(void)
 		free(gold);
 		gold = NULL;
 	}
+
+	if(ropetrap)
+	{
+		for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+		{
+			if(ropetrap[index])
+			{
+				delete ropetrap[index];
+				ropetrap[index] = NULL;
+			}
+		}
+		free(ropetrap);
+	}
+
 	if(music)
 		delete music;
 	//if(fallingSound)
@@ -240,12 +259,19 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 			if(gold[index]->isCollected == false)
 				gold[index]->renderSprite(buf);
 	}
+
+	for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+	{
+		if(ropetrap[index])
+			ropetrap[index]->renderSprite(buf);
+	}
 	player[PLAYER1]->renderSprite(buf);
 }
 
 int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 {
 	unsigned int counter = 0;
+	unsigned int ropetrap_counter = 0;
 	platform->LoadLevel(L"level1.lvl");
 	wchar_t fileName[256];
 	POINT p;
@@ -257,13 +283,28 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	{
 		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
 			nbrOfGold++;
+		else if(platform->type[index] == BLOCK_ROPE)
+			nbrOfRopetrap++;
 	}
 	
-	gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
-	
-	for(unsigned int index = 0; index < nbrOfGold; index++)
+	if(nbrOfGold)
 	{
-		gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
+	
+		for(unsigned int index = 0; index < nbrOfGold; index++)
+		{
+			gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfRopetrap)
+	{
+		ropetrap = (SPRITE**)malloc(sizeof(SPRITE*) * nbrOfRopetrap);
+
+		for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+		{
+			ropetrap[index] = new SPRITE(platform->d3ddev, 2, platform->screenWidth, platform->screenHeight);
+		}
 	}
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
@@ -277,6 +318,18 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 			gold[counter]->x_pos = p.x;
 			gold[counter]->y_pos = p.y;
 			counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+		else if(platform->type[index] == BLOCK_ROPE)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			ropetrap[ropetrap_counter]->loadBitmaps(L"Graphics\\block19_");
+			ropetrap[ropetrap_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			ropetrap[ropetrap_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			ropetrap[ropetrap_counter]->x_pos = p.x;
+			ropetrap[ropetrap_counter]->y_pos = p.y;
+			ropetrap_counter++;
 			platform->type[index] = BLOCK_EMPTY;
 			platform->isOccupied[index] = IS_NOT_OCCUPIED;
 		}
@@ -841,6 +894,7 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 		player[PLAYER1]->x_pos = x;
 		player[PLAYER1]->y_pos = y;
 		player[PLAYER1]->ropeFrame();
+		soundEffect[SOUND_SETROPETRAP]->startWAVFile();
 		isSettingUpRope++;
 			//soundEffect[SOUND_DIGGER]->startWAVFile();
 		
@@ -853,6 +907,7 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 		{
 			isSettingUpRope = 0;
 			player[PLAYER1]->setFrameState(0);
+
 		}
 		else
 			isSettingUpRope++;
@@ -917,7 +972,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 8; index++)
+	for(unsigned int index = 0; index < 9; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

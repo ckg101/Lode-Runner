@@ -537,6 +537,9 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->SetUpRopePlayer1();
 				Sleep(150);
 			break;
+			case DIK_LCONTROL:
+				// pick up item
+			break;
 		}
 	}
 }
