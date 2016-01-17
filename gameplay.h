@@ -9,6 +9,8 @@
 #include "ropetrap.h"
 #include "jackhammer.h"
 #include "pick.h"
+#include "goo.h"
+#include "gas.h"
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
@@ -42,6 +44,7 @@ class GAMEPLAY
 		void PickupItem(void);
 		void DropItem(void);
 	private:
+		void UnallocateItems(void);
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
 		PLAYER** player;
@@ -52,18 +55,23 @@ class GAMEPLAY
 		ROPETRAP** ropetrap;
 		JACKHAMMER** jackhammer;
 		PICK** pick;
+		GOO** goo;
+		GAS** gas;
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		unsigned int nbrOfGold;
 		unsigned int nbrOfRopetrap;
 		unsigned int nbrOfJackhammer;
 		unsigned int nbrOfPick;
+		unsigned int nbrOfGoo;
+		unsigned int nbrOfGas;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;
 		bool isDiggingRight;
 		bool isDiggingLeft;
 		bool isClimbingBar;
+		bool isReleased;
 		unsigned char isDrilling;
 		unsigned char isPickingRight;
 		unsigned char isPickingLeft;
