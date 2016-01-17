@@ -34,11 +34,15 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isDrilling = 0;
 	isSettingUpRope = 0;
 	nbrOfRopetrap = 0;
+	nbrOfJackhammer = 0;
+	nbrOfPick = 0;
 	
 	nbrOfGold = 0;
 	gold = NULL;		// allocated in LoadLevel()
 	music = NULL;
 	ropetrap = NULL;	// allocated in LoadLevel()
+	jackhammer = NULL;
+	pick = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -75,8 +79,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
-	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 9);
-	for(unsigned int index = 0; index < 9; index++)
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 10);
+	for(unsigned int index = 0; index < 10; index++)
 	{
 		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	}
@@ -89,8 +93,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_PICK], L"Sound\\pick.wav");
 	wsprintf(soundFileName[SOUND_FALLINGROCKS], L"Sound\\fallingrocks.wav");
 	wsprintf(soundFileName[SOUND_SETROPETRAP], L"Sound\\setropetrap.wav");
+	wsprintf(soundFileName[SOUND_PICKUP], L"Sound\\pickup.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 9);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 10);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -111,6 +116,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 
 	soundEffect[SOUND_FALLINGROCKS] = new SOUND(xa);
 	soundEffect[SOUND_FALLINGROCKS]->loadWAVFile(soundFileName[SOUND_FALLINGROCKS]);
+	
+	soundEffect[SOUND_PICKUP] = new SOUND(xa);
+	soundEffect[SOUND_PICKUP]->loadWAVFile(soundFileName[SOUND_PICKUP]);
 
 	music = new SOUND(xa);
 	
@@ -145,7 +153,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundFileName)
 	{
-		for(unsigned int index = 0; index < 9; index++)
+		for(unsigned int index = 0; index < 10; index++)
 		{
 			free(soundFileName[index]);
 		}
@@ -184,6 +192,32 @@ GAMEPLAY::~GAMEPLAY(void)
 			}
 		}
 		free(ropetrap);
+	}
+
+	if(jackhammer)
+	{
+		for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+		{
+			if(jackhammer[index])
+			{
+				delete jackhammer[index];
+				jackhammer[index] = NULL;
+			}
+		}
+		free(jackhammer);
+	}
+
+	if(pick)
+	{
+		for(unsigned int index = 0; index < nbrOfPick; index++)
+		{
+			if(pick[index])
+			{
+				delete pick[index];
+				pick[index] = NULL;
+			}
+		}
+		free(pick);
 	}
 
 	if(music)
@@ -263,7 +297,20 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	for(unsigned int index = 0; index < nbrOfRopetrap; index++)
 	{
 		if(ropetrap[index])
-			ropetrap[index]->renderSprite(buf);
+			if(ropetrap[index]->isCollected == false)
+				ropetrap[index]->renderSprite(buf);
+	}
+	for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+	{
+		if(jackhammer[index])
+			if(jackhammer[index]->isCollected == false)
+				jackhammer[index]->renderSprite(buf);
+	}
+	for(unsigned int index = 0; index < nbrOfPick; index++)
+	{
+		if(pick[index])
+			if(pick[index]->isCollected == false)
+				pick[index]->renderSprite(buf);
 	}
 	player[PLAYER1]->renderSprite(buf);
 }
@@ -272,6 +319,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 {
 	unsigned int counter = 0;
 	unsigned int ropetrap_counter = 0;
+	unsigned int jackhammer_counter = 0;
+	unsigned int pick_counter = 0;
 	platform->LoadLevel(L"level1.lvl");
 	wchar_t fileName[256];
 	POINT p;
@@ -285,6 +334,10 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 			nbrOfGold++;
 		else if(platform->type[index] == BLOCK_ROPE)
 			nbrOfRopetrap++;
+		else if(platform->type[index] == BLOCK_JACKHAMMER)
+			nbrOfJackhammer++;
+		else if(platform->type[index] == BLOCK_PICK)
+			nbrOfPick++;
 	}
 	
 	if(nbrOfGold)
@@ -299,11 +352,31 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 
 	if(nbrOfRopetrap)
 	{
-		ropetrap = (SPRITE**)malloc(sizeof(SPRITE*) * nbrOfRopetrap);
+		ropetrap = (ROPETRAP**)malloc(sizeof(ROPETRAP*) * nbrOfRopetrap);
 
 		for(unsigned int index = 0; index < nbrOfRopetrap; index++)
 		{
-			ropetrap[index] = new SPRITE(platform->d3ddev, 2, platform->screenWidth, platform->screenHeight);
+			ropetrap[index] = new ROPETRAP(platform->d3ddev, 2, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfJackhammer)
+	{
+		jackhammer = (JACKHAMMER**)malloc(sizeof(JACKHAMMER*) * nbrOfJackhammer);
+
+		for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+		{
+			jackhammer[index] = new JACKHAMMER(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfPick)
+	{
+		pick = (PICK**)malloc(sizeof(PICK*) * nbrOfPick);
+
+		for(unsigned int index = 0; index < nbrOfPick; index++)
+		{
+			pick[index] = new PICK(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -333,6 +406,30 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 			platform->type[index] = BLOCK_EMPTY;
 			platform->isOccupied[index] = IS_NOT_OCCUPIED;
 		}
+		else if(platform->type[index] == BLOCK_JACKHAMMER)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			jackhammer[jackhammer_counter]->loadBitmaps(L"Graphics\\block17_");
+			jackhammer[jackhammer_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			jackhammer[jackhammer_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			jackhammer[jackhammer_counter]->x_pos = p.x;
+			jackhammer[jackhammer_counter]->y_pos = p.y;
+			jackhammer_counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+		else if(platform->type[index] == BLOCK_PICK)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			pick[pick_counter]->loadBitmaps(L"Graphics\\block18_");
+			pick[pick_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			pick[pick_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			pick[pick_counter]->x_pos = p.x;
+			pick[pick_counter]->y_pos = p.y;
+			pick_counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
 	}
 
 	platform->SetIsPlaying(true);
@@ -347,6 +444,9 @@ int GAMEPLAY::LoadLevel(void)
 {
 	POINT p;
 	unsigned int counter = 0;
+	unsigned int ropetrap_counter = 0;
+	unsigned int jackhammer_counter = 0;
+	unsigned int pick_counter = 0;
 	wchar_t fileName[256];
 	platform->LoadLevel();
 	p = platform->GetStartingCoordinatesOfPlayer(0);
@@ -358,13 +458,52 @@ int GAMEPLAY::LoadLevel(void)
 	{
 		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
 			nbrOfGold++;
+		else if(platform->type[index] == BLOCK_ROPE)
+			nbrOfRopetrap++;
+		else if(platform->type[index] == BLOCK_JACKHAMMER)
+			nbrOfJackhammer++;
+		else if(platform->type[index] == BLOCK_PICK)
+			nbrOfPick++;
 	}
 	
-	gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
-	
-	for(unsigned int index = 0; index < nbrOfGold; index++)
+	if(nbrOfGold)
 	{
-		gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		gold = (GOLD**)malloc(sizeof(GOLD*) * nbrOfGold);
+	
+		for(unsigned int index = 0; index < nbrOfGold; index++)
+		{
+			gold[index] = new GOLD(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfRopetrap)
+	{
+		ropetrap = (ROPETRAP**)malloc(sizeof(ROPETRAP*) * nbrOfRopetrap);
+
+		for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+		{
+			ropetrap[index] = new ROPETRAP(platform->d3ddev, 2, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfJackhammer)
+	{
+		jackhammer = (JACKHAMMER**)malloc(sizeof(JACKHAMMER*) * nbrOfJackhammer);
+
+		for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+		{
+			jackhammer[index] = new JACKHAMMER(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		}
+	}
+
+	if(nbrOfPick)
+	{
+		pick = (PICK**)malloc(sizeof(PICK*) * nbrOfPick);
+
+		for(unsigned int index = 0; index < nbrOfPick; index++)
+		{
+			pick[index] = new PICK(platform->d3ddev, 1, platform->screenWidth, platform->screenHeight);
+		}
 	}
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
@@ -381,11 +520,47 @@ int GAMEPLAY::LoadLevel(void)
 			platform->type[index] = BLOCK_EMPTY;
 			platform->isOccupied[index] = IS_NOT_OCCUPIED;
 		}
+		else if(platform->type[index] == BLOCK_ROPE)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			ropetrap[ropetrap_counter]->loadBitmaps(L"Graphics\\block19_");
+			ropetrap[ropetrap_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			ropetrap[ropetrap_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			ropetrap[ropetrap_counter]->x_pos = p.x;
+			ropetrap[ropetrap_counter]->y_pos = p.y;
+			ropetrap_counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+		else if(platform->type[index] == BLOCK_JACKHAMMER)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			jackhammer[jackhammer_counter]->loadBitmaps(L"Graphics\\block17_");
+			jackhammer[jackhammer_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			jackhammer[jackhammer_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			jackhammer[jackhammer_counter]->x_pos = p.x;
+			jackhammer[jackhammer_counter]->y_pos = p.y;
+			jackhammer_counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
+		else if(platform->type[index] == BLOCK_PICK)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			pick[pick_counter]->loadBitmaps(L"Graphics\\block18_");
+			pick[pick_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			pick[pick_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			pick[pick_counter]->x_pos = p.x;
+			pick[pick_counter]->y_pos = p.y;
+			pick_counter++;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+		}
 	}
 
+	platform->SetIsPlaying(true);
 	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
 	music->startWAVFile();
-	platform->SetIsPlaying(true);
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
 	return 1;
@@ -407,6 +582,45 @@ void GAMEPLAY::Exit(void)
 		free(gold);
 		gold = NULL;
 	}
+	if(ropetrap)
+	{
+		for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+		{
+			if(ropetrap[index])
+			{
+				delete ropetrap[index];
+				ropetrap[index] = NULL;
+			}
+		}
+		free(ropetrap);
+	}
+	ropetrap = NULL;
+	if(jackhammer)
+	{
+		for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+		{
+			if(jackhammer[index])
+			{
+				delete jackhammer[index];
+				jackhammer[index] = NULL;
+			}
+		}
+		free(jackhammer);
+	}
+	jackhammer = NULL;
+	if(pick)
+	{
+		for(unsigned int index = 0; index < nbrOfPick; index++)
+		{
+			if(pick[index])
+			{
+				delete pick[index];
+				pick[index] = NULL;
+			}
+		}
+		free(pick);
+	}
+	pick = NULL;
 	platform->SetIsPlaying(false);
 }
 
@@ -661,18 +875,21 @@ void GAMEPLAY::DrillPlayer1(void)
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
 		&& isDrilling == 0)
 	{
-		// get the block that needs to be drilled
-		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+26);
-		res = platform->GetType(blockNbr);
-		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-
-		if(res == BLOCK_SOLID)
+		if(player[PLAYER1]->itemHeld == BLOCK_JACKHAMMER)
 		{
-			platform->GetBlockCoordinates(currentBlockNbr, x, y);
-			player[PLAYER1]->x_pos = x;
-			player[PLAYER1]->y_pos = y;
-			soundEffect[SOUND_DRILLING]->startWAVFile();
-			isDrilling = player[PLAYER1]->drillFrame();
+			// get the block that needs to be drilled
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+26);
+			res = platform->GetType(blockNbr);
+			currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+
+			if(res == BLOCK_SOLID)
+			{
+				platform->GetBlockCoordinates(currentBlockNbr, x, y);
+				player[PLAYER1]->x_pos = x;
+				player[PLAYER1]->y_pos = y;
+				soundEffect[SOUND_DRILLING]->startWAVFile();
+				isDrilling = player[PLAYER1]->drillFrame();
+			}
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -704,23 +921,25 @@ void GAMEPLAY::PickRightPlayer1(void)
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
 		&& isDrilling == 0 && isPickingRight == 0)
 	{
-		// get the block that needs to be picked
-		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
-		res = platform->GetType(blockNbr);
-		
-		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
-		res2 = platform->GetType(nextBlockNbr);
-		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+		if(player[PLAYER1]->itemHeld == BLOCK_PICK)
 		{
+			// get the block that needs to be picked
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos-5);
+			res = platform->GetType(blockNbr);
+		
+			currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+			nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+32, player[PLAYER1]->y_pos);
+			res2 = platform->GetType(nextBlockNbr);
+			if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+			{
 			
-			platform->GetBlockCoordinates(currentBlockNbr, x, y);
-			player[PLAYER1]->x_pos = x;
-			player[PLAYER1]->y_pos = y;
-			
-			player[PLAYER1]->pickRightFrame();
-			isPickingRight++;
-
+				platform->GetBlockCoordinates(currentBlockNbr, x, y);
+				player[PLAYER1]->x_pos = x;
+				player[PLAYER1]->y_pos = y;
+				
+				player[PLAYER1]->pickRightFrame();
+				isPickingRight++;
+			}
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -772,23 +991,26 @@ void GAMEPLAY::PickLeftPlayer1(void)
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
 		&& isDrilling == 0 && isPickingRight == 0 && isPickingLeft == 0)
 	{
-		// get the block that needs to be picked
-		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos-5);
-		res = platform->GetType(blockNbr);
-		
-		currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
-		res2 = platform->GetType(nextBlockNbr);
-		if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+		if(player[PLAYER1]->itemHeld == BLOCK_PICK)
 		{
+			// get the block that needs to be picked
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos-5);
+			res = platform->GetType(blockNbr);
+		
+			currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+			nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-12, player[PLAYER1]->y_pos);
+			res2 = platform->GetType(nextBlockNbr);
+			if(res >= BLOCK_REGULAR && res <= BLOCK_SLOW)
+			{
 			
-			platform->GetBlockCoordinates(currentBlockNbr, x, y);
-			player[PLAYER1]->x_pos = x;
-			player[PLAYER1]->y_pos = y;
+				platform->GetBlockCoordinates(currentBlockNbr, x, y);
+				player[PLAYER1]->x_pos = x;
+				player[PLAYER1]->y_pos = y;
 			
-			player[PLAYER1]->pickLeftFrame();
-			isPickingLeft++;
+				player[PLAYER1]->pickLeftFrame();
+				isPickingLeft++;
 
+			}
 		}
 	}
 	else if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
@@ -885,20 +1107,23 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 	unsigned int res, blockNbr;   	
 	int x, y;
 	bool test;
+	
+	
+
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isSettingUpRope == 0)
 	{
-		// get the current block
-		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
-		platform->GetBlockCoordinates(blockNbr, x, y);
-		player[PLAYER1]->x_pos = x;
-		player[PLAYER1]->y_pos = y;
-		player[PLAYER1]->ropeFrame();
-		soundEffect[SOUND_SETROPETRAP]->startWAVFile();
-		isSettingUpRope++;
-			//soundEffect[SOUND_DIGGER]->startWAVFile();
-		
-
+		if(player[PLAYER1]->itemHeld == BLOCK_ROPE)
+		{
+			// get the current block
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			player[PLAYER1]->x_pos = x;
+			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->ropeFrame();
+			soundEffect[SOUND_SETROPETRAP]->startWAVFile();
+			isSettingUpRope++;
+		}
 	}
 	else if(isSettingUpRope %2)
 	{
@@ -907,6 +1132,20 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 		{
 			isSettingUpRope = 0;
 			player[PLAYER1]->setFrameState(0);
+			for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+			{
+				if(ropetrap[index]->isCollected == true)
+				{
+					blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+					platform->GetBlockCoordinates(blockNbr, x, y);
+					ropetrap[index]->isSet = true;
+					ropetrap[index]->isCollected = false;
+					ropetrap[index]->x_pos = x;
+					ropetrap[index]->y_pos = y;
+					ropetrap[index]->SetFrameStateToSet();
+					player[PLAYER1]->itemHeld = 0;
+				}
+			}
 
 		}
 		else
@@ -972,7 +1211,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 9; index++)
+	for(unsigned int index = 0; index < 10; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}
@@ -1004,3 +1243,138 @@ void GAMEPLAY::CollectGold(void)
 		}
 	}
 }
+
+void GAMEPLAY::PickupItem(void)
+{
+	unsigned int res;
+	int x, y;
+
+	if(player[PLAYER1]->itemHeld)
+	{
+		DropItem();
+		return;
+	}
+
+
+	for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+	{
+		if(ropetrap[index]->isCollected == false && ropetrap[index]->isSet == false)
+		{
+			res = platform->getBlockNbr(ropetrap[index]->x_pos, ropetrap[index]->y_pos);
+			platform->GetBlockCoordinates(res,x,y);
+			if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+				&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+			{
+				player[PLAYER1]->itemHeld = BLOCK_ROPE;
+				ropetrap[index]->isCollected = true;
+				soundEffect[SOUND_PICKUP]->startWAVFile();
+				break;
+			}
+		}
+	}
+
+	for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+	{
+		if(jackhammer[index]->isCollected == false)
+		{
+			res = platform->getBlockNbr(jackhammer[index]->x_pos, jackhammer[index]->y_pos);
+			platform->GetBlockCoordinates(res,x,y);
+			if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+				&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+			{
+				player[PLAYER1]->itemHeld = BLOCK_JACKHAMMER;
+				jackhammer[index]->isCollected = true;
+				soundEffect[SOUND_PICKUP]->startWAVFile();
+				break;
+			}
+		}
+	}
+
+	for(unsigned int index = 0; index < nbrOfPick; index++)
+	{
+		if(pick[index]->isCollected == false)
+		{
+			res = platform->getBlockNbr(pick[index]->x_pos, ropetrap[index]->y_pos);
+			platform->GetBlockCoordinates(res,x,y);
+			if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+				&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+			{
+				player[PLAYER1]->itemHeld = BLOCK_PICK;
+				pick[index]->isCollected = true;
+				soundEffect[SOUND_PICKUP]->startWAVFile();
+				break;
+			}
+		}
+	}
+}
+
+void GAMEPLAY::DropItem(void)
+{
+	unsigned int res;
+	int x, y;
+
+	if(player[PLAYER1]->itemHeld)
+	{
+		switch(player[PLAYER1]->itemHeld)
+		{
+			case BLOCK_ROPE:
+				for(unsigned int index = 0; index < nbrOfRopetrap; index++)
+				{
+					if(ropetrap[index]->isCollected == true && ropetrap[index]->isSet == false)
+					{
+						res = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+						platform->GetBlockCoordinates(res,x,y);
+						{
+							player[PLAYER1]->itemHeld = 0;
+							ropetrap[index]->isCollected = false;
+							ropetrap[index]->x_pos = x;
+							ropetrap[index]->y_pos = y;
+							soundEffect[SOUND_PICKUP]->startWAVFile();
+						}
+					}
+				}
+			break;
+
+			case BLOCK_JACKHAMMER:
+				for(unsigned int index = 0; index < nbrOfJackhammer; index++)
+				{
+					if(jackhammer[index]->isCollected == true)
+					{
+						res = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+						platform->GetBlockCoordinates(res,x,y);
+						if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+							&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+						{
+							player[PLAYER1]->itemHeld = 0;
+							jackhammer[index]->isCollected = false;
+							jackhammer[index]->x_pos = x;
+							jackhammer[index]->y_pos = y;
+							soundEffect[SOUND_PICKUP]->startWAVFile();
+						}
+					}
+				}
+			break;
+
+			case BLOCK_PICK:
+				for(unsigned int index = 0; index < nbrOfPick; index++)
+				{
+					if(pick[index]->isCollected == true)
+					{
+						res = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+						platform->GetBlockCoordinates(res,x,y);
+						if( ((player[PLAYER1]->x_pos+12 >= x) && (player[PLAYER1]->x_pos+12 <= x+24)) 
+							&& ((player[PLAYER1]->y_pos+12 >= y) && (player[PLAYER1]->y_pos+12 <= y+24)))
+						{
+							player[PLAYER1]->itemHeld = 0;
+							pick[index]->isCollected = false;
+							pick[index]->x_pos = x;
+							pick[index]->y_pos = y;
+							soundEffect[SOUND_PICKUP]->startWAVFile();
+						}
+					}
+				}
+			break;
+		}
+	}
+}
+

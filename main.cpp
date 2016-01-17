@@ -539,6 +539,8 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 			case DIK_LCONTROL:
 				// pick up item
+				gameplay->PickupItem();
+				Sleep(150);
 			break;
 		}
 	}

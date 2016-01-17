@@ -6,10 +6,13 @@
 #include "sound.h"
 #include "gold.h"
 #include "fallingrocks.h"
+#include "ropetrap.h"
+#include "jackhammer.h"
+#include "pick.h"
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
-  SOUND_FALLINGROCKS, SOUND_SETROPETRAP};
+  SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP};
 
 class GAMEPLAY
 {
@@ -37,6 +40,7 @@ class GAMEPLAY
 		void Player1EntersLevel(void);
 		void CollectGold(void);
 		void PickupItem(void);
+		void DropItem(void);
 	private:
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
@@ -45,11 +49,15 @@ class GAMEPLAY
 		FALLINGROCKS** fallingrocks;
 		SPRITE** monk;
 		GOLD** gold;
-		SPRITE** ropetrap;
+		ROPETRAP** ropetrap;
+		JACKHAMMER** jackhammer;
+		PICK** pick;
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		unsigned int nbrOfGold;
 		unsigned int nbrOfRopetrap;
+		unsigned int nbrOfJackhammer;
+		unsigned int nbrOfPick;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;

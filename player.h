@@ -26,6 +26,7 @@ public:
 	bool pickLeftFrame(void);
 	bool ropeFrame(void);
 	unsigned int goldCollected;
+	unsigned int itemHeld;
 };
 
 #endif
