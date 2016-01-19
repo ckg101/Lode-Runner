@@ -754,10 +754,14 @@ void GAMEPLAY::MovePlayer1Right(void)
 		{	
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
+			{
 				player[PLAYER1]->x_pos+=1;
-			else
+			}
+			else if(res2 != BLOCK_SLOW)
+			{
 				player[PLAYER1]->x_pos+=4;
-			if(isClimbingBar == true)
+			}
+			else if(isClimbingBar == true)
 			{
 				player[PLAYER1]->x_pos+=8;
 				isClimbingBar = false;
@@ -780,10 +784,13 @@ void GAMEPLAY::MovePlayer1Right(void)
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->x_pos+=4;
 			player[PLAYER1]->nextFrame();
-			isClimbingBar = true;
+			//isClimbingBar = true;
 		}
 		else
+		{
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
+			isClimbingBar = false;
+		}
 	}
 }
 
@@ -803,13 +810,17 @@ void GAMEPLAY::MovePlayer1Left(void)
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
+			{
 				player[PLAYER1]->x_pos-=1;
-			else
+			}
+			else if(res2 != BLOCK_SLOW)
+			{
 				player[PLAYER1]->x_pos-=4;
+			}
 			if(isClimbingBar == true)
 			{
-				player[PLAYER1]->x_pos-=12;
-				isClimbingBar = false;
+				//player[PLAYER1]->x_pos-=12;
+				//isClimbingBar = false;
 				isReleased = true;
 			}
 			player[PLAYER1]->y_pos = y;
@@ -829,10 +840,13 @@ void GAMEPLAY::MovePlayer1Left(void)
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->x_pos-=4;
 			player[PLAYER1]->backFrame();
-			isClimbingBar = true;
+			//isClimbingBar = true;
 		}
 		else
+		{
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
+			isClimbingBar = false;
+		}
 	}
 	
 }
@@ -1305,7 +1319,10 @@ void GAMEPLAY::Gravity(void)
 			}
 		}
 		else
+		{
 			isReleased = false;
+			isClimbingBar = false;
+		}
 	
 	if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW || res == BLOCK_BAR) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
 	{
