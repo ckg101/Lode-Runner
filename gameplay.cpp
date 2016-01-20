@@ -874,7 +874,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->x_pos+=4;
 			player[PLAYER1]->nextFrame();
-			isClimbingBar = true;
+			//isClimbingBar = true;
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
@@ -926,7 +926,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->x_pos-=4;
 			player[PLAYER1]->backFrame();
-			isClimbingBar = true;
+			//isClimbingBar = true;
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
@@ -940,21 +940,21 @@ void GAMEPLAY::MovePlayer1Down(void)
 	unsigned int blockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false && isDrilling == 0)
+	if(isEnteringLevel == false && isDrilling == 0 && isFalling == false)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+10, player[PLAYER1]->y_pos+24);
 		res = platform->GetType(blockNbr);
-		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER)
+		if(isClimbingBar == true)
+		{
+			isClimbingBar = false;
+			isReleased = true;
+		}
+		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER || res == BLOCK_EMPTY || res == BLOCK_HOLLOW)
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			player[PLAYER1]->x_pos = x;
 			player[PLAYER1]->y_pos+=4;
 			player[PLAYER1]->climbDownFrame();
-		}
-		if(isClimbingBar == true)
-		{
-			isClimbingBar = false;
-			isReleased = true;
 		}
 	}
 }
@@ -1398,7 +1398,7 @@ void GAMEPLAY::Gravity(void)
 
 	if(isDrilling == 0 && isClimbingBar == false)
 	{
-		if(res3 == BLOCK_BAR)
+		if(res3 == BLOCK_BAR && res != BLOCK_LADDER)
 		{
 			if(isReleased == false)
 			{
