@@ -11,10 +11,11 @@
 #include "pick.h"
 #include "goo.h"
 #include "gas.h"
+#include "exitdoor.h"
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
-  SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP};
+  SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD};
 
 class GAMEPLAY
 {
@@ -33,6 +34,7 @@ class GAMEPLAY
 		void PickLeftPlayer1(void);
 		void FallingRocks(void);
 		void SetUpRopePlayer1(void);
+		void OpenExitDoor(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -57,6 +59,8 @@ class GAMEPLAY
 		PICK** pick;
 		GOO** goo;
 		GAS** gas;
+		EXITDOOR** exitdoor;
+
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		unsigned int nbrOfGold;
@@ -65,13 +69,15 @@ class GAMEPLAY
 		unsigned int nbrOfPick;
 		unsigned int nbrOfGoo;
 		unsigned int nbrOfGas;
+		unsigned int nbrOfExitdoor;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;
 		bool isDiggingRight;
 		bool isDiggingLeft;
 		bool isClimbingBar;
-		bool isReleased;
+		bool isReleased;		// used for Gravity() and falling off bar
+		bool isDone;			// once last gold is collected.
 		unsigned char isDrilling;
 		unsigned char isPickingRight;
 		unsigned char isPickingLeft;
