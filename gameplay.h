@@ -39,6 +39,7 @@ class GAMEPLAY
 		int LoadLevel(void);
 		void Exit(void);
 		void Gravity(void);
+		void ExitLevel(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
 		void Player1EntersLevel(void);

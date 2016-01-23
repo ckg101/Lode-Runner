@@ -302,6 +302,10 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	
 	Gravity();
 	CollectGold();
+	if(isDone == true)
+	{
+		ExitLevel();
+	}
 	Sounds();
 
 	if(isEnteringLevel == true)
@@ -507,7 +511,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 
 		for(unsigned int index = 0; index < nbrOfExitdoor; index++)
 		{
-			exitdoor[index] = new EXITDOOR(platform->d3ddev, 16, platform->screenWidth, platform->screenHeight);
+			exitdoor[index] = new EXITDOOR(platform->d3ddev, 24, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -710,7 +714,7 @@ int GAMEPLAY::LoadLevel(void)
 
 		for(unsigned int index = 0; index < nbrOfExitdoor; index++)
 		{
-			exitdoor[index] = new EXITDOOR(platform->d3ddev, 16, platform->screenWidth, platform->screenHeight);
+			exitdoor[index] = new EXITDOOR(platform->d3ddev, 24, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -1379,7 +1383,8 @@ void GAMEPLAY::OpenExitDoor(void)
 	{
 		if(exitdoor[index]->isUnlocked == true)
 		{
-			exitdoor[index]->Frame();
+			if(exitdoor[index]->beingUsed == false)
+				exitdoor[index]->Frame();
 		}
 	}
 }
@@ -1446,6 +1451,21 @@ void GAMEPLAY::Gravity(void)
 		}
 		isFalling = false;
 	}
+	}
+}
+
+void GAMEPLAY::ExitLevel(void)
+{
+	for(unsigned int index = 0; index < nbrOfExitdoor; index++)
+	{
+		if(player[PLAYER1]->x_pos+12 >= exitdoor[index]->x_pos && 
+			player[PLAYER1]->x_pos+12 <= exitdoor[index]->x_pos+24)
+			if(player[PLAYER1]->y_pos+12 >= exitdoor[index]->y_pos &&
+				player[PLAYER1]->y_pos+12 <= exitdoor[index]->y_pos+24)
+			{
+				exitdoor[index]->ExitingFrame();
+				exitdoor[index]->beingUsed = true;
+			}
 	}
 }
 

@@ -8,8 +8,9 @@ class EXITDOOR : public SPRITE
 		EXITDOOR(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_height);
 		~EXITDOOR();
 		bool Frame(void);
-
+		bool ExitingFrame(void);
 		bool isUnlocked;
+		bool beingUsed;
 };
 
 #endif
