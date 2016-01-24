@@ -542,6 +542,14 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->SetUpRopePlayer1();
 				Sleep(150);
 			break;
+			case DIK_A:
+				gameplay->UseGooRightPlayer1();
+				Sleep(150);
+			break;
+			case DIK_S:
+				gameplay->UseGooLeftPlayer1();
+				Sleep(150);
+			break;
 			case DIK_LCONTROL:
 				// pick up item
 				gameplay->PickupItem();

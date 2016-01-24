@@ -25,6 +25,8 @@ public:
 	bool pickRightFrame(void);
 	bool pickLeftFrame(void);
 	bool ropeFrame(void);
+	bool gooRightFrame(void);
+	bool gooLeftFrame(void);
 	unsigned int goldCollected;
 	unsigned int itemHeld;
 };

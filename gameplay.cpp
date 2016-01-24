@@ -37,6 +37,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isPickingLeft = 0;
 	isDrilling = 0;
 	isSettingUpRope = 0;
+	isUsingGooRight = 0;
+	isUsingGooLeft = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -60,7 +62,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 102, screen_width, screen_height);
+		player[index] = new PLAYER(d, 118, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -335,6 +337,8 @@ void GAMEPLAY::UnallocateItems(void)
 	isPickingLeft = 0;
 	isDrilling = 0;
 	isSettingUpRope = 0;
+	isUsingGooRight = 0;
+	isUsingGooLeft = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -391,6 +395,14 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	if(isSettingUpRope)
 	{
 		SetUpRopePlayer1();
+	}
+	if(isUsingGooRight)
+	{
+		UseGooRightPlayer1();
+	}
+	if(isUsingGooLeft)
+	{
+		UseGooLeftPlayer1();
 	}
 	if(isPickingRight)
 	{
@@ -1435,6 +1447,63 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 		isSettingUpRope = 0;
 	}
 	
+}
+
+void GAMEPLAY::UseGooRightPlayer1(void)
+{
+	unsigned int res, blockNbr;   	
+	int x, y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0)
+	{
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[PLAYER1]->x_pos = x;
+		player[PLAYER1]->y_pos = y;
+		player[PLAYER1]->gooRightFrame();
+		isUsingGooRight++;
+	}
+	else if(isUsingGooRight %3 == 0)
+	{
+		test = player[PLAYER1]->gooRightFrame();
+		if(test == false)
+			isUsingGooRight = 0;
+		else
+			isUsingGooRight++;
+	}
+	else
+		isUsingGooRight++;
+	
+}
+
+void GAMEPLAY::UseGooLeftPlayer1(void)
+{
+	unsigned int res, blockNbr;   	
+	int x, y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0)
+	{
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[PLAYER1]->x_pos = x;
+		player[PLAYER1]->y_pos = y;
+		player[PLAYER1]->gooLeftFrame();
+		isUsingGooLeft++;
+	}
+	else if(isUsingGooLeft %3 == 0)
+	{
+		test = player[PLAYER1]->gooLeftFrame();
+		if(test == false)
+			isUsingGooLeft = 0;
+		else
+			isUsingGooLeft++;
+	}
+	else
+		isUsingGooLeft++;
 }
 
 void GAMEPLAY::OpenExitDoor(void)

@@ -168,6 +168,39 @@ bool PLAYER::ropeFrame(void)
 	return false;
 }
 
+bool PLAYER::gooRightFrame(void)
+{
+	if(frameState < 102 || frameState > 109)
+	{
+		frameState = 102;
+		return true;
+	}
+	else if(frameState < 109)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 0;
+	return false;
+}
+
+bool PLAYER::gooLeftFrame(void)
+{
+	if(frameState < 110 || frameState > 117)
+	{
+		frameState = 110;
+		return true;
+	}
+	else if(frameState < 117)
+	{
+		frameState++;
+		return true;
+	}
+	else
+		frameState = 0;
+	return false;
+}
 
 bool PLAYER::enterLevel(void)
 {
