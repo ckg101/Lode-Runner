@@ -22,13 +22,15 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	fallingrocks = NULL;
 	musicFileName = NULL;
 	soundFileName = NULL;
-	isFalling = false;
-	//fallingSound = NULL;
-	isEnteringLevel = false;
+	levelFileName = NULL;
 	soundEffect = NULL;
+	controls = NULL;
+	isFalling = false;
+	isEnteringLevel = false;
 	isEnteringLevelSound = false;
 	isDiggingRight = false;
 	isDiggingLeft = false;	
+	isClimbingBar = false;
 	isReleased = false;
 	isDone = false;
 	isPickingRight = 0;
@@ -41,6 +43,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	nbrOfGoo = 0;
 	nbrOfGas = 0;
 	nbrOfExitdoor = 0;
+	isExitingLevel = 0;
+	nbrOfLevels = 4;
+	currentLevel = 0;
 	
 	nbrOfGold = 0;
 	gold = NULL;		// allocated in LoadLevel()
@@ -87,8 +92,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
-	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 11);
-	for(unsigned int index = 0; index < 11; index++)
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 13);
+	for(unsigned int index = 0; index < 13; index++)
 	{
 		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	}
@@ -103,9 +108,10 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_SETROPETRAP], L"Sound\\setropetrap.wav");
 	wsprintf(soundFileName[SOUND_PICKUP], L"Sound\\pickup.wav");
 	wsprintf(soundFileName[SOUND_LASTGOLD], L"Sound\\lastgold.wav");
+	wsprintf(soundFileName[SOUND_ENTERPORTAL], L"Sound\\enterportal.wav");
+	wsprintf(soundFileName[SOUND_ENDLEVEL], L"Sound\\endlevel.wav");
 
-
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 11);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 13);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -128,10 +134,24 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_PICKUP]->loadWAVFile(soundFileName[SOUND_PICKUP]);
 	soundEffect[SOUND_LASTGOLD] = new SOUND(xa);
 	soundEffect[SOUND_LASTGOLD]->loadWAVFile(soundFileName[SOUND_LASTGOLD]);
+	soundEffect[SOUND_ENTERPORTAL] = new SOUND(xa);
+	soundEffect[SOUND_ENTERPORTAL]->loadWAVFile(soundFileName[SOUND_ENTERPORTAL]);
+	soundEffect[SOUND_ENDLEVEL] = new SOUND(xa);
+	soundEffect[SOUND_ENDLEVEL]->loadWAVFile(soundFileName[SOUND_ENDLEVEL]);
 
 	music = new SOUND(xa);
-	
-	//soundEffect[SOUND_BEGIN_LEVEL]
+
+	levelFileName = (wchar_t**)malloc(sizeof(wchar_t*) * nbrOfLevels);
+	for(unsigned int index = 0; index < nbrOfLevels; index++)
+	{
+		levelFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
+		wsprintf(levelFileName[index], L"Levels\\level%d.lvl", index+1);
+	}
+
+	controls = new SPRITE(d,1, screen_width, screen_height);
+	controls->loadBitmaps(L"Graphics\\controls");
+	controls->x_pos = 767;
+	controls->y_pos = 0;
 }
 
 GAMEPLAY::~GAMEPLAY(void)
@@ -162,7 +182,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundFileName)
 	{
-		for(unsigned int index = 0; index < 11; index++)
+		for(unsigned int index = 0; index < 13; index++)
 		{
 			free(soundFileName[index]);
 		}
@@ -170,11 +190,20 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 11; index++)
+		for(unsigned int index = 0; index < 13; index++)
 		{
 			delete soundEffect[index];
 		}
 		free(soundEffect);
+	}
+
+	if(levelFileName)
+	{
+		for(unsigned int index = 0; index < nbrOfLevels; index++)
+		{
+			free(levelFileName[index]);
+		}
+		free(levelFileName);
 	}
 
 	UnallocateItems();
@@ -293,12 +322,35 @@ void GAMEPLAY::UnallocateItems(void)
 		exitdoor = NULL;
 		nbrOfExitdoor = 0;
 	}
+	isFalling = false;
+	isEnteringLevel = false;
+	isEnteringLevelSound = false;
+	isDiggingRight = false;
+	isDiggingLeft = false;	
+	isClimbingBar = false;
+	isReleased = false;
+	isDone = false;
+	leaveGameplay = false;
+	isPickingRight = 0;
+	isPickingLeft = 0;
+	isDrilling = 0;
+	isSettingUpRope = 0;
+	nbrOfRopetrap = 0;
+	nbrOfJackhammer = 0;
+	nbrOfPick = 0;
+	nbrOfGoo = 0;
+	nbrOfGas = 0;
+	nbrOfExitdoor = 0;
+	isExitingLevel = 0;
 }
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 {
 	if(!music->playWAVFile())
 		music->startWAVFile();
+
+	if(leaveGameplay == false)
+	{
 	
 	Gravity();
 	CollectGold();
@@ -409,7 +461,10 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		}
 	}
 
-	player[PLAYER1]->renderSprite(buf);
+	if(isExitingLevel == 0)
+		player[PLAYER1]->renderSprite(buf);
+	controls->renderSprite(buf);
+	}
 }
 
 int GAMEPLAY::LoadLevel(unsigned int levelNbr)
@@ -422,13 +477,14 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	unsigned int gas_counter = 0;
 	unsigned int exitdoor_counter = 0;
 
-	platform->LoadLevel(L"level1.lvl");
+	platform->LoadLevel(levelFileName[levelNbr]);
 	wchar_t fileName[256];
 	POINT p;
 	p = platform->GetStartingCoordinatesOfPlayer(0);
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
 	player[PLAYER1]->itemHeld = 0;
+	isExitingLevel = 0;
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
@@ -602,6 +658,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 				platform->type[index] = BLOCK_EMPTY;
 				platform->isOccupied[index] = IS_NOT_OCCUPIED;
 				exitdoor[exitdoor_counter]->isUnlocked = true;	// if an unkeyed door then it is always unlocked
+				exitdoor[exitdoor_counter]->beingUsed = false;
 			}
 			exitdoor_counter++;
 		}
@@ -625,6 +682,7 @@ int GAMEPLAY::LoadLevel(void)
 	unsigned int goo_counter = 0;
 	unsigned int gas_counter = 0;
 	unsigned int exitdoor_counter = 0;
+	isExitingLevel = 0;
 
 	wchar_t fileName[256];
 	platform->LoadLevel();
@@ -805,6 +863,7 @@ int GAMEPLAY::LoadLevel(void)
 				platform->type[index] = BLOCK_EMPTY;
 				platform->isOccupied[index] = IS_NOT_OCCUPIED;
 				exitdoor[exitdoor_counter]->isUnlocked = true;	// if an unkeyed door then it is always unlocked
+				exitdoor[exitdoor_counter]->beingUsed = false;
 			}
 			exitdoor_counter++;
 		}
@@ -837,7 +896,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 	unsigned int res, blockNbr, currentBlockNbr;
 	unsigned int res2, res3;	// used for the ID of the block below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
+	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0 && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
 		&& isPickingRight == 0)
 	{
 		// get the next block to determine if the player can move or not
@@ -889,7 +948,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 {
 	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0&& isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isPickingRight == 0)
 	{
 		// detect for hitting walls
@@ -953,7 +1012,8 @@ void GAMEPLAY::MovePlayer1Down(void)
 			isClimbingBar = false;
 			isReleased = true;
 		}
-		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER || res == BLOCK_EMPTY || res == BLOCK_HOLLOW)
+		if((res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER || res == BLOCK_EMPTY || res == BLOCK_HOLLOW) 
+			&& (player[PLAYER1]->y_pos+24 < 768))
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			player[PLAYER1]->x_pos = x;
@@ -1463,8 +1523,35 @@ void GAMEPLAY::ExitLevel(void)
 			if(player[PLAYER1]->y_pos+12 >= exitdoor[index]->y_pos &&
 				player[PLAYER1]->y_pos+12 <= exitdoor[index]->y_pos+24)
 			{
-				exitdoor[index]->ExitingFrame();
-				exitdoor[index]->beingUsed = true;
+				if(isExitingLevel %3 == 0)
+				{
+					if(exitdoor[index]->ExitingFrame() == false)
+					{
+						soundEffect[SOUND_ENDLEVEL]->startWAVFile();
+						music->stopWAVFile();						
+						Sleep(2000);
+						UnallocateItems();
+						player[PLAYER1]->goldCollected = 0;
+						if(groupNbr == 0)
+						{
+							currentLevel++;
+							if(currentLevel < nbrOfLevels)
+								LoadLevel(currentLevel);
+							else
+								leaveGameplay = true;
+							return;
+						}
+						else
+							leaveGameplay = true;
+					}
+					else if(exitdoor[index]->beingUsed == false)
+					{
+						exitdoor[index]->beingUsed = true;
+						soundEffect[SOUND_ENTERPORTAL]->startWAVFile();
+					}
+					isExitingLevel++;
+				}
+				isExitingLevel++;
 			}
 	}
 }
@@ -1473,7 +1560,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 11; index++)
+	for(unsigned int index = 0; index < 13; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

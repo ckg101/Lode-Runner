@@ -856,7 +856,7 @@ int PLATFORM::SaveLevel(void)
                     MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
                     CoTaskMemFree(pszPath);
                 }*/
-				if(!SUCCEEDED(psi->GetDisplayName(SIGDN_NORMALDISPLAY, &fileName)))
+				if(!SUCCEEDED(psi->GetDisplayName(SIGDN_FILESYSPATH, &fileName)))
                 {
                     MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
                 }
@@ -905,7 +905,7 @@ int PLATFORM::LoadLevel(void)
                     MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
                     CoTaskMemFree(pszPath);
                 }*/
-				hr = psi->GetDisplayName( SIGDN_NORMALDISPLAY, &fileName);
+				hr = psi->GetDisplayName( SIGDN_FILESYSPATH, &fileName);
 				if(!SUCCEEDED(hr))
                 {
                     MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);

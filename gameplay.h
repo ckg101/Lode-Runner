@@ -15,7 +15,7 @@
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
-  SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD};
+  SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD, SOUND_ENTERPORTAL, SOUND_ENDLEVEL};
 
 class GAMEPLAY
 {
@@ -46,6 +46,8 @@ class GAMEPLAY
 		void CollectGold(void);
 		void PickupItem(void);
 		void DropItem(void);
+		bool leaveGameplay;
+		unsigned int groupNbr;
 	private:
 		void UnallocateItems(void);
 		IDirect3DDevice9* d3ddev;
@@ -61,9 +63,11 @@ class GAMEPLAY
 		GOO** goo;
 		GAS** gas;
 		EXITDOOR** exitdoor;
+		SPRITE* controls;
 
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
+		wchar_t** levelFileName;
 		unsigned int nbrOfGold;
 		unsigned int nbrOfRopetrap;
 		unsigned int nbrOfJackhammer;
@@ -71,6 +75,8 @@ class GAMEPLAY
 		unsigned int nbrOfGoo;
 		unsigned int nbrOfGas;
 		unsigned int nbrOfExitdoor;
+		unsigned int nbrOfLevels;
+		unsigned int currentLevel;
 		bool isFalling;
 		bool isEnteringLevel;
 		bool isEnteringLevelSound;
@@ -85,6 +91,7 @@ class GAMEPLAY
 		unsigned char isFallingRocksRight;
 		unsigned char isFallingRocksLeft;
 		unsigned char isSettingUpRope;
+		unsigned char isExitingLevel;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
 		SOUND** soundEffect;

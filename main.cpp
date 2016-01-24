@@ -352,6 +352,11 @@ void RenderFrame(void)
 		{
 			if(frameCounter <61)
 			{
+				if(gameplay->leaveGameplay == true)
+				{
+					gameMode = GAME_MODE_TITLE;
+					return;
+				}
 				Sleep(SPEED4);
 				buttonpress->playWAVFile();
 				//gameplay->Sounds();
@@ -578,6 +583,8 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
 					gameplay->LoadLevel(0);
+					gameplay->leaveGameplay = false;
+					gameplay->groupNbr = 0;
 					gameMode = GAME_MODE_PLAY;
 					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
 					//music.playMIDIFile();
@@ -602,6 +609,8 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					music->stopWAVFile();
 					controls->UnacquireMouse();
 					gameplay->LoadLevel();
+					gameplay->leaveGameplay = false;
+					gameplay->groupNbr = 1;
 					gameMode = GAME_MODE_PLAY;
 					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
 					//music.playMIDIFile();
