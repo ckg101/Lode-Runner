@@ -35,6 +35,7 @@ class GAMEPLAY
 		void FallingRocks(void);
 		void SetUpRopePlayer1(void);
 		void UseGooRightPlayer1(void);
+		void GooPlatformRight(void);
 		void UseGooLeftPlayer1(void);
 		void OpenExitDoor(void);
 		int LoadLevel(unsigned int levelNbr);
@@ -57,6 +58,7 @@ class GAMEPLAY
 		PLAYER** player;
 		DIGGER* digger;
 		FALLINGROCKS** fallingrocks;
+		GOO_PLATFORM* gooPlatform;
 		SPRITE** monk;
 		GOLD** gold;
 		ROPETRAP** ropetrap;
@@ -94,6 +96,7 @@ class GAMEPLAY
 		unsigned char isFallingRocksLeft;
 		unsigned char isSettingUpRope;
 		unsigned char isUsingGooRight;
+		unsigned char isGooPlatformRight;
 		unsigned char isUsingGooLeft;
 		unsigned char isExitingLevel;
 		//SOUND* fallingSound;

@@ -10,7 +10,6 @@
 #include "sprite.h"
 #include "platform.h"
 #include "sound.h"
-#include "digger.h"
 #include "gameplay.h"
 
 GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height)
@@ -38,6 +37,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isDrilling = 0;
 	isSettingUpRope = 0;
 	isUsingGooRight = 0;
+	isGooPlatformRight = 0;
 	isUsingGooLeft = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
@@ -58,6 +58,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	goo = NULL;
 	gas = NULL;
 	exitdoor = NULL;
+	gooPlatform = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
@@ -85,6 +86,11 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	//player[1]->loadBitmaps(L"Graphics\\block30_");
 	//player[1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	//player[1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+
+	gooPlatform = new GOO_PLATFORM(d, 7, screen_width, screen_height);
+	gooPlatform->loadBitmaps(L"Graphics\\goo");
+	gooPlatform->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	gooPlatform->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
 	musicFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 10);
 	
@@ -174,6 +180,8 @@ GAMEPLAY::~GAMEPLAY(void)
 		}
 		free(fallingrocks);
 	}
+	if(gooPlatform)
+		delete gooPlatform;
 	if(musicFileName)
 	{
 		for(unsigned int index = 0; index < 10; index++)
@@ -399,6 +407,11 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	if(isUsingGooRight)
 	{
 		UseGooRightPlayer1();
+	}
+	if(isGooPlatformRight)
+	{
+		GooPlatformRight();
+		gooPlatform->renderSprite(buf);
 	}
 	if(isUsingGooLeft)
 	{
@@ -1463,11 +1476,16 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 		player[PLAYER1]->x_pos = x;
 		player[PLAYER1]->y_pos = y;
 		player[PLAYER1]->gooRightFrame();
+		gooPlatform->x_pos = x+24;
+		gooPlatform->y_pos = y+5;
+		gooPlatform->Reset();
 		isUsingGooRight++;
 	}
 	else if(isUsingGooRight %3 == 0)
 	{
 		test = player[PLAYER1]->gooRightFrame();
+		if(isUsingGooRight >= 24)
+			isGooPlatformRight++;
 		if(test == false)
 			isUsingGooRight = 0;
 		else
@@ -1476,6 +1494,26 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 	else
 		isUsingGooRight++;
 	
+}
+
+void GAMEPLAY::GooPlatformRight(void)
+{
+	unsigned int blockNbr;
+	if(isGooPlatformRight %3 == 0)
+	{
+		if(gooPlatform->Frame() == false)
+		{
+			isGooPlatformRight = 0;
+			blockNbr = platform->getBlockNbr(gooPlatform->x_pos, gooPlatform->y_pos+35);
+			platform->SetTypeToSlow(blockNbr);
+			platform->SetTypeToSlow(blockNbr+1);
+			platform->SetTypeToSlow(blockNbr+2);
+		}
+		else
+			isGooPlatformRight++;
+	}
+	else
+		isGooPlatformRight++;
 }
 
 void GAMEPLAY::UseGooLeftPlayer1(void)

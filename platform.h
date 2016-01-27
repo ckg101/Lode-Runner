@@ -44,6 +44,7 @@ class PLATFORM
 		void RespawnBlock(unsigned int blockNbr);
 		void SetTypeToRocks(unsigned int blockNbr);
 		void RemoveRocks(unsigned int blockNbr);
+		void SetTypeToSlow(unsigned int blockNbr);
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

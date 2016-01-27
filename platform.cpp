@@ -1045,3 +1045,9 @@ void PLATFORM::RemoveRocks(unsigned int blockNbr)
 {
 	type[blockNbr] = BLOCK_EMPTY;
 }
+
+void PLATFORM::SetTypeToSlow(unsigned int blockNbr)
+{
+	type[blockNbr] = BLOCK_SLOW;
+	menu[BLOCK_SLOW]->CopyOntoBlock(blocks[blockNbr]->getFrame(), 24, 24);
+}
