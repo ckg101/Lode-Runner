@@ -39,6 +39,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isUsingGooRight = 0;
 	isGooPlatformRight = 0;
 	isUsingGooLeft = 0;
+	isGooPlatformLeft = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -87,7 +88,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	//player[1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	//player[1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
-	gooPlatform = new GOO_PLATFORM(d, 7, screen_width, screen_height);
+	gooPlatform = new GOO_PLATFORM(d, 13, screen_width, screen_height);
 	gooPlatform->loadBitmaps(L"Graphics\\goo");
 	gooPlatform->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	gooPlatform->setAnimationType(ANIMATION_TRIGGERED_SEQ);
@@ -416,6 +417,11 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	if(isUsingGooLeft)
 	{
 		UseGooLeftPlayer1();
+	}
+	if(isGooPlatformLeft)
+	{
+		GooPlatformLeft();
+		gooPlatform->renderSprite(buf);
 	}
 	if(isPickingRight)
 	{
@@ -1498,16 +1504,39 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 
 void GAMEPLAY::GooPlatformRight(void)
 {
-	unsigned int blockNbr;
+	unsigned int blockNbr, type;
 	if(isGooPlatformRight %3 == 0)
 	{
-		if(gooPlatform->Frame() == false)
+		if(gooPlatform->FrameRight() == false)
 		{
 			isGooPlatformRight = 0;
 			blockNbr = platform->getBlockNbr(gooPlatform->x_pos, gooPlatform->y_pos+35);
-			platform->SetTypeToSlow(blockNbr);
-			platform->SetTypeToSlow(blockNbr+1);
-			platform->SetTypeToSlow(blockNbr+2);
+			if((blockNbr)%32)
+			{
+				type = platform->GetType(blockNbr);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr);
+			}
+			else
+				return;
+			
+			if((blockNbr+1)%32)
+			{
+				type = platform->GetType(blockNbr+1);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr+1);
+			}
+			else
+				return;
+
+			if((blockNbr+2)%32)
+			{
+				type = platform->GetType(blockNbr+2);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr+2);
+			}
+			else
+				return;
 		}
 		else
 			isGooPlatformRight++;
@@ -1530,11 +1559,16 @@ void GAMEPLAY::UseGooLeftPlayer1(void)
 		player[PLAYER1]->x_pos = x;
 		player[PLAYER1]->y_pos = y;
 		player[PLAYER1]->gooLeftFrame();
+		gooPlatform->x_pos = x-72;
+		gooPlatform->y_pos = y+5;
+		gooPlatform->Reset();
 		isUsingGooLeft++;
 	}
 	else if(isUsingGooLeft %3 == 0)
 	{
 		test = player[PLAYER1]->gooLeftFrame();
+		if(isUsingGooLeft >= 24)
+			isGooPlatformLeft++;
 		if(test == false)
 			isUsingGooLeft = 0;
 		else
@@ -1542,6 +1576,68 @@ void GAMEPLAY::UseGooLeftPlayer1(void)
 	}
 	else
 		isUsingGooLeft++;
+}
+
+
+void GAMEPLAY::GooPlatformLeft(void)
+{
+	unsigned int blockNbr, type;
+	if(isGooPlatformLeft %3 == 0)
+	{
+		if(gooPlatform->FrameLeft() == false)
+		{
+			isGooPlatformLeft = 0;
+			blockNbr = platform->getBlockNbr(gooPlatform->x_pos+48, gooPlatform->y_pos+35);
+
+			if((blockNbr-2)%32==0)
+			{
+				type = platform->GetType(blockNbr-2);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr-2);
+				type = platform->GetType(blockNbr-1);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr-1);
+				type = platform->GetType(blockNbr);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr);
+				return;
+			}
+			else if((blockNbr-1)%32==0)
+			{
+				type = platform->GetType(blockNbr-1);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr-1);
+				type = platform->GetType(blockNbr);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr);
+				return;
+			}
+			else if(blockNbr % 32 == 0)
+			{
+				type = platform->GetType(blockNbr);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr);
+			}
+			else
+			{
+				type = platform->GetType(blockNbr-2);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr-2);
+				type = platform->GetType(blockNbr-1);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr-1);
+				type = platform->GetType(blockNbr);
+				if(type == BLOCK_REGULAR || type == BLOCK_SLOW || type == BLOCK_SOLID)
+					platform->SetTypeToSlow(blockNbr);
+				return;
+			}
+
+		}
+		else
+			isGooPlatformLeft++;
+	}
+	else
+		isGooPlatformLeft++;
 }
 
 void GAMEPLAY::OpenExitDoor(void)

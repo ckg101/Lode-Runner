@@ -20,9 +20,24 @@ GOO_PLATFORM::GOO_PLATFORM(IDirect3DDevice9 *d, int nbr_of_frames, int screen_wi
 {
 }
 
-bool GOO_PLATFORM::Frame(void)
+bool GOO_PLATFORM::FrameRight(void)
 {
 	if(frameState < 6)
+	{
+		frameState++;
+		return true;
+	}
+	return false;
+}
+
+bool GOO_PLATFORM::FrameLeft(void)
+{
+	if(frameState < 7)
+	{
+		frameState=7;
+		return true;
+	}
+	else if(frameState < 12)
 	{
 		frameState++;
 		return true;

@@ -16,7 +16,8 @@ class GOO_PLATFORM : public SPRITE
 {
 	public: 
 		GOO_PLATFORM(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_height);
-		bool Frame(void);
+		bool FrameRight(void);
+		bool FrameLeft(void);
 		void Reset(void);
 };
 

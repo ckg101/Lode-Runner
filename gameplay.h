@@ -37,6 +37,7 @@ class GAMEPLAY
 		void UseGooRightPlayer1(void);
 		void GooPlatformRight(void);
 		void UseGooLeftPlayer1(void);
+		void GooPlatformLeft(void);
 		void OpenExitDoor(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
@@ -98,6 +99,7 @@ class GAMEPLAY
 		unsigned char isUsingGooRight;
 		unsigned char isGooPlatformRight;
 		unsigned char isUsingGooLeft;
+		unsigned char isGooPlatformLeft;
 		unsigned char isExitingLevel;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;
