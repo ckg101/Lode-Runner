@@ -36,6 +36,21 @@ bool GAS_SPRAY::FrameRight(void)
 
 bool GAS_SPRAY::FrameLeft(void)
 {
+	if(frameState < 10)
+	{
+		frameState = 10;
+		return true;
+	}
+	else if(frameState < 18)
+	{
+		frameState++;
+		return true;
+	}
+	else if(frameState == 18)
+	{
+		frameState = 14;
+		return true;
+	}
 	return false;
 }
 

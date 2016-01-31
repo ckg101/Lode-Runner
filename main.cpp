@@ -554,6 +554,10 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->UseGasRightPlayer1();
 				Sleep(150);
 			break;
+			case DIK_D:
+				gameplay->UseGasLeftPlayer1();
+				Sleep(150);
+			break;
 			case DIK_LCONTROL:
 				// pick up item
 				gameplay->PickupItem();
