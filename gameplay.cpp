@@ -40,6 +40,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isGooPlatformRight = 0;
 	isUsingGooLeft = 0;
 	isGooPlatformLeft = 0;
+	isUsingGasRight = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -60,11 +61,12 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	gas = NULL;
 	exitdoor = NULL;
 	gooPlatform = NULL;
+	gasSpray = NULL;
 
 	player = (PLAYER**) malloc(sizeof(PLAYER*) * 2);
 	for(unsigned int index = 0; index < 2; index++)
 	{
-		player[index] = new PLAYER(d, 118, screen_width, screen_height);
+		player[index] = new PLAYER(d, 119, screen_width, screen_height);
 	}
 
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
@@ -92,6 +94,11 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	gooPlatform->loadBitmaps(L"Graphics\\goo");
 	gooPlatform->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	gooPlatform->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+
+	gasSpray = new GAS_SPRAY(d, 10, screen_width, screen_height);
+	gasSpray->loadBitmaps(L"Graphics\\gas");
+	gasSpray->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+	gasSpray->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
 	musicFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 10);
 	
@@ -183,6 +190,8 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(gooPlatform)
 		delete gooPlatform;
+	if(gasSpray)
+		delete gasSpray;
 	if(musicFileName)
 	{
 		for(unsigned int index = 0; index < 10; index++)
@@ -423,6 +432,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		GooPlatformLeft();
 		gooPlatform->renderSprite(buf);
 	}
+	
 	if(isPickingRight)
 	{
 		PickRightPlayer1();
@@ -494,6 +504,11 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 
 	if(isExitingLevel == 0)
 		player[PLAYER1]->renderSprite(buf);
+	if(isUsingGasRight)
+	{
+		UseGasRightPlayer1();
+		gasSpray->renderSprite(buf);
+	}
 	controls->renderSprite(buf);
 	}
 }
@@ -1638,6 +1653,39 @@ void GAMEPLAY::GooPlatformLeft(void)
 	}
 	else
 		isGooPlatformLeft++;
+}
+
+void GAMEPLAY::UseGasRightPlayer1(void)
+{
+	unsigned int res, blockNbr;   	
+	int x, y;
+	bool test;
+
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0 && isUsingGasRight == 0)
+	{
+		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
+		platform->GetBlockCoordinates(blockNbr, x, y);
+		player[PLAYER1]->x_pos = x;
+		player[PLAYER1]->y_pos = y;
+		player[PLAYER1]->setFrameState(118);
+		gasSpray->x_pos = x+24;
+		gasSpray->y_pos = y;
+		gasSpray->Reset();
+		isUsingGasRight++;
+	}
+	else if(isUsingGasRight %3 == 0)
+	{
+		test = gasSpray->FrameRight();
+		if(isUsingGasRight < 120)
+			isUsingGasRight++;
+		if(isUsingGasRight == 120)
+			isUsingGasRight = 0;
+		else
+			isUsingGasRight++;
+	}
+	else
+		isUsingGasRight++;
 }
 
 void GAMEPLAY::OpenExitDoor(void)

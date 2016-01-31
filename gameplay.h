@@ -38,6 +38,7 @@ class GAMEPLAY
 		void GooPlatformRight(void);
 		void UseGooLeftPlayer1(void);
 		void GooPlatformLeft(void);
+		void UseGasRightPlayer1(void);
 		void OpenExitDoor(void);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
@@ -60,6 +61,7 @@ class GAMEPLAY
 		DIGGER* digger;
 		FALLINGROCKS** fallingrocks;
 		GOO_PLATFORM* gooPlatform;
+		GAS_SPRAY* gasSpray;
 		SPRITE** monk;
 		GOLD** gold;
 		ROPETRAP** ropetrap;
@@ -100,6 +102,7 @@ class GAMEPLAY
 		unsigned char isGooPlatformRight;
 		unsigned char isUsingGooLeft;
 		unsigned char isGooPlatformLeft;
+		unsigned char isUsingGasRight;
 		unsigned char isExitingLevel;
 		//SOUND* fallingSound;
 		//SOUND* landingSound;

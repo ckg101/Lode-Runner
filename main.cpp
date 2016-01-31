@@ -357,7 +357,7 @@ void RenderFrame(void)
 					gameMode = GAME_MODE_TITLE;
 					return;
 				}
-				Sleep(SPEED5);
+				Sleep(SPEED4);
 				buttonpress->playWAVFile();
 				//gameplay->Sounds();
 				IDirect3DSurface9* backbuffer = NULL;
@@ -548,6 +548,10 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 			case DIK_S:
 				gameplay->UseGooRightPlayer1();
+				Sleep(150);
+			break;
+			case DIK_F:
+				gameplay->UseGasRightPlayer1();
 				Sleep(150);
 			break;
 			case DIK_LCONTROL:
