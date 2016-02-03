@@ -11,4 +11,14 @@ class GAS : public SPRITE
 		bool isCollected;
 };
 
+class GAS_SPRAY : public SPRITE
+{
+	public:
+		GAS_SPRAY(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_height);
+		bool FrameRight(void);
+		bool FrameLeft(void);
+		void Reset(void);
+		
+};
+
 #endif
