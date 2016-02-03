@@ -8,7 +8,7 @@
 #include <xaudio2.h>
 #include <math.h>
 #include "sprite.h"
-#include "platform.h"
+//#include "platform.h"
 #include "sound.h"
 #include "gameplay.h"
 

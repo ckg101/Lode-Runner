@@ -1,6 +1,6 @@
 #ifndef GAMEPLAY_H
 #define GAMEPLAY_H
-
+#include "platform.h"
 #include "player.h"
 #include "digger.h"
 #include "sound.h"
