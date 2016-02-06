@@ -17,6 +17,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	d3ddev = d;
 	platform = p;
 	player = NULL;
+	monk = NULL;		// allocated in LoadLevel()
 	digger = NULL;
 	fallingrocks = NULL;
 	musicFileName = NULL;
@@ -42,6 +43,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isGooPlatformLeft = 0;
 	isUsingGasRight = 0;
 	isUsingGasLeft = 0;
+	nbrOfMonks = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -188,6 +190,12 @@ GAMEPLAY::~GAMEPLAY(void)
 			delete player[index];
 	}
 	free(player);
+	if(monk)
+	{
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+			delete monk[index];
+	}
+	free(monk);
 	if(digger)
 		delete digger;
 	if(fallingrocks)

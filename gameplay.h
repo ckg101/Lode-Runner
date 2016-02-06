@@ -2,6 +2,7 @@
 #define GAMEPLAY_H
 #include "platform.h"
 #include "player.h"
+#include "monk.h"
 #include "digger.h"
 #include "sound.h"
 #include "gold.h"
@@ -60,6 +61,7 @@ class GAMEPLAY
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
 		PLAYER** player;
+		MONK** monk;			// enemies
 		DIGGER* digger;
 		FALLINGROCKS** fallingrocks;
 		GOO_PLATFORM* gooPlatform;
@@ -77,6 +79,7 @@ class GAMEPLAY
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		wchar_t** levelFileName;
+		unsigned int nbrOfMonks;
 		unsigned int nbrOfGold;
 		unsigned int nbrOfRopetrap;
 		unsigned int nbrOfJackhammer;
