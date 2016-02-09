@@ -8,7 +8,7 @@
 #include <xaudio2.h>
 #include <math.h>
 #include "sprite.h"
-#include "platform.h"
+//#include "platform.h"
 #include "sound.h"
 #include "gameplay.h"
 
@@ -17,6 +17,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	d3ddev = d;
 	platform = p;
 	player = NULL;
+	monk = NULL;		// allocated in LoadLevel()
 	digger = NULL;
 	fallingrocks = NULL;
 	musicFileName = NULL;
@@ -42,6 +43,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	isGooPlatformLeft = 0;
 	isUsingGasRight = 0;
 	isUsingGasLeft = 0;
+	nbrOfMonks = 0;
 	nbrOfRopetrap = 0;
 	nbrOfJackhammer = 0;
 	nbrOfPick = 0;
@@ -188,6 +190,12 @@ GAMEPLAY::~GAMEPLAY(void)
 			delete player[index];
 	}
 	free(player);
+	if(monk)
+	{
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+			delete monk[index];
+	}
+	free(monk);
 	if(digger)
 		delete digger;
 	if(fallingrocks)
@@ -352,6 +360,21 @@ void GAMEPLAY::UnallocateItems(void)
 		exitdoor = NULL;
 		nbrOfExitdoor = 0;
 	}
+	if(monk)
+	{
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+		{
+			if(monk[index])
+			{
+				delete monk[index];
+				monk[index] = NULL;
+			}
+		}
+		free(monk);
+		monk = NULL;
+		nbrOfMonks = 0;
+	}
+			
 	isFalling = false;
 	isEnteringLevel = false;
 	isEnteringLevelSound = false;
@@ -514,6 +537,13 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 
 	if(isExitingLevel == 0)
 		player[PLAYER1]->renderSprite(buf);
+	if(monk)
+	{
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+		{
+			monk[index]->renderSprite(buf);
+		}
+	}
 	if(isUsingGasRight)
 	{
 		UseGasRightPlayer1();
@@ -537,6 +567,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	unsigned int goo_counter = 0;
 	unsigned int gas_counter = 0;
 	unsigned int exitdoor_counter = 0;
+	unsigned int monk_counter = 0;
 
 	platform->LoadLevel(levelFileName[levelNbr]);
 	wchar_t fileName[256];
@@ -563,6 +594,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 			nbrOfGas++;
 		else if(platform->type[index] >= BLOCK_EXIT_DOOR && platform->type[index] <= BLOCK_EXIT_DOOR_RED)
 			nbrOfExitdoor++;
+		else if(platform->type[index] == BLOCK_MONK)
+			nbrOfMonks++;
 	}
 	
 	if(nbrOfGold)
@@ -629,6 +662,15 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 		for(unsigned int index = 0; index < nbrOfExitdoor; index++)
 		{
 			exitdoor[index] = new EXITDOOR(platform->d3ddev, 24, platform->screenWidth, platform->screenHeight);
+		}
+	}
+	if(nbrOfMonks)
+	{
+		monk = (MONK**)malloc(sizeof(MONK*) * nbrOfMonks);
+
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+		{
+			monk[index] = new MONK(platform->d3ddev, 14, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -722,6 +764,17 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 				exitdoor[exitdoor_counter]->beingUsed = false;
 			}
 			exitdoor_counter++;
+		}
+		else if(platform->type[index] == BLOCK_MONK)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			monk[monk_counter]->loadBitmaps(L"Graphics\\block31_");
+			monk[monk_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			monk[monk_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			monk[monk_counter]->x_pos = p.x;
+			monk[monk_counter]->y_pos = p.y;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
 		}
 	}
 
@@ -1762,6 +1815,115 @@ void GAMEPLAY::OpenExitDoor(void)
 	}
 }
 
+void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
+{
+	unsigned int res, blockNbr, currentBlockNbr;
+	unsigned int res2, res3;	// used for the ID of the block below the player
+	int x, y;
+	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false)
+	{
+		// get the next block to determine if the player can move or not
+		blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos+25, monk[monkNbr]->y_pos);
+		res2 = platform->GetType(platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos+25));
+		currentBlockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos);
+		res3 = platform->GetType(currentBlockNbr);
+		// detect for hitting walls
+		res = platform->GetType(blockNbr);
+		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res != BLOCK_LADDER && (monk[monkNbr]->x_pos+24 < 767))
+		{	
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			if(res2 == BLOCK_SLOW)
+			{
+				monk[monkNbr]->x_pos+=1;
+				soundEffect[SOUND_WALKSLOW]->startWAVFile();
+			}
+			else
+				monk[monkNbr]->x_pos+=2;
+			if(monk[monkNbr]->isClimbingBar == true)
+			{
+				if(res3 != BLOCK_LADDER)
+					monk[monkNbr]->x_pos+=8;
+				monk[monkNbr]->isClimbingBar = false;
+				monk[monkNbr]->isReleased = true;
+			}
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->nextFrame();
+		}
+		else if(res == BLOCK_BAR)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->x_pos+=2;
+			monk[monkNbr]->nextBarFrame();
+			isClimbingBar = true;
+		}
+		else if(res == BLOCK_LADDER)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->x_pos+=2;
+			monk[monkNbr]->nextFrame();
+			//isClimbingBar = true;
+		}
+		else
+			monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+	}
+}
+
+void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
+{
+	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
+	int x, y;
+	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false)
+	{
+		// detect for hitting walls
+			blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos-1, monk[monkNbr]->y_pos);
+			res2 = platform->GetType(platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos+25));
+			res = platform->GetType(blockNbr);
+			res3 = platform->GetType(platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos-5));
+			currentBlockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos);
+			res4 = platform->GetType(currentBlockNbr);
+		if(res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res!=BLOCK_LADDER && (player[PLAYER1]->x_pos > 0))
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			if(res2 == BLOCK_SLOW)
+			{
+				monk[monkNbr]->x_pos-=1;
+				soundEffect[SOUND_WALKSLOW]->startWAVFile();
+			}
+			else
+				monk[monkNbr]->x_pos-=2;
+			if(monk[monkNbr]->isClimbingBar == true)
+			{
+				if(res4 != BLOCK_LADDER)
+					player[PLAYER1]->x_pos-=12;
+				monk[monkNbr]->isClimbingBar = false;
+				monk[monkNbr]->isReleased = true;
+			}
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->backFrame();
+		}
+		else if(res == BLOCK_BAR)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->x_pos-=2;
+			monk[monkNbr]->backBarFrame();
+			isClimbingBar = true;
+		}
+		else if(res == BLOCK_LADDER)
+		{
+			platform->GetBlockCoordinates(blockNbr, x, y);
+			monk[monkNbr]->y_pos = y;
+			monk[monkNbr]->x_pos-=2;
+			monk[monkNbr]->backFrame();
+			//isClimbingBar = true;
+		}
+		else
+			monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+	}
+}
+
 void GAMEPLAY::Gravity(void)
 {
 	unsigned int res, res2,res3, blockNbr, currentBlockNbr;
@@ -1793,37 +1955,37 @@ void GAMEPLAY::Gravity(void)
 		else
 			isReleased = false;
 	
-	if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW || res == BLOCK_BAR) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
-	{
-		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos);
-		platform->GetBlockCoordinates(blockNbr, x, y);
-		player[PLAYER1]->x_pos = x;
-		if(player[PLAYER1]->y_pos+5 > 745)
+		if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW || res == BLOCK_BAR) && (res2 != BLOCK_LADDER) && (player[PLAYER1]->y_pos <= 743))
 		{
-			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, 760);
+			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos);
 			platform->GetBlockCoordinates(blockNbr, x, y);
-			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->x_pos = x;
+			if(player[PLAYER1]->y_pos+5 > 745)
+			{
+				blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, 760);
+				platform->GetBlockCoordinates(blockNbr, x, y);
+				player[PLAYER1]->y_pos = y;
+			}
+			else
+				player[PLAYER1]->y_pos+=5;
+			player[PLAYER1]->fallingFrame();
+			if(isFalling == false)
+				soundEffect[SOUND_FALLING]->startWAVFile();
+			isFalling = true;
 		}
 		else
-			player[PLAYER1]->y_pos+=5;
-		player[PLAYER1]->fallingFrame();
-		if(isFalling == false)
-			soundEffect[SOUND_FALLING]->startWAVFile();
-		isFalling = true;
-	}
-	else
-	{
-		if(isFalling == true)
 		{
-			soundEffect[SOUND_FALLING]->stopWAVFile();
-			//fallingSound->stopWAVFile();
-			//landingSound->startWAVFile();
-			soundEffect[SOUND_LANDING]->startWAVFile();
-			isReleased = false;
-			player[PLAYER1]->setFrameState(0);
+			if(isFalling == true)
+			{
+				soundEffect[SOUND_FALLING]->stopWAVFile();
+				//fallingSound->stopWAVFile();
+				//landingSound->startWAVFile();
+				soundEffect[SOUND_LANDING]->startWAVFile();
+				isReleased = false;
+				player[PLAYER1]->setFrameState(0);
+			}
+			isFalling = false;
 		}
-		isFalling = false;
-	}
 	}
 }
 

@@ -2,6 +2,7 @@
 #define PLATFORM_H
 #include "sprite.h"
 
+
 typedef struct RESPAWN_BLOCK
 {
 	unsigned int nbrOfFrames;

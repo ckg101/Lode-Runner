@@ -1,7 +1,8 @@
 #ifndef GAMEPLAY_H
 #define GAMEPLAY_H
-
+#include "platform.h"
 #include "player.h"
+#include "monk.h"
 #include "digger.h"
 #include "sound.h"
 #include "gold.h"
@@ -42,6 +43,8 @@ class GAMEPLAY
 		void UseGasRightPlayer1(void);
 		void UseGasLeftPlayer1(void);
 		void OpenExitDoor(void);
+		void MoveMonkRight(unsigned int monkNbr);
+		void MoveMonkLeft(unsigned int monkNbr);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
@@ -60,11 +63,11 @@ class GAMEPLAY
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
 		PLAYER** player;
+		MONK** monk;			// enemies
 		DIGGER* digger;
 		FALLINGROCKS** fallingrocks;
 		GOO_PLATFORM* gooPlatform;
 		GAS_SPRAY* gasSpray;
-		SPRITE** monk;
 		GOLD** gold;
 		ROPETRAP** ropetrap;
 		JACKHAMMER** jackhammer;
@@ -77,6 +80,7 @@ class GAMEPLAY
 		wchar_t** musicFileName;
 		wchar_t** soundFileName;
 		wchar_t** levelFileName;
+		unsigned int nbrOfMonks;
 		unsigned int nbrOfGold;
 		unsigned int nbrOfRopetrap;
 		unsigned int nbrOfJackhammer;

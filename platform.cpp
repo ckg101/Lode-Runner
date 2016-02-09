@@ -2,6 +2,7 @@
 #include <windowsx.h>
 #include <d3d9.h>
 #include <D3dx9core.h>
+#include <xaudio2.h>
 #include <stdio.h>
 #include <math.h>
 #include <comdef.h>
