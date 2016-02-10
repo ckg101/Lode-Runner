@@ -45,10 +45,13 @@ class GAMEPLAY
 		void OpenExitDoor(void);
 		void MoveMonkRight(unsigned int monkNbr);
 		void MoveMonkLeft(unsigned int monkNbr);
+		void MoveMonkUp(unsigned int monkNbr);
+		void MoveMonkDown(unsigned int monkNbr);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);
 		void Gravity(void);
+		void MonkGravity(void);
 		void ExitLevel(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);

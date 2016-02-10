@@ -57,16 +57,32 @@ void MONK::nextBarFrame(void)
 
 void MONK::climbDownFrame(void)
 {
-
+	if(frameState < 14 || frameState > 20)
+		frameState = 14;
+	else if(frameState < 20)
+		frameState++;
+	else if(frameState == 20)
+		frameState = 15;
 }
 
 void MONK::climbUpFrame(void)
 {
-
+	if(frameState < 14 || frameState > 20)
+		frameState = 20;
+	else if(frameState > 14)
+		frameState--;
+	else if(frameState == 14)
+		frameState = 19;
 }
 
 void MONK::fallingFrame(void)
 {
+	if(frameState < 21 || frameState > 24)
+		frameState = 21;
+	else if(frameState < 24)
+		frameState++;
+	else if(frameState == 24)
+		frameState = 21;
 }
 
 bool MONK::enterLevel(void)

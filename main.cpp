@@ -571,6 +571,12 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->MoveMonkLeft(0);
 				//Sleep(150);
 			break;
+			case DIK_3:
+				gameplay->MoveMonkUp(0);
+			break;
+			case DIK_4:
+				gameplay->MoveMonkDown(0);
+			break;
 		}
 	}
 }
