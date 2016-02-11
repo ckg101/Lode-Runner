@@ -7,7 +7,7 @@
 #include <dsound.h>
 #include <xaudio2.h>
 #include <time.h>
-#include "graphics.h"
+//#include "graphics.h"
 #include "sound.h"
 #include "controls.h"
 #include "sprite.h"

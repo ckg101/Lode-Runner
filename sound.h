@@ -1,6 +1,8 @@
 #ifndef SOUND_H
 #define SOUND_H
 
+#include <xaudio2.h>
+
 typedef struct tWAVFILEHEADER
 {
 	char chunkID[4];

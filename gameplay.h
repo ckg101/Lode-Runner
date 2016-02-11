@@ -13,6 +13,7 @@
 #include "goo.h"
 #include "gas.h"
 #include "exitdoor.h"
+#include "ai.h"
 
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
@@ -22,6 +23,7 @@ enum SOUND_EFFECT
 class GAMEPLAY
 {
 	public:
+		friend class AI;
 		GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height);
 		~GAMEPLAY(void);
 		void Render(IDirect3DSurface9* &buf);
@@ -78,6 +80,7 @@ class GAMEPLAY
 		GOO** goo;
 		GAS** gas;
 		EXITDOOR** exitdoor;
+		AI* ai;
 		SPRITE* controls;
 
 		wchar_t** musicFileName;

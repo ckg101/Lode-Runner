@@ -1,6 +1,9 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#include <d3d9.h>
+#include <D3dx9core.h>
+
 typedef struct tBACKGROUND
 {
 		IDirect3DSurface9* surface;

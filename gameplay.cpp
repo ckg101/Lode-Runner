@@ -16,6 +16,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 {
 	d3ddev = d;
 	platform = p;
+	ai = NULL;
 	player = NULL;
 	monk = NULL;		// allocated in LoadLevel()
 	digger = NULL;
@@ -374,7 +375,12 @@ void GAMEPLAY::UnallocateItems(void)
 		monk = NULL;
 		nbrOfMonks = 0;
 	}
-			
+
+	if(ai)
+	{
+		delete ai;
+		ai = NULL;
+	}
 	isFalling = false;
 	isEnteringLevel = false;
 	isEnteringLevelSound = false;
@@ -410,6 +416,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	Gravity();
 	MonkGravity();
 	CollectGold();
+	ai->Process();
 	if(isDone == true)
 	{
 		ExitLevel();
@@ -776,8 +783,11 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 			monk[monk_counter]->y_pos = p.y;
 			platform->type[index] = BLOCK_EMPTY;
 			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+			monk_counter++;
 		}
 	}
+
+	ai = new AI(this);
 
 	platform->SetIsPlaying(true);
 	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
@@ -797,6 +807,7 @@ int GAMEPLAY::LoadLevel(void)
 	unsigned int goo_counter = 0;
 	unsigned int gas_counter = 0;
 	unsigned int exitdoor_counter = 0;
+	unsigned int monk_counter = 0;
 	isExitingLevel = 0;
 
 	wchar_t fileName[256];
@@ -822,6 +833,8 @@ int GAMEPLAY::LoadLevel(void)
 			nbrOfGas++;
 		else if(platform->type[index] >= BLOCK_EXIT_DOOR && platform->type[index] <= BLOCK_EXIT_DOOR_RED)
 			nbrOfExitdoor++;
+		else if(platform->type[index] == BLOCK_MONK)
+			nbrOfMonks++;
 	}
 	
 	if(nbrOfGold)
@@ -888,6 +901,15 @@ int GAMEPLAY::LoadLevel(void)
 		for(unsigned int index = 0; index < nbrOfExitdoor; index++)
 		{
 			exitdoor[index] = new EXITDOOR(platform->d3ddev, 24, platform->screenWidth, platform->screenHeight);
+		}
+	}
+	if(nbrOfMonks)
+	{
+		monk = (MONK**)malloc(sizeof(MONK*) * nbrOfMonks);
+
+		for(unsigned int index = 0; index < nbrOfMonks; index++)
+		{
+			monk[index] = new MONK(platform->d3ddev, 25, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -982,7 +1004,21 @@ int GAMEPLAY::LoadLevel(void)
 			}
 			exitdoor_counter++;
 		}
+		else if(platform->type[index] == BLOCK_MONK)
+		{
+			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
+			monk[monk_counter]->loadBitmaps(L"Graphics\\block31_");
+			monk[monk_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
+			monk[monk_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+			monk[monk_counter]->x_pos = p.x;
+			monk[monk_counter]->y_pos = p.y;
+			platform->type[index] = BLOCK_EMPTY;
+			platform->isOccupied[index] = IS_NOT_OCCUPIED;
+			monk_counter++;
+		}
 	}
+
+	ai = new AI(this);
 
 	platform->SetIsPlaying(true);
 	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
