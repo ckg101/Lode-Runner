@@ -1891,7 +1891,7 @@ void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 			monk[monkNbr]->y_pos = y;
 			monk[monkNbr]->x_pos-=2;
 			monk[monkNbr]->backBarFrame();
-			isClimbingBar = true;
+			monk[monkNbr]->isClimbingBar = true;
 		}
 		else if(res == BLOCK_LADDER)
 		{
@@ -1946,7 +1946,7 @@ void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 			monk[monkNbr]->y_pos = y;
 			monk[monkNbr]->x_pos+=2;
 			monk[monkNbr]->nextBarFrame();
-			isClimbingBar = true;
+			monk[monkNbr]->isClimbingBar = true;
 		}
 		else if(res == BLOCK_LADDER)
 		{
