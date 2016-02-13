@@ -678,7 +678,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 25, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 47, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -909,7 +909,7 @@ int GAMEPLAY::LoadLevel(void)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 25, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 47, platform->screenWidth, platform->screenHeight);
 		}
 	}
 

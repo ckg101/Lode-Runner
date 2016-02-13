@@ -48,11 +48,22 @@ void MONK::backFrame(void)
 
 void MONK::backBarFrame(void)
 {
-
+	if(frameState < 25 || frameState > 35)
+		frameState = 35;
+	else if(frameState > 25)
+		frameState--;
+	else if(frameState == 25)
+		frameState = 35;
 }
 
 void MONK::nextBarFrame(void)
 {
+	if(frameState < 36 || frameState > 46)
+		frameState = 36;
+	else if(frameState < 46)
+		frameState++;
+	else if(frameState == 46)
+		frameState = 36;
 }
 
 void MONK::climbDownFrame(void)
