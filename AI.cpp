@@ -13,13 +13,36 @@ void AI::Process(void)
 {
 	for(unsigned int index = 0; index < gameplay->nbrOfMonks; index++)
 	{
-		if(gameplay->monk[index]->x_pos < gameplay->player[PLAYER1]->x_pos)
+		if(gameplay->monk[index]->x_pos < gameplay->player[PLAYER1]->x_pos)		// if player is to the right of the monk
 		{
-			gameplay->MoveMonkRight(index);
+			if(gameplay->monk[index]->y_pos < gameplay->player[PLAYER1]->y_pos)
+			{
+				if(gameplay->MoveMonkDown(index) == false)
+					gameplay->MoveMonkRight(index);
+			}
+			else if(gameplay->monk[index]->y_pos > gameplay->player[PLAYER1]->y_pos)
+			{
+				if(gameplay->MoveMonkUp(index) == false)
+					gameplay->MoveMonkRight(index);
+			}
+			else
+				gameplay->MoveMonkRight(index);
+		
 		}
-		else if(gameplay->monk[index]->x_pos > gameplay->player[PLAYER1]->x_pos)
+		else if(gameplay->monk[index]->x_pos > gameplay->player[PLAYER1]->x_pos)	// if player is to the left of the monk
 		{
-			gameplay->MoveMonkLeft(index);
+			if(gameplay->monk[index]->y_pos < gameplay->player[PLAYER1]->y_pos)
+			{
+				if(gameplay->MoveMonkDown(index) == false)
+					gameplay->MoveMonkLeft(index);
+			}
+			else if(gameplay->monk[index]->y_pos > gameplay->player[PLAYER1]->y_pos)
+			{
+				if(gameplay->MoveMonkUp(index) == false)
+					gameplay->MoveMonkLeft(index);
+			}
+			else
+				gameplay->MoveMonkLeft(index);
 		}
 		else if(gameplay->monk[index]->y_pos < gameplay->player[PLAYER1]->y_pos)
 		{

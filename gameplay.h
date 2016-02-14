@@ -45,10 +45,10 @@ class GAMEPLAY
 		void UseGasRightPlayer1(void);
 		void UseGasLeftPlayer1(void);
 		void OpenExitDoor(void);
-		void MoveMonkRight(unsigned int monkNbr);
-		void MoveMonkLeft(unsigned int monkNbr);
-		void MoveMonkUp(unsigned int monkNbr);
-		void MoveMonkDown(unsigned int monkNbr);
+		bool MoveMonkRight(unsigned int monkNbr);
+		bool MoveMonkLeft(unsigned int monkNbr);
+		bool MoveMonkUp(unsigned int monkNbr);
+		bool MoveMonkDown(unsigned int monkNbr);
 		int LoadLevel(unsigned int levelNbr);
 		int LoadLevel(void);
 		void Exit(void);

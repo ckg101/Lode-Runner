@@ -1852,7 +1852,7 @@ void GAMEPLAY::OpenExitDoor(void)
 	}
 }
 
-void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
+bool GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 {
 	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
 	int x, y;
@@ -1884,6 +1884,7 @@ void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 			}
 			monk[monkNbr]->y_pos = y;
 			monk[monkNbr]->backFrame();
+			return true;
 		}
 		else if(res == BLOCK_BAR)
 		{
@@ -1892,6 +1893,7 @@ void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 			monk[monkNbr]->x_pos-=2;
 			monk[monkNbr]->backBarFrame();
 			monk[monkNbr]->isClimbingBar = true;
+			return true;
 		}
 		else if(res == BLOCK_LADDER)
 		{
@@ -1900,13 +1902,17 @@ void GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 			monk[monkNbr]->x_pos-=2;
 			monk[monkNbr]->backFrame();
 			//isClimbingBar = true;
+			return true;
 		}
 		else
-			monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+		{
+			//monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+		}
 	}
+	return false;
 }
 
-void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
+bool GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 {
 	unsigned int res, blockNbr, currentBlockNbr;
 	unsigned int res2, res3;	// used for the ID of the block below the player
@@ -1927,18 +1933,24 @@ void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 			{
 				monk[monkNbr]->x_pos+=1;
 				soundEffect[SOUND_WALKSLOW]->startWAVFile();
+				
 			}
 			else
+			{
 				monk[monkNbr]->x_pos+=2;
+			
+			}
 			if(monk[monkNbr]->isClimbingBar == true)
 			{
 				if(res3 != BLOCK_LADDER)
 					monk[monkNbr]->x_pos+=8;
 				monk[monkNbr]->isClimbingBar = false;
 				monk[monkNbr]->isReleased = true;
+				
 			}
 			monk[monkNbr]->y_pos = y;
 			monk[monkNbr]->nextFrame();
+			return true;
 		}
 		else if(res == BLOCK_BAR)
 		{
@@ -1947,6 +1959,7 @@ void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 			monk[monkNbr]->x_pos+=2;
 			monk[monkNbr]->nextBarFrame();
 			monk[monkNbr]->isClimbingBar = true;
+			return true;
 		}
 		else if(res == BLOCK_LADDER)
 		{
@@ -1954,14 +1967,18 @@ void GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 			monk[monkNbr]->y_pos = y;
 			monk[monkNbr]->x_pos+=2;
 			monk[monkNbr]->nextFrame();
+			return true;
 			//isClimbingBar = true;
 		}
 		else
-			monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+		{
+			//monk[monkNbr]->setFrameState(0);	// if hit a wall set the frame to the idle
+		}
 	}
+	return false;
 }
 
-void GAMEPLAY::MoveMonkUp(unsigned int monkNbr)
+bool GAMEPLAY::MoveMonkUp(unsigned int monkNbr)
 {
 	unsigned int res, res2;
 	unsigned int blockNbr, prevBlockNbr;
@@ -1985,6 +2002,7 @@ void GAMEPLAY::MoveMonkUp(unsigned int monkNbr)
 				else
 					monk[monkNbr]->y_pos-=2;
 				monk[monkNbr]->climbUpFrame();
+				return true;
 		
 		}
 		else if (res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER)
@@ -1997,19 +2015,21 @@ void GAMEPLAY::MoveMonkUp(unsigned int monkNbr)
 				else
 					monk[monkNbr]->y_pos-=2;
 				monk[monkNbr]->climbUpFrame();
+				return true;
 		}
 		else
 		{
 			//platform->GetBlockCoordinates(blockNbr, x, y);
 			//monk[monkNbr]->x_pos = x;
 			//monk[monkNbr]->y_pos = y;
-			monk[monkNbr]->setFrameState(0);
+			//monk[monkNbr]->setFrameState(0);
 		}
+		return false;
 	}
 
 }
 
-void GAMEPLAY::MoveMonkDown(unsigned int monkNbr)
+bool GAMEPLAY::MoveMonkDown(unsigned int monkNbr)
 {
 	unsigned int res;
 	unsigned int blockNbr;
@@ -2031,8 +2051,10 @@ void GAMEPLAY::MoveMonkDown(unsigned int monkNbr)
 			monk[monkNbr]->x_pos = x;
 			monk[monkNbr]->y_pos+=2;
 			monk[monkNbr]->climbDownFrame();
+			return true;
 		}
 	}
+	return false;
 }
 
 void GAMEPLAY::Gravity(void)
