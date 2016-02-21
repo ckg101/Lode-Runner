@@ -2126,6 +2126,7 @@ void GAMEPLAY::MonkGravity(void)
 {
 	unsigned int res, res2,res3, blockNbr, currentBlockNbr;
 	int x, y;
+	bool collision;
 
 	for(unsigned int monkNbr = 0; monkNbr < nbrOfMonks; monkNbr++)
 	{
@@ -2167,7 +2168,10 @@ void GAMEPLAY::MonkGravity(void)
 				monk[monkNbr]->y_pos = y;
 			}
 			else
-				monk[monkNbr]->y_pos+=5;
+			{
+				if(ai->DetectCollisionWithOtherMonkFallingDown(monkNbr) == false)
+					monk[monkNbr]->y_pos+=5;
+			}
 			monk[monkNbr]->fallingFrame();
 			
 			monk[monkNbr]->isFalling = true;
