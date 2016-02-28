@@ -18,7 +18,7 @@
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
   SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD, SOUND_ENTERPORTAL, SOUND_ENDLEVEL,
-  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS};
+  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS, SOUND_EAT};
 
 class GAMEPLAY
 {
@@ -49,12 +49,15 @@ class GAMEPLAY
 		bool MoveMonkLeft(unsigned int monkNbr);
 		bool MoveMonkUp(unsigned int monkNbr);
 		bool MoveMonkDown(unsigned int monkNbr);
-		int LoadLevel(unsigned int levelNbr);
+		void MonkEatPlayer1(unsigned int monkNbr);
+		int LoadLevel(unsigned int levelNbr, bool newGame);
 		int LoadLevel(void);
 		void Exit(void);
 		void Gravity(void);
+		void CollideWithMonkPlayer1(void);
 		void MonkGravity(void);
 		void ExitLevel(void);
+		void KillPlayer1(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
 		void Player1EntersLevel(void);
@@ -63,6 +66,8 @@ class GAMEPLAY
 		void DropItem(void);
 		bool leaveGameplay;
 		unsigned int groupNbr;
+		bool displayPlayer1;
+
 	private:
 		void UnallocateItems(void);
 		IDirect3DDevice9* d3ddev;

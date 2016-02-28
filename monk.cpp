@@ -16,6 +16,7 @@ MONK::MONK(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_
 	isEnteringLevel = false;
 	isClimbingBar = false;
 	isReleased = false;
+	isEatingPlayer1 = 0;
 }
 
 MONK::~MONK()
@@ -98,6 +99,25 @@ void MONK::fallingFrame(void)
 
 bool MONK::enterLevel(void)
 {
+	return false;
+}
+
+bool MONK::eatPlayer1Frame(void)
+{
+	if(frameState < 47 || frameState > 80)
+	{
+		frameState = 47;
+		return false;
+	}
+	else if(frameState < 80)
+	{
+		frameState++;
+		return false;
+	}
+	else if(frameState == 80)
+	{
+		return true;
+	}
 	return false;
 }
 

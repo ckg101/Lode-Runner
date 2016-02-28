@@ -18,12 +18,14 @@ public:
 	void fallingFrame(void);
 	void setFrameState(unsigned int index);
 	bool enterLevel(void);
+	bool eatPlayer1Frame(void);
 	
 	unsigned int goldCollected;
 	bool isFalling; 
 	bool isEnteringLevel;
 	bool isClimbingBar;
 	bool isReleased;
+	unsigned int isEatingPlayer1;
 };
 
 #endif

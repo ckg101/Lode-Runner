@@ -76,6 +76,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
 	player[PLAYER1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	player[PLAYER1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
+	player[PLAYER1]->lives = 5;
 
 	digger = new DIGGER(d, 14, screen_width, screen_height);
 	digger->loadBitmaps(L"Graphics\\block37_");
@@ -112,8 +113,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
-	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 16);
-	for(unsigned int index = 0; index < 16; index++)
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 17);
+	for(unsigned int index = 0; index < 17; index++)
 	{
 		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	}
@@ -133,8 +134,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	wsprintf(soundFileName[SOUND_WALKSLOW], L"Sound\\walkslow.wav");
 	wsprintf(soundFileName[SOUND_GOO], L"Sound\\goo.wav");
 	wsprintf(soundFileName[SOUND_GAS], L"Sound\\gas.wav");
+	wsprintf(soundFileName[SOUND_EAT], L"Sound\\eat.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 16);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 17);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -167,6 +169,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	soundEffect[SOUND_GOO]->loadWAVFile(soundFileName[SOUND_GOO]);
 	soundEffect[SOUND_GAS] = new SOUND(xa);
 	soundEffect[SOUND_GAS]->loadWAVFile(soundFileName[SOUND_GAS]);
+	soundEffect[SOUND_EAT] = new SOUND(xa);
+	soundEffect[SOUND_EAT]->loadWAVFile(soundFileName[SOUND_EAT]);
 
 	music = new SOUND(xa);
 
@@ -221,7 +225,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundFileName)
 	{
-		for(unsigned int index = 0; index < 16; index++)
+		for(unsigned int index = 0; index < 17; index++)
 		{
 			free(soundFileName[index]);
 		}
@@ -229,7 +233,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 16; index++)
+		for(unsigned int index = 0; index < 17; index++)
 		{
 			delete soundEffect[index];
 		}
@@ -407,6 +411,8 @@ void GAMEPLAY::UnallocateItems(void)
 
 void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 {
+	displayPlayer1 = true;
+
 	if(!music->playWAVFile())
 		music->startWAVFile();
 
@@ -416,7 +422,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	Gravity();
 	MonkGravity();
 	CollectGold();
-	ai->Process();
+	CollideWithMonkPlayer1();
 	if(isDone == true)
 	{
 		ExitLevel();
@@ -543,15 +549,25 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		}
 	}
 
-	if(isExitingLevel == 0)
-		player[PLAYER1]->renderSprite(buf);
 	if(monk)
 	{
+		if(ai)
+			ai->Process();
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index]->renderSprite(buf);
+			if(monk[index]->isEatingPlayer1)
+			{
+				MonkEatPlayer1(index);
+				displayPlayer1 = false;
+			}
+			if(monk)
+				monk[index]->renderSprite(buf);
 		}
 	}
+	if(isExitingLevel == 0 && displayPlayer1 == true)
+		player[PLAYER1]->renderSprite(buf);
+
+
 	if(isUsingGasRight)
 	{
 		UseGasRightPlayer1();
@@ -566,7 +582,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	}
 }
 
-int GAMEPLAY::LoadLevel(unsigned int levelNbr)
+int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 {
 	unsigned int counter = 0;
 	unsigned int ropetrap_counter = 0;
@@ -584,6 +600,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
 	player[PLAYER1]->itemHeld = 0;
+	if(newGame)
+		player[PLAYER1]->lives = 5;
 	isExitingLevel = 0;
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
@@ -678,7 +696,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 47, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 81, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -816,6 +834,7 @@ int GAMEPLAY::LoadLevel(void)
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
 	player[PLAYER1]->itemHeld = 0;
+	player[PLAYER1]->lives = 5;
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
@@ -909,7 +928,7 @@ int GAMEPLAY::LoadLevel(void)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 47, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 81, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -1048,7 +1067,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 	unsigned int res2, res3;	// used for the ID of the block below the player
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0 && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
-		&& isPickingRight == 0)
+		&& isPickingRight == 0 && displayPlayer1 == true)
 	{
 		// get the next block to determine if the player can move or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
@@ -1103,7 +1122,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0&& isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
-		&& isPickingRight == 0)
+		&& isPickingRight == 0 && displayPlayer1 == true)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
@@ -1160,7 +1179,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 	unsigned int blockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false && isDrilling == 0 && isFalling == false)
+	if(isEnteringLevel == false && isDrilling == 0 && isFalling == false && displayPlayer1 == true)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+10, player[PLAYER1]->y_pos+24);
 		res = platform->GetType(blockNbr);
@@ -1186,7 +1205,7 @@ void GAMEPLAY::MovePlayer1Up(void)
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false && isDrilling == 0)
+	if(isEnteringLevel == false && isDrilling == 0 && displayPlayer1 == true)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		prevBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+23);
@@ -2057,6 +2076,33 @@ bool GAMEPLAY::MoveMonkDown(unsigned int monkNbr)
 	return false;
 }
 
+void GAMEPLAY::MonkEatPlayer1(unsigned int monkNbr)
+{
+	unsigned int res, blockNbr;   	
+	int x, y;
+	bool test;
+
+	if(monk[monkNbr]->isEatingPlayer1 == 0)
+	{
+		monk[monkNbr]->eatPlayer1Frame();
+		monk[monkNbr]->isEatingPlayer1++;
+		soundEffect[SOUND_EAT]->startWAVFile();
+	}
+	else if(isUsingGasLeft %3 == 0)
+	{
+		test = monk[monkNbr]->eatPlayer1Frame();
+		if(test == true)
+		{
+			monk[monkNbr]->isEatingPlayer1 == 0;
+			KillPlayer1();
+		}
+		else
+			monk[monkNbr]->isEatingPlayer1++;
+	}
+	else
+		monk[monkNbr]->isEatingPlayer1++;
+}
+
 void GAMEPLAY::Gravity(void)
 {
 	unsigned int res, res2,res3, blockNbr, currentBlockNbr;
@@ -2189,6 +2235,18 @@ void GAMEPLAY::MonkGravity(void)
 	}
 }
 
+void GAMEPLAY::CollideWithMonkPlayer1(void)
+{
+	for(unsigned int index = 0; index < nbrOfMonks; index++)
+	{
+		if(monk[index]->x_pos+12 >= player[PLAYER1]->x_pos+8 && monk[index]->x_pos+12 <= player[PLAYER1]->x_pos+16
+			&& monk[index]->y_pos == player[PLAYER1]->y_pos)	// if collides with player1 then eat
+		{
+			MonkEatPlayer1(index);
+		}
+	}
+}
+
 void GAMEPLAY::ExitLevel(void)
 {
 	for(unsigned int index = 0; index < nbrOfExitdoor; index++)
@@ -2211,7 +2269,7 @@ void GAMEPLAY::ExitLevel(void)
 						{
 							currentLevel++;
 							if(currentLevel < nbrOfLevels)
-								LoadLevel(currentLevel);
+								LoadLevel(currentLevel, false);
 							else
 								leaveGameplay = true;
 							return;
@@ -2231,11 +2289,26 @@ void GAMEPLAY::ExitLevel(void)
 	}
 }
 
+void GAMEPLAY::KillPlayer1(void)
+{
+	music->stopWAVFile();						
+	Sleep(2000);
+	UnallocateItems();
+	player[PLAYER1]->goldCollected = 0;
+	if(player[PLAYER1]->lives)
+	{
+		player[PLAYER1]->lives--;
+		LoadLevel(currentLevel, false);
+	}
+	else
+		leaveGameplay = true;
+}
+
 void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 16; index++)
+	for(unsigned int index = 0; index < 17; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

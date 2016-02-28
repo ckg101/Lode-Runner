@@ -612,7 +612,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					//music.stopMIDIFile();
 					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
-					gameplay->LoadLevel(0);
+					gameplay->LoadLevel(0, true);
 					gameplay->leaveGameplay = false;
 					gameplay->groupNbr = 0;
 					gameMode = GAME_MODE_PLAY;
@@ -637,6 +637,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					buttonpress->startWAVFile();
 					Sleep(250);
 					music->stopWAVFile();
+					MessageBoxW(hWnd, L"This feature is not fully functional yet.", L"Load Level", MB_OK);
 					controls->UnacquireMouse();
 					gameplay->LoadLevel();
 					gameplay->leaveGameplay = false;

@@ -29,6 +29,7 @@ public:
 	bool gooLeftFrame(void);
 	unsigned int goldCollected;
 	unsigned int itemHeld;
+	unsigned int lives;
 };
 
 #endif
