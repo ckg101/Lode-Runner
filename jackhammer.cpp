@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include "jackhammer.h"
 
 JACKHAMMER::JACKHAMMER(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_height)

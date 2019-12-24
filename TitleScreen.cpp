@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>
@@ -14,7 +14,7 @@ TITLESCREEN::TITLESCREEN(IDirect3DDevice9* d, int screen_width, int screen_heigh
 {
 	titleScreenImage = NULL;
 	titleScreenImage = new SPRITE(d, 1, screen_width, screen_height);
-	titleScreenImage->loadBitmaps(L"Graphics\\TitleScreen");
+	titleScreenImage->loadBitmaps(_wcsdup(L"Graphics\\TitleScreen"));
 	buttonCoordinate = NULL;
 }
 

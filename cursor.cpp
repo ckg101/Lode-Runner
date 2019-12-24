@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <math.h>
@@ -17,11 +17,11 @@ CURSOR::CURSOR(IDirect3DDevice9* &d, unsigned int type_nbr, int screen_width, in
 	cursorGraphic = NULL;
 	selectionGraphic = NULL;
 	cursorGraphic = new SPRITE(d, 1, screen_width, screen_height); 
-	cursorGraphic->loadBitmaps(L"Graphics\\block33_");
+	cursorGraphic->loadBitmaps(_wcsdup(L"Graphics\\block33_"));
 	cursorGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	cursorGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	selectionGraphic = new SPRITE(d, 1, screen_width, screen_height); 
-	selectionGraphic->loadBitmaps(L"Graphics\\block34_");
+	selectionGraphic->loadBitmaps(_wcsdup(L"Graphics\\block34_"));
 	selectionGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	selectionGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	typeNbr = 0;
@@ -36,11 +36,11 @@ CURSOR::CURSOR(IDirect3DDevice9* &d, int screen_width, int screen_height)
 	cursorGraphic = NULL;
 	selectionGraphic = NULL;
 	cursorGraphic = new SPRITE(d, 1, screen_width, screen_height); 
-	cursorGraphic->loadBitmaps(L"Graphics\\block33_");
+	cursorGraphic->loadBitmaps(_wcsdup(L"Graphics\\block33_"));
 	cursorGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	cursorGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	selectionGraphic = new SPRITE(d, 1, screen_width, screen_height); 
-	selectionGraphic->loadBitmaps(L"Graphics\\TitleSelection");
+	selectionGraphic->loadBitmaps(_wcsdup(L"Graphics\\TitleSelection"));
 	selectionGraphic->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	selectionGraphic->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	typeNbr = 0;

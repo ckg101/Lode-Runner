@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>
@@ -31,7 +31,7 @@ SOUND::~SOUND()
     free(wavdata);
 }
 
-unsigned long SOUND::loadMIDIFile(HWND hWnd_Notify, wchar_t* MIDIFileName)
+unsigned long SOUND::loadMIDIFile(HWND hWnd_Notify, const wchar_t* MIDIFileName)
 {
     DWORD dwReturn;
 	hWndNotify = hWnd_Notify;
@@ -114,7 +114,7 @@ unsigned long SOUND::stopMIDIFile(void)
 	return 0;
 }
 
-int SOUND::loadWAVFile(wchar_t* fileName)
+int SOUND::loadWAVFile(const wchar_t* fileName)
 {
 	HRESULT hr;
 	FILE* fp;

@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>

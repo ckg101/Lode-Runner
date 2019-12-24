@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>
@@ -73,13 +73,13 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		player[index] = new PLAYER(d, 120, screen_width, screen_height);
 	}
 
-	player[PLAYER1]->loadBitmaps(L"Graphics\\block29_");
+	player[PLAYER1]->loadBitmaps(_wcsdup(L"Graphics\\block29_"));
 	player[PLAYER1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	player[PLAYER1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	player[PLAYER1]->lives = 5;
 
 	digger = new DIGGER(d, 14, screen_width, screen_height);
-	digger->loadBitmaps(L"Graphics\\block37_");
+	digger->loadBitmaps(_wcsdup(L"Graphics\\block37_"));
 	digger->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	digger->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
@@ -87,7 +87,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	for(unsigned int index = 0; index < 4; index++)
 	{
 		fallingrocks[index] = new FALLINGROCKS(d, 4, screen_width, screen_height);
-		fallingrocks[index]->loadBitmaps(L"Graphics\\block38_");
+		fallingrocks[index]->loadBitmaps(_wcsdup(L"Graphics\\block38_"));
 		fallingrocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 		fallingrocks[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 	}
@@ -96,12 +96,12 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	//player[1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
 	gooPlatform = new GOO_PLATFORM(d, 13, screen_width, screen_height);
-	gooPlatform->loadBitmaps(L"Graphics\\goo");
+	gooPlatform->loadBitmaps(_wcsdup(L"Graphics\\goo"));
 	gooPlatform->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	gooPlatform->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
 	gasSpray = new GAS_SPRAY(d, 19, screen_width, screen_height);
-	gasSpray->loadBitmaps(L"Graphics\\gas");
+	gasSpray->loadBitmaps(_wcsdup(L"Graphics\\gas"));
 	gasSpray->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	gasSpray->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
@@ -182,7 +182,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	}
 
 	controls = new SPRITE(d,1, screen_width, screen_height);
-	controls->loadBitmaps(L"Graphics\\controls");
+	controls->loadBitmaps(_wcsdup(L"Graphics\\controls"));
 	controls->x_pos = 767;
 	controls->y_pos = 0;
 }
@@ -717,7 +717,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_ROPE)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			ropetrap[ropetrap_counter]->loadBitmaps(L"Graphics\\block19_");
+			ropetrap[ropetrap_counter]->loadBitmaps(_wcsdup(L"Graphics\\block19_"));
 			ropetrap[ropetrap_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			ropetrap[ropetrap_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			ropetrap[ropetrap_counter]->x_pos = p.x;
@@ -729,7 +729,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_JACKHAMMER)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			jackhammer[jackhammer_counter]->loadBitmaps(L"Graphics\\block17_");
+			jackhammer[jackhammer_counter]->loadBitmaps(_wcsdup(L"Graphics\\block17_"));
 			jackhammer[jackhammer_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			jackhammer[jackhammer_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			jackhammer[jackhammer_counter]->x_pos = p.x;
@@ -741,7 +741,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_PICK)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			pick[pick_counter]->loadBitmaps(L"Graphics\\block18_");
+			pick[pick_counter]->loadBitmaps(_wcsdup(L"Graphics\\block18_"));
 			pick[pick_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			pick[pick_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			pick[pick_counter]->x_pos = p.x;
@@ -753,7 +753,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_GOO)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			goo[goo_counter]->loadBitmaps(L"Graphics\\block27_");
+			goo[goo_counter]->loadBitmaps(_wcsdup(L"Graphics\\block27_"));
 			goo[goo_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			goo[goo_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			goo[goo_counter]->x_pos = p.x;
@@ -765,7 +765,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_GAS)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			gas[gas_counter]->loadBitmaps(L"Graphics\\block28_");
+			gas[gas_counter]->loadBitmaps(_wcsdup(L"Graphics\\block28_"));
 			gas[gas_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			gas[gas_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			gas[gas_counter]->x_pos = p.x;
@@ -777,7 +777,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] >= BLOCK_EXIT_DOOR && platform->type[index] <= BLOCK_EXIT_DOOR_RED)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			exitdoor[exitdoor_counter]->loadBitmaps(L"Graphics\\block21_");
+			exitdoor[exitdoor_counter]->loadBitmaps(_wcsdup(L"Graphics\\block21_"));
 			exitdoor[exitdoor_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			exitdoor[exitdoor_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			exitdoor[exitdoor_counter]->x_pos = p.x;
@@ -794,7 +794,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		else if(platform->type[index] == BLOCK_MONK)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			monk[monk_counter]->loadBitmaps(L"Graphics\\block31_");
+			monk[monk_counter]->loadBitmaps(_wcsdup(L"Graphics\\block31_"));
 			monk[monk_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			monk[monk_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			monk[monk_counter]->x_pos = p.x;
@@ -949,7 +949,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_ROPE)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			ropetrap[ropetrap_counter]->loadBitmaps(L"Graphics\\block19_");
+			ropetrap[ropetrap_counter]->loadBitmaps(_wcsdup(L"Graphics\\block19_"));
 			ropetrap[ropetrap_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			ropetrap[ropetrap_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			ropetrap[ropetrap_counter]->x_pos = p.x;
@@ -961,7 +961,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_JACKHAMMER)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			jackhammer[jackhammer_counter]->loadBitmaps(L"Graphics\\block17_");
+			jackhammer[jackhammer_counter]->loadBitmaps(_wcsdup(L"Graphics\\block17_"));
 			jackhammer[jackhammer_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			jackhammer[jackhammer_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			jackhammer[jackhammer_counter]->x_pos = p.x;
@@ -973,7 +973,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_PICK)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			pick[pick_counter]->loadBitmaps(L"Graphics\\block18_");
+			pick[pick_counter]->loadBitmaps(_wcsdup(L"Graphics\\block18_"));
 			pick[pick_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			pick[pick_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			pick[pick_counter]->x_pos = p.x;
@@ -985,7 +985,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_GOO)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			goo[goo_counter]->loadBitmaps(L"Graphics\\block27_");
+			goo[goo_counter]->loadBitmaps(_wcsdup(L"Graphics\\block27_"));
 			goo[goo_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			goo[goo_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			goo[goo_counter]->x_pos = p.x;
@@ -997,7 +997,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_GAS)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			gas[gas_counter]->loadBitmaps(L"Graphics\\block28_");
+			gas[gas_counter]->loadBitmaps(_wcsdup(L"Graphics\\block28_"));
 			gas[gas_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			gas[gas_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			gas[gas_counter]->x_pos = p.x;
@@ -1009,7 +1009,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] >= BLOCK_EXIT_DOOR && platform->type[index] <= BLOCK_EXIT_DOOR_RED)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			exitdoor[exitdoor_counter]->loadBitmaps(L"Graphics\\block21_");
+			exitdoor[exitdoor_counter]->loadBitmaps(_wcsdup(L"Graphics\\block21_"));
 			exitdoor[exitdoor_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			exitdoor[exitdoor_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			exitdoor[exitdoor_counter]->x_pos = p.x;
@@ -1026,7 +1026,7 @@ int GAMEPLAY::LoadLevel(void)
 		else if(platform->type[index] == BLOCK_MONK)
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			monk[monk_counter]->loadBitmaps(L"Graphics\\block31_");
+			monk[monk_counter]->loadBitmaps(_wcsdup(L"Graphics\\block31_"));
 			monk[monk_counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			monk[monk_counter]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 			monk[monk_counter]->x_pos = p.x;

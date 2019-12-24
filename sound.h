@@ -26,10 +26,10 @@ class SOUND
 		SOUND();
 		SOUND(IXAudio2* xa);
 		~SOUND();
-		unsigned long loadMIDIFile(HWND hWndNotify, wchar_t* MIDIFileName);
+		unsigned long loadMIDIFile(HWND hWndNotify, const wchar_t* MIDIFileName);
 		unsigned long playMIDIFile(void);
 		unsigned long stopMIDIFile(void);
-		int loadWAVFile(wchar_t* fileName);
+		int loadWAVFile(const wchar_t* fileName);
 		int startWAVFile(void);
 		int playWAVFile(void);
 		void stopWAVFile(void);

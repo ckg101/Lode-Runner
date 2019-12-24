@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-#include <D3dx9core.h>
+//#include <D3dx9core.h>
 #include <xaudio2.h>
 #include <stdio.h>
 #include <math.h>
@@ -282,7 +282,7 @@ int PLATFORM::loadBlocks(wchar_t* name)
 			menu[BLOCK_TELEPORT_ENTRY] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
 			if(menu[BLOCK_TELEPORT_ENTRY] == NULL)
 				return -1;
-			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(L"Graphics\\block12_");
+			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(_wcsdup(L"Graphics\\block12_"));
 			menu[BLOCK_TELEPORT_ENTRY]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
 		else if(index == BLOCK_TELEPORT_EXIT)
@@ -290,7 +290,7 @@ int PLATFORM::loadBlocks(wchar_t* name)
 			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
 			if(menu[index] == NULL)
 				return -1;
-			menu[index]->loadBitmaps(L"Graphics\\block13_");
+			menu[index]->loadBitmaps(_wcsdup(L"Graphics\\block13_"));
 			menu[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
 		else
@@ -306,14 +306,14 @@ int PLATFORM::loadBlocks(wchar_t* name)
 	if(menu[nbrOfTypes] == NULL)
 		return -1;
 
-	menu[nbrOfTypes]->loadBitmaps(L"Graphics\\block34_");
+	menu[nbrOfTypes]->loadBitmaps(_wcsdup(L"Graphics\\block34_"));
 	menu[nbrOfTypes]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
 	menu[nbrOfTypes+1] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 	if(menu[nbrOfTypes+1] == NULL)
 		return -1;
 
-	menu[nbrOfTypes+1]->loadBitmaps(L"Graphics\\block35_");
+	menu[nbrOfTypes+1]->loadBitmaps(_wcsdup(L"Graphics\\block35_"));
 	menu[nbrOfTypes+1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
 	x = 768;
@@ -479,7 +479,7 @@ int PLATFORM::LoadBlocks(unsigned char world)
 			menu[BLOCK_TELEPORT_ENTRY] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
 			if(menu[BLOCK_TELEPORT_ENTRY] == NULL)
 				return -1;
-			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(L"Graphics\\block12_");
+			menu[BLOCK_TELEPORT_ENTRY]->loadBitmaps(_wcsdup(L"Graphics\\block12_"));
 			menu[BLOCK_TELEPORT_ENTRY]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
 		else if(index == BLOCK_TELEPORT_EXIT)
@@ -487,7 +487,7 @@ int PLATFORM::LoadBlocks(unsigned char world)
 			menu[index] = new SPRITE(d3ddev, 6, screenWidth, screenHeight);
 			if(menu[index] == NULL)
 				return -1;
-			menu[index]->loadBitmaps(L"Graphics\\block13_");
+			menu[index]->loadBitmaps(_wcsdup(L"Graphics\\block13_"));
 			menu[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 		}
 		else
@@ -503,20 +503,20 @@ int PLATFORM::LoadBlocks(unsigned char world)
 	if(menu[nbrOfTypes] == NULL)
 		return -1;
 
-	menu[nbrOfTypes]->loadBitmaps(L"Graphics\\block34_");
+	menu[nbrOfTypes]->loadBitmaps(_wcsdup(L"Graphics\\block34_"));
 	menu[nbrOfTypes]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
 	menu[nbrOfTypes+1] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 	if(menu[nbrOfTypes+1] == NULL)
 		return -1;
 
-	menu[nbrOfTypes+1]->loadBitmaps(L"Graphics\\block35_");
+	menu[nbrOfTypes+1]->loadBitmaps(_wcsdup(L"Graphics\\block35_"));
 	menu[nbrOfTypes+1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
 	menu[nbrOfTypes+2] = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 	if(menu[nbrOfTypes+2] == NULL)
 		return -1;
-	menu[nbrOfTypes+2]->loadBitmaps(L"Graphics\\block36_");
+	menu[nbrOfTypes+2]->loadBitmaps(_wcsdup(L"Graphics\\block36_"));
 	menu[nbrOfTypes+2]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 
 	x = 768;
