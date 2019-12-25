@@ -10,7 +10,7 @@ class CURSOR
 		~CURSOR(); 
 		int SetType(unsigned int type_nbr);
 		unsigned int GetType(void);
-		void Render(IDirect3DSurface9* &backbuffer);
+		void Render(D3DLOCKED_RECT&backbuffer);
 		void SetSelectionX_Pos(int x);
 		void SetSelectionY_Pos(int y);
 		void MoveCursorX(int qty);

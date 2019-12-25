@@ -28,7 +28,7 @@ class TITLESCREEN
 		unsigned int nbrOfButtons;
 public:
 	// Copy image to backbuffer to be displayed
-	void Render(IDirect3DSurface9* &backbuffer);
+	void Render(D3DLOCKED_RECT &backbuffer);
 };
 
 #endif

@@ -69,7 +69,7 @@ unsigned int CURSOR::GetType(void)
 	return typeNbr;
 }
 
-void CURSOR::Render(IDirect3DSurface9* &backbuffer)
+void CURSOR::Render(D3DLOCKED_RECT &backbuffer)
 {
 	if(displaySelectionGraphic == true)
 		selectionGraphic->renderSprite(backbuffer);

@@ -409,8 +409,8 @@ void GAMEPLAY::UnallocateItems(void)
 	isExitingLevel = 0;
 }
 
-void GAMEPLAY::Render(IDirect3DSurface9* &buf)
-{
+void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
+{ 
 	displayPlayer1 = true;
 
 	if(!music->playWAVFile())
@@ -436,7 +436,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 			soundEffect[SOUND_BEGIN_LEVEL]->startWAVFile();
 			isEnteringLevelSound = true;
 		}
-		Sleep(75);
+		//Sleep(75);
 		Player1EntersLevel();
 	}
 	platform->renderPlatform(buf);
@@ -445,13 +445,13 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 	{
 		digger->renderSprite(buf);
 		DigRightPlayer1();
-		Sleep(75);
+		//Sleep(75);
 	}
 	if(isDiggingLeft == true)
 	{
 		digger->renderSprite(buf);
 		DigLeftPlayer1();
-		Sleep(50);
+		//Sleep(50);
 	}
 	if((isDrilling >=1) && (isDrilling <= 3))
 	{
@@ -579,7 +579,7 @@ void GAMEPLAY::Render(IDirect3DSurface9* &buf)
 		gasSpray->renderSprite(buf);
 	}
 	controls->renderSprite(buf);
-	}
+	} 
 }
 
 int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
@@ -2262,7 +2262,7 @@ void GAMEPLAY::ExitLevel(void)
 					{
 						soundEffect[SOUND_ENDLEVEL]->startWAVFile();
 						music->stopWAVFile();						
-						Sleep(2000);
+						//Sleep(2000);
 						UnallocateItems();
 						player[PLAYER1]->goldCollected = 0;
 						if(groupNbr == 0)
@@ -2292,7 +2292,7 @@ void GAMEPLAY::ExitLevel(void)
 void GAMEPLAY::KillPlayer1(void)
 {
 	music->stopWAVFile();						
-	Sleep(2000);
+	//Sleep(2000);
 	UnallocateItems();
 	player[PLAYER1]->goldCollected = 0;
 	if(player[PLAYER1]->lives)

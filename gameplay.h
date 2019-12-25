@@ -26,7 +26,7 @@ class GAMEPLAY
 		friend class AI;
 		GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height);
 		~GAMEPLAY(void);
-		void Render(IDirect3DSurface9* &buf);
+		void Render(D3DLOCKED_RECT &buf);
 		void MovePlayer1Right(void);
 		void MovePlayer1Left(void);
 		void MovePlayer1Up(void);

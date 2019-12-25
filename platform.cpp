@@ -648,7 +648,7 @@ void PLATFORM::setBlock(unsigned int blockNbr)
 	}
 }
 
-void PLATFORM::renderPlatform(IDirect3DSurface9* &buf)
+void PLATFORM::renderPlatform(D3DLOCKED_RECT &buf)
 {
 	unsigned int index;
 
@@ -753,6 +753,8 @@ unsigned short PLATFORM::getIsOccupied(unsigned int blockNbr)
 
 bool PLATFORM::getIsSelected(unsigned int blockNbr)
 {
+	if (((signed)blockNbr - 1024) < 0)
+		return isSelected[0];
 	return isSelected[blockNbr-1024];
 }
 

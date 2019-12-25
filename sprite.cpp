@@ -180,18 +180,18 @@ int SPRITE::setAnimationType(int a)
 	return 1;
 }
 
-int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
+int SPRITE::renderSprite(D3DLOCKED_RECT &locked_rect)
 {
 		HRESULT hr;
 		unsigned char* pBits;
 		unsigned long* lBits;
 		unsigned long* lFrame;
-		D3DLOCKED_RECT locked_rect;
+		//D3DLOCKED_RECT locked_rect;
 		int counter = 0;
 		int counter2 = 0;
 		int x, y;
 		
-		hr = backbuffer->LockRect(&locked_rect, NULL, 0);
+		/*hr = backbuffer->LockRect(&locked_rect, NULL, 0);
 		if(FAILED(hr))
 		{
 			MessageBoxW(NULL, L"Failed to lock surface", L"Error", MB_OK);
@@ -205,7 +205,7 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 				MessageBoxW(NULL, L"WAS STILL DRAWING", L"Error", MB_OK);
 				return 0;
 			}
-		}
+		}*/
 		pBits = (unsigned char*) locked_rect.pBits;
 		//pBits -= locked_rect.Pitch;
 		lBits = (unsigned long*) pBits;
@@ -228,7 +228,7 @@ int SPRITE::renderSprite(IDirect3DSurface9* &backbuffer)
 			}
 			counter = screenWidth * (y+y_pos)+x_pos;
 		}
-		backbuffer->UnlockRect();
+		//backbuffer->UnlockRect();
 		if(animationType == ANIMATION_AUTOMATIC_LOOP)
 		{
 			frameState++;

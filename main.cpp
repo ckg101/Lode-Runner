@@ -171,7 +171,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
  
     MSG msg;
 	isRunning = true;
-                    
+	memset(&msg, 0, sizeof(MSG));
     while(isRunning)
     {
         while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -186,23 +186,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
             break;
 		}
 
-		/*if(msg.message == MM_MCINOTIFY)
-		{
-			// if the MIDI file stops playing then repeat
-			if(msg.wParam == MCI_NOTIFY_SUCCESSFUL)
-			{
-				if(music.getMIDIStatus())
-				{
-					//music.stopMIDIFile();
-					music.playMIDIFile();
-				}
-			}
-		}*/
- 
-        //if(KEY_DOWN(VK_ESCAPE))
-	            //PostMessage(hWnd, WM_DESTROY, 0, 0);
-
 		RenderFrame();
+		Sleep(SPEED3);
     }
  
     // clean up DirectX and COM
@@ -264,9 +249,12 @@ void initD3D(HWND hWnd)
     ZeroMemory(&d3dpp, sizeof(d3dpp));    // clear out the struct for use
     d3dpp.Windowed = TRUE;    // TRUE = WINDOWED
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;    // discard old frames
+	d3dpp.BackBufferCount = 1;
+	d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
+	d3dpp.MultiSampleQuality = 0;
     d3dpp.hDeviceWindow = hWnd;    // set the window to be used by Direct3D
     // for Full Screen Mode
-    d3dpp.BackBufferFormat = D3DFMT_X8R8G8B8;    // set the back buffer format to 32-bit
+    d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;    // set the back buffer format to 32-bit
     d3dpp.BackBufferWidth = SCREEN_WIDTH;    // set the width of the buffer
     d3dpp.BackBufferHeight = SCREEN_HEIGHT;    // set the height of the buffer
 	d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
@@ -274,7 +262,7 @@ void initD3D(HWND hWnd)
     d3d->CreateDevice(D3DADAPTER_DEFAULT,
                       D3DDEVTYPE_HAL,
                       hWnd,
-                      D3DCREATE_SOFTWARE_VERTEXPROCESSING,
+					  D3DCREATE_SOFTWARE_VERTEXPROCESSING,
                       &d3dpp,
                       &d3ddev);
 }
@@ -342,97 +330,77 @@ int initXAudio(HWND hWnd)
 // this is the function used to render a single frame
 void RenderFrame(void)
 {
+	IDirect3DSurface9* backbuffer = NULL;
+	D3DLOCKED_RECT locked_rect;
 	unsigned long temp_time = GetTickCount() - seconds;
-	do
-	{
+	
 		frameCounter++;
 		temp_time = GetTickCount() - seconds;
+		ProcessKeyboardInput(controls->GetKeyboardInput());
+		ProcessMouseInput(&controls->GetMouseInput());
 
-		if(gameMode == GAME_MODE_PLAY)
+		d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+		HRESULT hr = backbuffer->LockRect(&locked_rect, NULL, 0);
+		if (FAILED(hr))
 		{
-			if(frameCounter <61)
+			MessageBoxW(NULL, L"Failed to lock surface", L"Error", MB_OK);
+			if (hr == D3DERR_INVALIDCALL)
 			{
-				if(gameplay->leaveGameplay == true)
+				MessageBoxW(NULL, L"Invalid Call", L"Error", MB_OK);
+				return;
+			}
+			if (hr == D3DERR_WASSTILLDRAWING)
+			{
+				MessageBoxW(NULL, L"WAS STILL DRAWING", L"Error", MB_OK);
+				return;
+			}
+		}
+
+		if (gameMode == GAME_MODE_PLAY)
+		{
+			if (frameCounter)
+			{
+				/*if(gameplay->leaveGameplay == true)
 				{
 					gameMode = GAME_MODE_TITLE;
 					return;
-				}
-				Sleep(SPEED4);
+				}*/
+				//Sleep(SPEED4);
 				buttonpress->playWAVFile();
-				//gameplay->Sounds();
-				IDirect3DSurface9* backbuffer = NULL;
+				gameplay->Sounds();
+
 				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
- 
-				d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
 
-				gameplay->Render(backbuffer);
-
-				ProcessKeyboardInput(controls->GetKeyboardInput());
-				ProcessMouseInput(&controls->GetMouseInput());
+			
+				gameplay->Render(locked_rect);
 				
 				d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
-				
+
 			}
 		}
-		else
+		else if (gameMode == GAME_MODE_TITLE)
 		{
-		if(frameCounter < 61)
+			//d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+			if (!music->playWAVFile())
+				music->startWAVFile();
+			titleScreen->Render(locked_rect);
+			titleCursor->Render(locked_rect);
+		}
+
+		else if (gameMode == GAME_MODE_EDITOR)
 		{
-			buttonpress->playWAVFile();
-			
-			IDirect3DSurface9* backbuffer = NULL;
-			d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
- 
-			d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
-
-			ProcessKeyboardInput(controls->GetKeyboardInput());
-			ProcessMouseInput(&controls->GetMouseInput());
-
-			if(gameMode == GAME_MODE_TITLE)
-			{
-				if(!music->playWAVFile())
-					music->startWAVFile();
-				titleScreen->Render(backbuffer);
-				titleCursor->Render(backbuffer);
-			}
-
-			else if(gameMode == GAME_MODE_EDITOR)
-			{
-				
-				//wavfile->playWAVFile();
-				// clear the window to a black
+			//d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backbuffer);
+			platform->renderPlatform(locked_rect);
+			editorCursor->Render(locked_rect);
+		}
+		
+		backbuffer->UnlockRect();
+		d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created fram
 		
 	
-	
-				//render sprites
-				//sprite->renderSprite(background.surface);
 
-				/*RECT dest;
-				dest.bottom = src.bottom;
-				dest.top = 0;
-				dest.left = 0;
-				dest.right = src.right;
-				d3ddev->StretchRect(background.surface, 
-						&background.parameters, 
-						backbuffer, 
-						&dest, 
-						D3DTEXF_NONE);*/
-	
-				platform->renderPlatform(backbuffer);
-				editorCursor->Render(backbuffer);
-			}
-			else if(gameMode == GAME_MODE_PLAY)
-			{
-				gameplay->Render(backbuffer);
-			}
- 
-			 d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
-			}
-		}
-	}while(temp_time < 1000);
-
-	seconds = GetTickCount();
-	frameCounter=0;
+	//seconds = GetTickCount();
+	//frameCounter=0;
 }
  
 // this is the function that cleans up Direct3D and COM
@@ -482,7 +450,7 @@ void ProcessKeyboardInput(unsigned char k)
 				Sleep(250);
 			break;
 			case DIK_W:
-				Sleep(500);
+				//Sleep(500);
 				if(!platform->SetWorldNbr(platform->GetWorldNbr()+1))	// go to the next world with each stroke 
 				{
 					platform->SetWorldNbr(WORLD_JUNGLE);	// once last world is reached the next one is the first world
@@ -505,7 +473,7 @@ void ProcessKeyboardInput(unsigned char k)
 			case DIK_ESCAPE:
 				gameMode = GAME_MODE_TITLE;
 				gameplay->Exit();
-				Sleep(250);
+				//Sleep(250);
 				music->startWAVFile();
 				controls->GetKeyboardInput();
 			break;
@@ -532,36 +500,36 @@ void ProcessKeyboardInput(unsigned char k)
 			break;
 			case DIK_B:
 				gameplay->PickRightPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_V:
 				gameplay->PickLeftPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_N:
 				gameplay->SetUpRopePlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_A:
 				gameplay->UseGooLeftPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_S:
 				gameplay->UseGooRightPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_F:
 				gameplay->UseGasRightPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_D:
 				gameplay->UseGasLeftPlayer1();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_LCONTROL:
 				// pick up item
 				gameplay->PickupItem();
-				Sleep(150);
+				//Sleep(150);
 			break;
 			case DIK_2:
 				gameplay->MoveMonkRight(0);
@@ -635,7 +603,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				break;
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();
-					Sleep(250);
+					//Sleep(250);
 					music->stopWAVFile();
 					MessageBoxW(hWnd, L"This feature is not fully functional yet.", L"Load Level", MB_OK);
 					controls->UnacquireMouse();

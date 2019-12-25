@@ -27,7 +27,7 @@ TITLESCREEN::~TITLESCREEN(void)
 }
 
 // Copy image to backbuffer to be displayed
-void TITLESCREEN::Render(IDirect3DSurface9* &backbuffer)
+void TITLESCREEN::Render(D3DLOCKED_RECT &backbuffer)
 {
 	titleScreenImage->renderSprite(backbuffer);
 }

@@ -22,7 +22,7 @@ class PLATFORM
 		int loadBlocks(wchar_t* name);
 		int LoadBlocks(unsigned char world);
 		void setBlock(unsigned int blockNbr);
-		void renderPlatform(IDirect3DSurface9* &buf);
+		void renderPlatform(D3DLOCKED_RECT &buf);
 		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
 		unsigned int getBlockNbr(int x, int y);
 		unsigned short getIsOccupied(unsigned int blockNbr);
