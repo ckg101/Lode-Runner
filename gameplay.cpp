@@ -2292,7 +2292,7 @@ void GAMEPLAY::ExitLevel(void)
 void GAMEPLAY::KillPlayer1(void)
 {
 	music->stopWAVFile();						
-	//Sleep(2000);
+	Sleep(500);
 	UnallocateItems();
 	player[PLAYER1]->goldCollected = 0;
 	if(player[PLAYER1]->lives)

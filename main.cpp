@@ -186,7 +186,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
             break;
 		}
 
-		RenderFrame();
+		RenderFrame();			// This is the central function of the game loop
 		Sleep(SPEED3);
     }
  
@@ -327,7 +327,7 @@ int initXAudio(HWND hWnd)
 	return 1;
 }
  
-// this is the function used to render a single frame
+// this is the function used to render a single frame.   This is the central function of the game loop
 void RenderFrame(void)
 {
 	IDirect3DSurface9* backbuffer = NULL;
@@ -428,7 +428,6 @@ void ProcessKeyboardInput(unsigned char k)
 		switch(k)
 		{
 			case DIK_ESCAPE:
-				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
 				PostMessage(hWnd, WM_DESTROY, 0, 0);
 			break;
 			case DIK_SPACE:
@@ -442,8 +441,6 @@ void ProcessKeyboardInput(unsigned char k)
 		switch(k)
 		{
 			case DIK_ESCAPE:
-				//MessageBoxW(NULL, L"Escape", L"Escape", MB_OK);
-				//PostMessage(hWnd, WM_DESTROY, 0, 0);
 				gameMode = GAME_MODE_TITLE;
 				platform->ClearLevel();
 				music->startWAVFile();
@@ -476,6 +473,9 @@ void ProcessKeyboardInput(unsigned char k)
 				//Sleep(250);
 				music->startWAVFile();
 				controls->GetKeyboardInput();
+			break;
+			case DIK_DELETE:	// Kill the player to restart level
+				gameplay->KillPlayer1();
 			break;
 			case DIK_RIGHT:		// right key is pressed
 				gameplay->MovePlayer1Right();
