@@ -360,21 +360,21 @@ void RenderFrame(void)
 		{
 			if (frameCounter)
 			{
-				/*if(gameplay->leaveGameplay == true)
-				{
-					gameMode = GAME_MODE_TITLE;
-					return;
-				}*/
 				//Sleep(SPEED4);
 				buttonpress->playWAVFile();
 				gameplay->Sounds();
 
-				d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+				//d3ddev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
 			
 				gameplay->Render(locked_rect);
 				
-				d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
+				//d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created frame
+				if (gameplay->leaveGameplay == true)
+				{
+					gameMode = GAME_MODE_TITLE;
+					//return;
+				}
 
 			}
 		}
@@ -580,7 +580,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					//music.stopMIDIFile();
 					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
-					gameplay->LoadLevel(0, true);
+					gameplay->LoadLevel(3, true);
 					gameplay->leaveGameplay = false;
 					gameplay->groupNbr = 0;
 					gameMode = GAME_MODE_PLAY;

@@ -52,7 +52,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	nbrOfGas = 0;
 	nbrOfExitdoor = 0;
 	isExitingLevel = 0;
-	nbrOfLevels = 4;
+	nbrOfLevels = 5;
 	currentLevel = 0;
 	
 	nbrOfGold = 0;
@@ -174,6 +174,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 
 	music = new SOUND(xa);
 
+	/* loading the file names for the levels into the levelFileName array to be used
+	   later on when loading the levels during gameplay */
 	levelFileName = (wchar_t**)malloc(sizeof(wchar_t*) * nbrOfLevels);
 	for(unsigned int index = 0; index < nbrOfLevels; index++)
 	{
@@ -594,6 +596,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 	unsigned int monk_counter = 0;
 
 	platform->LoadLevel(levelFileName[levelNbr]);
+	currentLevel = levelNbr;
 	wchar_t fileName[256];
 	POINT p;
 	p = platform->GetStartingCoordinatesOfPlayer(0);
@@ -2262,7 +2265,7 @@ void GAMEPLAY::ExitLevel(void)
 					{
 						soundEffect[SOUND_ENDLEVEL]->startWAVFile();
 						music->stopWAVFile();						
-						//Sleep(2000);
+						Sleep(2000);
 						UnallocateItems();
 						player[PLAYER1]->goldCollected = 0;
 						if(groupNbr == 0)
