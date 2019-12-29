@@ -52,7 +52,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	nbrOfGas = 0;
 	nbrOfExitdoor = 0;
 	isExitingLevel = 0;
-	nbrOfLevels = 5;
+	nbrOfLevels = 6;
 	currentLevel = 0;
 	
 	nbrOfGold = 0;
@@ -83,10 +83,10 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	digger->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	digger->setAnimationType(ANIMATION_TRIGGERED_SEQ);
 
-	fallingrocks = (FALLINGROCKS**)malloc(sizeof(FALLINGROCKS*) * 4);
-	for(unsigned int index = 0; index < 4; index++)
+	fallingrocks = (FALLINGROCKS**)malloc(sizeof(FALLINGROCKS*) * MAX_NBR_OF_FALLINGROCKS);
+	for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 	{
-		fallingrocks[index] = new FALLINGROCKS(d, 4, screen_width, screen_height);
+		fallingrocks[index] = new FALLINGROCKS(d, MAX_NBR_OF_FALLINGROCKS, screen_width, screen_height);
 		fallingrocks[index]->loadBitmaps(_wcsdup(L"Graphics\\block38_"));
 		fallingrocks[index]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 		fallingrocks[index]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
@@ -183,6 +183,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 		wsprintf(levelFileName[index], L"Levels\\level%d.lvl", index+1);
 	}
 
+	//load the image that tells the player what the controls are.
 	controls = new SPRITE(d,1, screen_width, screen_height);
 	controls->loadBitmaps(_wcsdup(L"Graphics\\controls"));
 	controls->x_pos = 767;
@@ -207,7 +208,7 @@ GAMEPLAY::~GAMEPLAY(void)
 		delete digger;
 	if(fallingrocks)
 	{
-		for(unsigned int index = 0; index < 4; index++)
+		for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 		{
 			delete fallingrocks[index];
 		}
@@ -490,7 +491,7 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 	{
 		PickLeftPlayer1();
 	}
-	for(unsigned int index = 0; index < 4; index++)
+	for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 	{
 		if(fallingrocks[index]->isOpen == false)
 		{
@@ -606,6 +607,10 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 	if(newGame)
 		player[PLAYER1]->lives = 5;
 	isExitingLevel = 0;
+
+	//reset animation
+	for (unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
+		fallingrocks[index]->reset();
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
@@ -1407,7 +1412,7 @@ void GAMEPLAY::PickRightPlayer1(void)
 			player[PLAYER1]->setFrameState(0);
 
 			// find first open slot to play animation
-			for(unsigned int index = 0; index < 4; index++)
+			for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 			{
 				if(fallingrocks[index]->isOpen == true)
 				{
@@ -1479,7 +1484,7 @@ void GAMEPLAY::PickLeftPlayer1(void)
 			//FallingRocksLeft();
 
 			// find first open slot to play animation
-			for(unsigned int index = 0; index < 4; index++)
+			for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 			{
 				if(fallingrocks[index]->isOpen == true)
 				{
@@ -1508,7 +1513,7 @@ void GAMEPLAY::PickLeftPlayer1(void)
 void GAMEPLAY::FallingRocks(void)
 {
 	bool test;
-	for(unsigned int index =0; index < 4; index++)
+	for(unsigned int index =0; index < MAX_NBR_OF_FALLINGROCKS; index++)
 	{
 		if(fallingrocks[index]->isOpen == false)
 		{
@@ -1542,10 +1547,8 @@ void GAMEPLAY::FallingRocks(void)
 						fallingrocks[index]->timer++;				// before removing the rocks
 					else
 					{
-						fallingrocks[index]->isOpen = true;
-						fallingrocks[index]->fell = false;
+						
 						fallingrocks[index]->reset();
-						fallingrocks[index]->timer = 0;
 						platform->RemoveRocks(fallingrocks[index]->blockNbr);
 					}
 				}
@@ -2301,6 +2304,7 @@ void GAMEPLAY::KillPlayer1(void)
 	if(player[PLAYER1]->lives)
 	{
 		player[PLAYER1]->lives--;
+		platform->ClearLevel();
 		LoadLevel(currentLevel, false);
 	}
 	else

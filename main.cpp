@@ -21,16 +21,20 @@
 //#pragma comment(lib, "dinput8.lib")
 //#pragma comment(lib, "dxguid.lib")
  
-#define SCREEN_WIDTH  1024
-#define SCREEN_HEIGHT 768
+//#define SCREEN_WIDTH  1024
+//#define SCREEN_HEIGHT 768
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-#define GAME_MODE_TITLE	0
-#define GAME_MODE_EDITOR	1
-#define GAME_MODE_PLAY	2
-
+//#define GAME_MODE_TITLE	0
+//#define GAME_MODE_EDITOR	1
+//#define GAME_MODE_PLAY	2
+enum SCREEN_DIMEMNSIONS
+{ SCREEN_WIDTH = 1024, SCREEN_HEIGHT =  768};
+enum GAME_MODE
+{ GAME_MODE_TITLE = 0, GAME_MODE_EDITOR =1, GAME_MODE_PLAY = 2};
 enum GAME_SPEED
 {	SPEED5 = 0, SPEED4 = 25, SPEED3 = 50, SPEED2 = 75, SPEED1 = 100};
+enum { STARTING_LEVEL = 0};
  
 // global declarations
 LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
@@ -468,11 +472,12 @@ void ProcessKeyboardInput(unsigned char k)
 		switch(k)
 		{
 			case DIK_ESCAPE:
-				gameMode = GAME_MODE_TITLE;
-				gameplay->Exit();
-				//Sleep(250);
-				music->startWAVFile();
-				controls->GetKeyboardInput();
+				if (MessageBox(hWnd, L"Are you sure you want to exit to title screen?", L"Lode Runner", MB_YESNO) == IDYES)
+				{
+					gameMode = GAME_MODE_TITLE;
+					gameplay->Exit();
+					music->startWAVFile();
+				}
 			break;
 			case DIK_DELETE:	// Kill the player to restart level
 				gameplay->KillPlayer1();
@@ -580,7 +585,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					//music.stopMIDIFile();
 					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
-					gameplay->LoadLevel(3, true);
+					gameplay->LoadLevel(STARTING_LEVEL, true);
 					gameplay->leaveGameplay = false;
 					gameplay->groupNbr = 0;
 					gameMode = GAME_MODE_PLAY;

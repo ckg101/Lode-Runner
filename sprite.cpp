@@ -63,7 +63,7 @@ int SPRITE::loadBitmaps(wchar_t* name)
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
-			MessageBox(NULL, L"file not exist", fileName, MB_OK);
+			MessageBox(NULL, L"file not exist SPRITE::loadBitmaps(wchar_t* name)", fileName, MB_OK);
 			return 0;
 		}
 		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);

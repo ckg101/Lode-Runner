@@ -10,6 +10,7 @@ FALLINGROCKS::FALLINGROCKS(IDirect3DDevice9 *d, int nbr_of_frames, int screen_wi
 	isOpen = true;
 	fell = false;
 	timer = 0;
+	frameState = 0;
 }
 
 FALLINGROCKS::~FALLINGROCKS(void)
@@ -31,4 +32,7 @@ bool FALLINGROCKS::frame(void)
 void FALLINGROCKS::reset(void)
 {
 	frameState = 0;
+	isOpen = true;
+	fell = false;
+	timer = 0;
 }

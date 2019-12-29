@@ -204,7 +204,7 @@ int PLATFORM::loadBlocks(wchar_t* name)
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
-			MessageBox(NULL, L"file not exist", fileName, MB_OK);
+			MessageBox(NULL, L"file not exist PLATFORM::loadBlocks(wchar_t* name)", fileName, MB_OK);
 			return 0;
 		}
 		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);
@@ -384,7 +384,7 @@ int PLATFORM::LoadBlocks(unsigned char world)
 		fp = _wfopen(fileName, L"rb");
 		if (fp == NULL)
 		{
-			MessageBox(NULL, L"file not exist", fileName, MB_OK);
+			MessageBox(NULL, L"file not exist PLATFORM::LoadBlocks(unsigned char world)", fileName, MB_OK);
 			return 0;
 		}
 		fread(&bfh, sizeof(BITMAPFILEHEADER), 1, fp);
@@ -956,11 +956,14 @@ int PLATFORM::LoadLevel(wchar_t* fileName)
 void PLATFORM::ClearLevel(void)
 {
 	currentWorld = WORLD_JUNGLE;
-	for(unsigned int index = 0; index < nbrOfBlocks; index++)
+	for (unsigned int index = 0; index < nbrOfBlocks; index++)
+	{
 		type[index] = BLOCK_EMPTY;
-	memset((unsigned short*)isOccupied, IS_NOT_OCCUPIED, sizeof(unsigned short) * nbrOfBlocks);
+		isOccupied[index] = IS_NOT_OCCUPIED;
+		memset(&respawnBlock[index], 0, sizeof(RESPAWN_BLOCK));
+	}
+	
 	memset((bool*)isSelected, false, sizeof(bool) * nbrOfTypes);
-	memset((RESPAWN_BLOCK*)respawnBlock, 0, sizeof(RESPAWN_BLOCK) * nbrOfBlocks);
 	LoadBlocks(currentWorld);
 }
 
