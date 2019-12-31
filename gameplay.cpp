@@ -1625,7 +1625,7 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 	int x, y;
 	bool test;
 
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+	if(player[PLAYER1]->itemHeld == BLOCK_GOO && isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
@@ -1638,7 +1638,7 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 		gooPlatform->Reset();
 		isUsingGooRight++;
 	}
-	else if(isUsingGooRight %3 == 0)
+	else if(isUsingGooRight %3 == 0 && isUsingGooRight)
 	{
 		test = player[PLAYER1]->gooRightFrame();
 		if(isUsingGooRight >= 24)
@@ -1651,7 +1651,7 @@ void GAMEPLAY::UseGooRightPlayer1(void)
 		else
 			isUsingGooRight++;
 	}
-	else
+	else if(isUsingGooRight)
 		isUsingGooRight++;
 	
 }
@@ -1705,7 +1705,7 @@ void GAMEPLAY::UseGooLeftPlayer1(void)
 	int x, y;
 	bool test;
 
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+	if(player[PLAYER1]->itemHeld == BLOCK_GOO && isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
@@ -1718,7 +1718,7 @@ void GAMEPLAY::UseGooLeftPlayer1(void)
 		gooPlatform->Reset();
 		isUsingGooLeft++;
 	}
-	else if(isUsingGooLeft %3 == 0)
+	else if(isUsingGooLeft %3 == 0 && isUsingGooLeft)
 	{
 		test = player[PLAYER1]->gooLeftFrame();
 		if(isUsingGooLeft >= 24)
@@ -1731,7 +1731,7 @@ void GAMEPLAY::UseGooLeftPlayer1(void)
 		else
 			isUsingGooLeft++;
 	}
-	else
+	else if (isUsingGooLeft)
 		isUsingGooLeft++;
 }
 
@@ -1802,10 +1802,10 @@ void GAMEPLAY::UseGasRightPlayer1(void)
 	unsigned int res, blockNbr;   	
 	int x, y;
 	bool test;
-
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+	
+	if(player[PLAYER1]->itemHeld == BLOCK_GAS && isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0 && isUsingGasRight == 0 && isUsingGasLeft == 0)
-	{
+	{		// triggers the gas animation to spray to the right
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[PLAYER1]->x_pos = x;
@@ -1817,7 +1817,7 @@ void GAMEPLAY::UseGasRightPlayer1(void)
 		soundEffect[SOUND_GAS]->startWAVFile();
 		isUsingGasRight++;
 	}
-	else if(isUsingGasRight %3 == 0)
+	else if(isUsingGasRight %3 == 0 && isUsingGasRight)	// continuation of the animation if gas has already been triggered
 	{
 		test = gasSpray->FrameRight();
 		if(isUsingGasRight < 120)
@@ -1827,7 +1827,7 @@ void GAMEPLAY::UseGasRightPlayer1(void)
 		else
 			isUsingGasRight++;
 	}
-	else
+	else if(isUsingGasRight)
 		isUsingGasRight++;
 }
 
@@ -1837,9 +1837,9 @@ void GAMEPLAY::UseGasLeftPlayer1(void)
 	int x, y;
 	bool test;
 
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+	if(player[PLAYER1]->itemHeld == BLOCK_GAS && isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& isSettingUpRope == 0 && isUsingGooRight == 0 && isUsingGooLeft == 0 && isUsingGasRight == 0 && isUsingGasLeft == 0)
-	{
+	{	// triggers the gas animation to spray to the left
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		platform->GetBlockCoordinates(blockNbr, x, y);
 		player[PLAYER1]->x_pos = x;
@@ -1851,7 +1851,7 @@ void GAMEPLAY::UseGasLeftPlayer1(void)
 		soundEffect[SOUND_GAS]->startWAVFile();
 		isUsingGasLeft++;
 	}
-	else if(isUsingGasLeft %3 == 0)
+	else if(isUsingGasLeft %3 == 0 && isUsingGasLeft)
 	{
 		test = gasSpray->FrameLeft();
 		if(isUsingGasLeft < 120)
@@ -1861,7 +1861,7 @@ void GAMEPLAY::UseGasLeftPlayer1(void)
 		else
 			isUsingGasLeft++;
 	}
-	else
+	else if(isUsingGasLeft)
 		isUsingGasLeft++;
 }
 
