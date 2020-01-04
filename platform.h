@@ -52,6 +52,7 @@ class PLATFORM
 		IMAGE* sheet;			// this holds the sprite sheet
 		SPRITE** menu;
 		SPRITE** background;
+		SPRITE* editorControls;
 		unsigned char currentWorld;
 		unsigned char nbrOfWorlds;
 		unsigned short* isOccupied;

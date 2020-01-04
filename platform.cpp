@@ -31,6 +31,7 @@ PLATFORM::PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height)
 	temp_sprite = NULL;
 	currentWorld = WORLD_JUNGLE;
 	isPlaying = false;
+	editorControls = NULL;
 }
 
 PLATFORM::~PLATFORM()
@@ -142,6 +143,12 @@ int PLATFORM::initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, 
 	temp_sprite = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
 	if(temp_sprite == NULL)
 		return -7;
+
+	//load the image that tells the player what the controls are in editor mode
+	editorControls = new SPRITE(d3ddev, 1, screenWidth, screenHeight);
+	editorControls->loadBitmaps(_wcsdup(L"Graphics\\editorControls"));
+	editorControls->x_pos = 767;
+	editorControls->y_pos = 383;
 
 	return 1;
 }
@@ -680,7 +687,7 @@ void PLATFORM::renderPlatform(D3DLOCKED_RECT &buf)
 		}
 	}
 
-	if(isPlaying == false)
+	if(isPlaying == false)		// Editor Mode
 	{
 		for(index = 0; index < nbrOfTypes; index++)
 		{
@@ -692,6 +699,7 @@ void PLATFORM::renderPlatform(D3DLOCKED_RECT &buf)
 		}
 		menu[nbrOfTypes+1]->renderSprite(buf);
 		menu[nbrOfTypes+2]->renderSprite(buf);
+		editorControls->renderSprite(buf);
 	}
 }
 

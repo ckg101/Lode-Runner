@@ -188,6 +188,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, i
 	controls->loadBitmaps(_wcsdup(L"Graphics\\controls"));
 	controls->x_pos = 767;
 	controls->y_pos = 0;
+
 }
 
 GAMEPLAY::~GAMEPLAY(void)
@@ -251,6 +252,9 @@ GAMEPLAY::~GAMEPLAY(void)
 		}
 		free(levelFileName);
 	}
+
+	if (controls)
+		delete controls;
 
 	UnallocateItems();
 
@@ -1084,7 +1088,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 		res3 = platform->GetType(currentBlockNbr);
 		// detect for hitting walls
 		res = platform->GetType(blockNbr);
-		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res != BLOCK_LADDER && (player[PLAYER1]->x_pos+24 < 767))
+		if( res > BLOCK_HOLLOW && res != BLOCK_ROCKS && res != BLOCK_BAR && res != BLOCK_LADDER && ((player[PLAYER1]->x_pos+24) < 767))
 		{	
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			if(res2 == BLOCK_SLOW)
@@ -1112,7 +1116,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 			player[PLAYER1]->nextBarFrame();
 			isClimbingBar = true;
 		}
-		else if(res == BLOCK_LADDER)
+		else if(res == BLOCK_LADDER && ((player[PLAYER1]->x_pos+4) < 748))
 		{
 			platform->GetBlockCoordinates(blockNbr, x, y);
 			player[PLAYER1]->y_pos = y;
@@ -1209,7 +1213,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 
 void GAMEPLAY::MovePlayer1Up(void)
 {
-	unsigned int res, res2;
+	unsigned int res, res2, res3, nextBlockNbr;
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
@@ -1217,13 +1221,16 @@ void GAMEPLAY::MovePlayer1Up(void)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		prevBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+23);
+		nextBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos-4);
 		//currentBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		res2 = platform->GetType(prevBlockNbr);
 		res = platform->GetType(blockNbr);
-		if(res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER && (player[PLAYER1]->y_pos > 0))
+		res3 = platform->GetType(nextBlockNbr);
+		if((res == BLOCK_LADDER || res == BLOCK_REGULAR_WITH_LADDER) && (res3 == BLOCK_LADDER || res3 == BLOCK_REGULAR_WITH_LADDER || res3 == BLOCK_EMPTY || res3 == BLOCK_HOLLOW) 
+			&& (player[PLAYER1]->y_pos > 0))
 		{
 		//if(res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER || res2 == BLOCK_REGULAR)
-		
+					
 				platform->GetBlockCoordinates(blockNbr, x, y);
 				player[PLAYER1]->x_pos = x;
 				if(player[PLAYER1]->y_pos-4 < 0)
@@ -1233,7 +1240,7 @@ void GAMEPLAY::MovePlayer1Up(void)
 				player[PLAYER1]->climbUpFrame();
 		
 		}
-		else if (res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER)
+		else if ((res2 == BLOCK_LADDER || res2 == BLOCK_REGULAR_WITH_LADDER) && (res3 == BLOCK_LADDER || res3 == BLOCK_REGULAR_WITH_LADDER || res3 == BLOCK_EMPTY || res3 == BLOCK_HOLLOW))
 		{
 		
 				platform->GetBlockCoordinates(blockNbr, x, y);
