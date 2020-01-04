@@ -482,6 +482,9 @@ void ProcessKeyboardInput(unsigned char k)
 			case DIK_DELETE:	// Kill the player to restart level
 				gameplay->KillPlayer1();
 			break;
+			case DIK_NEXT:		// Advance to the next level
+				gameplay->SkipLevel();
+			break;
 			case DIK_RIGHT:		// right key is pressed
 				gameplay->MovePlayer1Right();
 			break;

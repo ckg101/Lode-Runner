@@ -806,8 +806,13 @@ void PLATFORM::ResetLevelToCurrentWorld(void)
 			|| isOccupied[index]== IS_OCCUPIED_FULL || isOccupied[index] == IS_OCCUPIED_TELEPORT)
 		{
 			_type = type[index];
-			if((_type >= 0 && _type <= 3) || (_type == 19))
-				blocks[index]->copyBitmaps(&sheet[_type], 0);
+			if ((_type >= 0 && _type <= 3) || (_type == 19))
+			{
+				if(_type == BLOCK_HOLLOW && isPlaying == true)	// display BLOCK_REGULAR image with BLOCK_HOLLOW attributes during game play
+					blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
+				else
+					blocks[index]->copyBitmaps(&sheet[_type], 0);
+			}
 			else if( _type == BLOCK_REGULAR_WITH_GOLD_COIN)
 			{
 				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);

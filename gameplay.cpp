@@ -12,8 +12,9 @@
 #include "sound.h"
 #include "gameplay.h"
 
-GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height)
+GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, int screen_width, int screen_height)
 {
+	hWnd = _hWnd;
 	d3ddev = d;
 	platform = p;
 	ai = NULL;
@@ -600,6 +601,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 	unsigned int exitdoor_counter = 0;
 	unsigned int monk_counter = 0;
 
+	platform->SetIsPlaying(true);
 	platform->LoadLevel(levelFileName[levelNbr]);
 	currentLevel = levelNbr;
 	wchar_t fileName[256];
@@ -819,7 +821,6 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 
 	ai = new AI(this);
 
-	platform->SetIsPlaying(true);
 	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
 	music->startWAVFile();
 	isEnteringLevel = true;
@@ -2300,6 +2301,30 @@ void GAMEPLAY::ExitLevel(void)
 				isExitingLevel++;
 			}
 	}
+}
+
+void GAMEPLAY::SkipLevel(void)
+{
+	HRESULT res;
+	
+	if (player[PLAYER1]->lives >= 3)
+	{
+		res = MessageBoxW(hWnd, L"Skipping the level will cost you 3 lives", L"Alert!", MB_YESNO);
+		if (res == IDNO)
+			return;
+		player[PLAYER1]->lives -= 3;
+		// move the exit door to where the player currently is located.
+		exitdoor[0]->x_pos = player[PLAYER1]->x_pos;
+		exitdoor[0]->y_pos = player[PLAYER1]->y_pos;
+		// open the door by fooling the game into thinking all the gold has been collected
+		player[PLAYER1]->goldCollected = nbrOfGold;
+		// open the exit door
+		isDone = true;
+		soundEffect[SOUND_LASTGOLD]->startWAVFile();
+	}
+	else
+		MessageBoxW(hWnd, L"Skipping costs 3 lives.  You don't have enough lives", L"Alert!", MB_OK);
+	
 }
 
 void GAMEPLAY::KillPlayer1(void)

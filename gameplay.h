@@ -26,7 +26,7 @@ class GAMEPLAY
 {
 	public:
 		friend class AI;
-		GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &hWnd, int screen_width, int screen_height);
+		GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, int screen_width, int screen_height);
 		~GAMEPLAY(void);
 		void Render(D3DLOCKED_RECT &buf);
 		void MovePlayer1Right(void);
@@ -59,6 +59,7 @@ class GAMEPLAY
 		void CollideWithMonkPlayer1(void);
 		void MonkGravity(void);
 		void ExitLevel(void);
+		void SkipLevel(void);
 		void KillPlayer1(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
@@ -72,6 +73,7 @@ class GAMEPLAY
 
 	private:
 		void UnallocateItems(void);
+		HWND hWnd;
 		IDirect3DDevice9* d3ddev;
 		PLATFORM* platform;
 		PLAYER** player;
