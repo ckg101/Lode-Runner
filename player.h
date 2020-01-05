@@ -30,6 +30,7 @@ public:
 	unsigned int goldCollected;
 	unsigned int itemHeld;
 	unsigned int lives;
+	unsigned int score;
 };
 
 #endif

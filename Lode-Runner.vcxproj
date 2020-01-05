@@ -115,6 +115,7 @@
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,6 +157,7 @@
       <LanguageStandard>Default</LanguageStandard>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

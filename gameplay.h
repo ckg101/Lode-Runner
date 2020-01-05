@@ -67,6 +67,7 @@ class GAMEPLAY
 		void CollectGold(void);
 		void PickupItem(void);
 		void DropItem(void);
+		void DisplayLivesCounter(void);
 		bool leaveGameplay;
 		unsigned int groupNbr;
 		bool displayPlayer1;

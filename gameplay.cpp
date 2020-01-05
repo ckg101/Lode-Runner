@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-//#include <D3dx9core.h>
 #include <dinput.h>
 #include <stdio.h>
 #include <mmsystem.h>
@@ -588,6 +587,7 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 	}
 	controls->renderSprite(buf);
 	} 
+
 }
 
 int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
@@ -610,8 +610,11 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
 	player[PLAYER1]->itemHeld = 0;
-	if(newGame)
+	if (newGame)
+	{
 		player[PLAYER1]->lives = 5;
+		player[PLAYER1]->score = 0;
+	}
 	isExitingLevel = 0;
 
 	//reset animation
@@ -2332,6 +2335,7 @@ void GAMEPLAY::KillPlayer1(void)
 	music->stopWAVFile();						
 	Sleep(500);
 	UnallocateItems();
+	player[PLAYER1]->score -= player[PLAYER1]->goldCollected;
 	player[PLAYER1]->goldCollected = 0;
 	if(player[PLAYER1]->lives)
 	{
@@ -2374,6 +2378,7 @@ void GAMEPLAY::CollectGold(void)
 				gold[index]->isCollected = true;
 				// collect gold
 				player[PLAYER1]->goldCollected++;
+				player[PLAYER1]->score++;
 				if(player[PLAYER1]->goldCollected  == nbrOfGold)
 				{
 					// open the exit door
@@ -2599,3 +2604,42 @@ void GAMEPLAY::DropItem(void)
 	}
 }
 
+void GAMEPLAY::DisplayLivesCounter(void)
+{
+	RECT rct;
+	HDC hdc;
+	wchar_t text[100];
+	wchar_t text2[50];
+	rct.left = 768;
+	rct.right = 1023;
+	rct.top = 500;
+	rct.bottom = rct.top + 80;
+	switch (player[PLAYER1]->itemHeld)
+	{
+		case 0:
+			swprintf_s(text2, L"NONE");
+		break;
+		case BLOCK_JACKHAMMER:
+			swprintf_s(text2, L"JACKHAMMER");
+		break;
+		case BLOCK_GOO:
+			swprintf_s(text2, L"GOO BUCKET");
+		break;
+		case BLOCK_GAS:
+			swprintf_s(text2, L"GAS");
+		break;
+		case BLOCK_PICK:
+			swprintf_s(text2, L"PICK");
+		break;
+		case BLOCK_ROPE:
+			swprintf_s(text2, L"ROPE");
+		break;
+
+	};
+	hdc = GetDC(hWnd);
+	SetTextColor(hdc, RGB(255, 255, 255));
+	SetBkMode(hdc, TRANSPARENT);
+	swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d", player[PLAYER1]->lives, text2, player[PLAYER1]->score);
+	DrawTextW(hdc, text, -1, &rct, DT_CENTER);
+	ReleaseDC(hWnd, hdc);
+}

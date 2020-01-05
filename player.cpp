@@ -14,6 +14,7 @@ PLAYER::PLAYER(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int scr
 	//::SPRITE(d, nbr_of_frames, screen_width, screen_height);
 	goldCollected = 0;
 	itemHeld = 0;
+	score = 0;
 }
 
 PLAYER::~PLAYER()

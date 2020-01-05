@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <d3d9.h>
-//#include <D3dx9core.h>
 #include <stdio.h>
 #include <dinput.h>
 #include <dsound.h>
@@ -25,9 +24,7 @@
 //#define SCREEN_HEIGHT 768
 #define KEY_DOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
 #define KEY_UP(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 0 : 1)
-//#define GAME_MODE_TITLE	0
-//#define GAME_MODE_EDITOR	1
-//#define GAME_MODE_PLAY	2
+
 enum SCREEN_DIMEMNSIONS
 { SCREEN_WIDTH = 1024, SCREEN_HEIGHT =  768};
 enum GAME_MODE
@@ -65,6 +62,7 @@ bool isRunning;
  
 // function prototypes
 void initD3D(HWND hWnd);    // sets up and initializes Direct3D
+int initD3DXFont(HWND hWnd);
 int initDInput(HWND hWnd);	// sets up and initializes DirectInput
 //int initDSound(HWND hWnd);	// sets up and initializes DirectSound
 int initXAudio(HWND hWnd);		// sets up and initializes XAudio
@@ -400,8 +398,8 @@ void RenderFrame(void)
 		
 		backbuffer->UnlockRect();
 		d3ddev->Present(NULL, NULL, NULL, NULL);    // displays the created fram
-		
-	
+		if (gameMode == GAME_MODE_PLAY)
+			gameplay->DisplayLivesCounter();		// Display GDI text of lives counter
 
 	//seconds = GetTickCount();
 	//frameCounter=0;
