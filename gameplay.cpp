@@ -54,6 +54,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	isExitingLevel = 0;
 	nbrOfLevels = 6;
 	currentLevel = 0;
+	debugMode = false;
 	
 	nbrOfGold = 0;
 	gold = NULL;		// allocated in LoadLevel()
@@ -113,8 +114,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
-	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 17);
-	for(unsigned int index = 0; index < 17; index++)
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 18);
+	for(unsigned int index = 0; index < 18; index++)
 	{
 		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	}
@@ -135,8 +136,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	wsprintf(soundFileName[SOUND_GOO], L"Sound\\goo.wav");
 	wsprintf(soundFileName[SOUND_GAS], L"Sound\\gas.wav");
 	wsprintf(soundFileName[SOUND_EAT], L"Sound\\eat.wav");
+	wsprintf(soundFileName[SOUND_HANGROPETRAP], L"Sound\\hangropetrap.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 17);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 18);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -171,6 +173,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	soundEffect[SOUND_GAS]->loadWAVFile(soundFileName[SOUND_GAS]);
 	soundEffect[SOUND_EAT] = new SOUND(xa);
 	soundEffect[SOUND_EAT]->loadWAVFile(soundFileName[SOUND_EAT]);
+	soundEffect[SOUND_HANGROPETRAP] = new SOUND(xa);
+	soundEffect[SOUND_HANGROPETRAP]->loadWAVFile(soundFileName[SOUND_HANGROPETRAP]);
 
 	music = new SOUND(xa);
 
@@ -229,7 +233,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundFileName)
 	{
-		for(unsigned int index = 0; index < 17; index++)
+		for(unsigned int index = 0; index < 18; index++)
 		{
 			free(soundFileName[index]);
 		}
@@ -237,7 +241,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 17; index++)
+		for(unsigned int index = 0; index < 18; index++)
 		{
 			delete soundEffect[index];
 		}
@@ -423,170 +427,177 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 	if(!music->playWAVFile())
 		music->startWAVFile();
 
-	if(leaveGameplay == false)
+	if (leaveGameplay == false)
 	{
-	
-	Gravity();
-	MonkGravity();
-	CollectGold();
-	CollideWithMonkPlayer1();
-	if(isDone == true)
-	{
-		ExitLevel();
-	}
-	Sounds();
 
-	if(isEnteringLevel == true)
-	{
-		if(isEnteringLevelSound == false)
+		Gravity();
+		//MonkGravity();
+		CollectGold();
+		CollideWithMonkPlayer1();
+		
+		if (isDone == true)
+			ExitLevel();
+		
+		Sounds();
+
+		if (isEnteringLevel == true)
 		{
-			soundEffect[SOUND_BEGIN_LEVEL]->startWAVFile();
-			isEnteringLevelSound = true;
-		}
-		//Sleep(75);
-		Player1EntersLevel();
-	}
-	platform->renderPlatform(buf);
-
-	if(isDiggingRight == true)
-	{
-		digger->renderSprite(buf);
-		DigRightPlayer1();
-		//Sleep(75);
-	}
-	if(isDiggingLeft == true)
-	{
-		digger->renderSprite(buf);
-		DigLeftPlayer1();
-		//Sleep(50);
-	}
-	if((isDrilling >=1) && (isDrilling <= 3))
-	{
-		DrillPlayer1();
-	}
-	if(isSettingUpRope)
-	{
-		SetUpRopePlayer1();
-	}
-	if(isUsingGooRight)
-	{
-		UseGooRightPlayer1();
-	}
-	if(isGooPlatformRight)
-	{
-		GooPlatformRight();
-		gooPlatform->renderSprite(buf);
-	}
-	if(isUsingGooLeft)
-	{
-		UseGooLeftPlayer1();
-	}
-	if(isGooPlatformLeft)
-	{
-		GooPlatformLeft();
-		gooPlatform->renderSprite(buf);
-	}
-	
-	if(isPickingRight)
-	{
-		PickRightPlayer1();
-	}
-	if(isPickingLeft)
-	{
-		PickLeftPlayer1();
-	}
-	for(unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
-	{
-		if(fallingrocks[index]->isOpen == false)
-		{
-			fallingrocks[index]->renderSprite(buf);
-			FallingRocks();
-		}
-	}
-	
-
-	for(unsigned int index = 0; index < nbrOfGold; index++)
-	{
-		if(gold[index])
-			if(gold[index]->isCollected == false)
-				gold[index]->renderSprite(buf);
-	}
-
-	for(unsigned int index = 0; index < nbrOfRopetrap; index++)
-	{
-		if(ropetrap[index])
-			if(ropetrap[index]->isCollected == false)
-				ropetrap[index]->renderSprite(buf);
-	}
-	for(unsigned int index = 0; index < nbrOfJackhammer; index++)
-	{
-		if(jackhammer[index])
-			if(jackhammer[index]->isCollected == false)
-				jackhammer[index]->renderSprite(buf);
-	}
-	for(unsigned int index = 0; index < nbrOfPick; index++)
-	{
-		if(pick[index])
-			if(pick[index]->isCollected == false)
-				pick[index]->renderSprite(buf);
-	}
-	for(unsigned int index = 0; index < nbrOfGoo; index++)
-	{
-		if(goo[index])
-			if(goo[index]->isCollected == false)
-				goo[index]->renderSprite(buf);
-	}
-	for(unsigned int index = 0; index < nbrOfGas; index++)
-	{
-		if(gas[index])
-			if(gas[index]->isCollected == false)
-				gas[index]->renderSprite(buf);
-	}
-
-	if(isDone == true)
-	{
-		OpenExitDoor();
-		for(unsigned int index = 0; index < nbrOfExitdoor; index++)
-		{
-			if(exitdoor[index])
-				if(exitdoor[index]->isUnlocked == true)
-				{
-					exitdoor[index]->renderSprite(buf);
-				}
-		}
-	}
-
-	if(monk)
-	{
-		if(ai)
-			ai->Process();
-		for(unsigned int index = 0; index < nbrOfMonks; index++)
-		{
-			if(monk[index]->isEatingPlayer1)
+			if (isEnteringLevelSound == false)
 			{
-				MonkEatPlayer1(index);
-				displayPlayer1 = false;
+				soundEffect[SOUND_BEGIN_LEVEL]->startWAVFile();
+				isEnteringLevelSound = true;
 			}
-			if(monk)
-				monk[index]->renderSprite(buf);
+			//Sleep(75);
+			Player1EntersLevel();
 		}
-	}
-	if(isExitingLevel == 0 && displayPlayer1 == true)
-		player[PLAYER1]->renderSprite(buf);
+		platform->renderPlatform(buf);
+
+		if (isDiggingRight == true)
+		{
+			digger->renderSprite(buf);
+			DigRightPlayer1();
+			//Sleep(75);
+		}
+		if (isDiggingLeft == true)
+		{
+			digger->renderSprite(buf);
+			DigLeftPlayer1();
+			//Sleep(50);
+		}
+		if ((isDrilling >= 1) && (isDrilling <= 3))
+		{
+			DrillPlayer1();
+		}
+		if (isSettingUpRope)
+		{
+			SetUpRopePlayer1();
+		}
+		if (isUsingGooRight)
+		{
+			UseGooRightPlayer1();
+		}
+		if (isGooPlatformRight)
+		{
+			GooPlatformRight();
+			gooPlatform->renderSprite(buf);
+		}
+		if (isUsingGooLeft)
+		{
+			UseGooLeftPlayer1();
+		}
+		if (isGooPlatformLeft)
+		{
+			GooPlatformLeft();
+			gooPlatform->renderSprite(buf);
+		}
+
+		if (isPickingRight)
+		{
+			PickRightPlayer1();
+		}
+		if (isPickingLeft)
+		{
+			PickLeftPlayer1();
+		}
+		for (unsigned int index = 0; index < MAX_NBR_OF_FALLINGROCKS; index++)
+		{
+			if (fallingrocks[index]->isOpen == false)
+			{
+				fallingrocks[index]->renderSprite(buf);
+				FallingRocks();
+			}
+		}
 
 
-	if(isUsingGasRight)
-	{
-		UseGasRightPlayer1();
-		gasSpray->renderSprite(buf);
+		for (unsigned int index = 0; index < nbrOfGold; index++)
+		{
+			if (gold[index])
+				if (gold[index]->isCollected == false)
+					gold[index]->renderSprite(buf);
+		}
+
+		for (unsigned int index = 0; index < nbrOfRopetrap; index++)
+		{
+			if (ropetrap[index])
+				if (ropetrap[index]->isCollected == false)
+					ropetrap[index]->renderSprite(buf);
+		}
+		for (unsigned int index = 0; index < nbrOfJackhammer; index++)
+		{
+			if (jackhammer[index])
+				if (jackhammer[index]->isCollected == false)
+					jackhammer[index]->renderSprite(buf);
+		}
+		for (unsigned int index = 0; index < nbrOfPick; index++)
+		{
+			if (pick[index])
+				if (pick[index]->isCollected == false)
+					pick[index]->renderSprite(buf);
+		}
+		for (unsigned int index = 0; index < nbrOfGoo; index++)
+		{
+			if (goo[index])
+				if (goo[index]->isCollected == false)
+					goo[index]->renderSprite(buf);
+		}
+		for (unsigned int index = 0; index < nbrOfGas; index++)
+		{
+			if (gas[index])
+				if (gas[index]->isCollected == false)
+					gas[index]->renderSprite(buf);
+		}
+
+		if (isDone == true)
+		{
+			OpenExitDoor();
+			for (unsigned int index = 0; index < nbrOfExitdoor; index++)
+			{
+				if (exitdoor[index])
+					if (exitdoor[index]->isUnlocked == true)
+					{
+						exitdoor[index]->renderSprite(buf);
+					}
+			}
+		}
+
+		if (monk)
+		{
+			if (ai)
+				if (debugMode == true)
+					ai->ProcessDumb();
+				else
+					ai->Process();
+			for (unsigned int index = 0; index < nbrOfMonks; index++)
+			{
+				if (monk[index]->isEatingPlayer1)
+				{
+					MonkEatPlayer1(index);
+					displayPlayer1 = false;
+				}
+				else if (monk[index]->isBeingHung)
+				{
+					HangMonk(index);
+				}
+				if (monk)
+					monk[index]->renderSprite(buf);
+			}
+		}
+		if (isExitingLevel == 0 && displayPlayer1 == true)
+			player[PLAYER1]->renderSprite(buf);
+
+
+		if (isUsingGasRight)
+		{
+			UseGasRightPlayer1();
+			gasSpray->renderSprite(buf);
+		}
+		if (isUsingGasLeft)
+		{
+			UseGasLeftPlayer1();
+			gasSpray->renderSprite(buf);
+		}
+		controls->renderSprite(buf);
 	}
-	if(isUsingGasLeft)
-	{
-		UseGasLeftPlayer1();
-		gasSpray->renderSprite(buf);
-	}
-	controls->renderSprite(buf);
-	} 
 
 }
 
@@ -713,7 +724,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 81, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 91, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -944,7 +955,7 @@ int GAMEPLAY::LoadLevel(void)
 
 		for(unsigned int index = 0; index < nbrOfMonks; index++)
 		{
-			monk[index] = new MONK(platform->d3ddev, 81, platform->screenWidth, platform->screenHeight);
+			monk[index] = new MONK(platform->d3ddev, 91, platform->screenWidth, platform->screenHeight);
 		}
 	}
 
@@ -1083,7 +1094,7 @@ void GAMEPLAY::MovePlayer1Right(void)
 	unsigned int res2, res3;	// used for the ID of the block below the player
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0 && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
-		&& isPickingRight == 0 && displayPlayer1 == true)
+		&& isPickingRight == 0 && isSettingUpRope == 0 && displayPlayer1 == true)
 	{
 		// get the next block to determine if the player can move or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
@@ -1138,7 +1149,7 @@ void GAMEPLAY::MovePlayer1Left(void)
 	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
 	int x, y;
 	if(isFalling == false && isEnteringLevel == false && isExitingLevel == 0&& isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
-		&& isPickingRight == 0 && displayPlayer1 == true)
+		&& isPickingRight == 0 && isSettingUpRope == 0 && displayPlayer1 == true)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
@@ -1195,7 +1206,7 @@ void GAMEPLAY::MovePlayer1Down(void)
 	unsigned int blockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false && isDrilling == 0 && isFalling == false && displayPlayer1 == true)
+	if(isEnteringLevel == false && isDrilling == 0 && isFalling == false && displayPlayer1 == true && isSettingUpRope == false)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+10, player[PLAYER1]->y_pos+24);
 		res = platform->GetType(blockNbr);
@@ -1221,7 +1232,7 @@ void GAMEPLAY::MovePlayer1Up(void)
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
-	if(isEnteringLevel == false && isDrilling == 0 && displayPlayer1 == true)
+	if(isEnteringLevel == false && isDrilling == 0 && displayPlayer1 == true && isSettingUpRope == false)
 	{
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 		prevBlockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos+23);
@@ -1601,7 +1612,7 @@ void GAMEPLAY::SetUpRopePlayer1(void)
 			player[PLAYER1]->setFrameState(0);
 			for(unsigned int index = 0; index < nbrOfRopetrap; index++)
 			{
-				if(ropetrap[index]->isCollected == true)
+				if(ropetrap[index]->isCollected == true && ropetrap[index]->isUsed == false)
 				{
 					blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos);
 					platform->GetBlockCoordinates(blockNbr, x, y);
@@ -1892,7 +1903,7 @@ bool GAMEPLAY::MoveMonkLeft(unsigned int monkNbr)
 {
 	unsigned int res, res2, res3, res4, blockNbr, currentBlockNbr;
 	int x, y;
-	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false)
+	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false && monk[monkNbr]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)
 	{
 		// detect for hitting walls
 			blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos-1, monk[monkNbr]->y_pos);
@@ -1953,7 +1964,7 @@ bool GAMEPLAY::MoveMonkRight(unsigned int monkNbr)
 	unsigned int res, blockNbr, currentBlockNbr;
 	unsigned int res2, res3;	// used for the ID of the block below the player
 	int x, y;
-	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false)
+	if(monk[monkNbr]->isFalling == false && monk[monkNbr]->isEnteringLevel == false && monk[monkNbr]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)
 	{
 		// get the next block to determine if the player can move or not
 		blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos+25, monk[monkNbr]->y_pos);
@@ -2020,7 +2031,7 @@ bool GAMEPLAY::MoveMonkUp(unsigned int monkNbr)
 	unsigned int blockNbr, prevBlockNbr;
 	int x, y;
 
-	if(monk[monkNbr]->isEnteringLevel == false)
+	if(monk[monkNbr]->isEnteringLevel == false && monk[monkNbr]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)
 	{
 		blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos);
 		prevBlockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos+23);
@@ -2071,7 +2082,7 @@ bool GAMEPLAY::MoveMonkDown(unsigned int monkNbr)
 	unsigned int blockNbr;
 	int x, y;
 
-	if(monk[monkNbr]->isEnteringLevel == false && monk[monkNbr]->isFalling == false)
+	if(monk[monkNbr]->isEnteringLevel == false && monk[monkNbr]->isFalling == false && monk[monkNbr]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)
 	{
 		blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos+10, monk[monkNbr]->y_pos+24);
 		res = platform->GetType(blockNbr);
@@ -2118,6 +2129,29 @@ void GAMEPLAY::MonkEatPlayer1(unsigned int monkNbr)
 	}
 	else
 		monk[monkNbr]->isEatingPlayer1++;
+}
+
+bool GAMEPLAY::HangMonk(unsigned int monkNbr)
+{
+	if (monk[monkNbr]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)	// start the animation sequence
+	{
+		monk[monkNbr]->hangMonkFrame();
+		monk[monkNbr]->isBeingHung = MONK_MIDDLE_ROPE_ANIMATION;
+		// start sound effect here
+		soundEffect[SOUND_HANGROPETRAP]->startWAVFile();
+		return true;
+	}
+	else if (monk[monkNbr]->isBeingHung == MONK_MIDDLE_ROPE_ANIMATION)
+	{
+		if (monk[monkNbr]->hangMonkFrame() == true)
+		{
+			monk[monkNbr]->isBeingHung = MONK_FINISH_ROPE_ANIMATION;
+			return true;
+		}
+	}
+	else if (monk[monkNbr]->isBeingHung == MONK_FINISH_ROPE_ANIMATION)
+		monk[monkNbr]->hangMonkFrame();
+	return false;		// return false if no new animation occured from the initial sequence, return true if animation occured
 }
 
 void GAMEPLAY::Gravity(void)
@@ -2185,79 +2219,14 @@ void GAMEPLAY::Gravity(void)
 	}
 }
 
-void GAMEPLAY::MonkGravity(void)
-{
-	unsigned int res, res2,res3, blockNbr, currentBlockNbr;
-	int x, y;
-	bool collision;
 
-	for(unsigned int monkNbr = 0; monkNbr < nbrOfMonks; monkNbr++)
-	{
-	blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos+12, monk[monkNbr]->y_pos+24);
-	res = platform->GetType(blockNbr);
-	// get ID of current block
-	res2 = platform->GetType(platform->getBlockNbr(monk[monkNbr]->x_pos+12, monk[monkNbr]->y_pos));
-
-	currentBlockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, monk[monkNbr]->y_pos);
-	res3 = platform->GetType(currentBlockNbr);
-
-	if(monk[monkNbr]->isClimbingBar == false)
-	{
-		if(res3 == BLOCK_BAR && res != BLOCK_LADDER)
-		{
-			if(monk[monkNbr]->isReleased == false)
-			{
-				platform->GetBlockCoordinates(currentBlockNbr, x, y);
-				monk[monkNbr]->y_pos = y;
-				monk[monkNbr]->x_pos = x;
-				//monk[monkNbr]->setFrameState(73);
-				monk[monkNbr]->isClimbingBar = true;
-				monk[monkNbr]->isFalling = false;
-				return;
-			}
-		}
-		else
-			monk[monkNbr]->isReleased = false;
-	
-		if( (res == BLOCK_EMPTY || res == BLOCK_HOLLOW || res == BLOCK_BAR) && (res2 != BLOCK_LADDER) && (monk[monkNbr]->y_pos <= 743))
-		{
-			blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos+12, monk[monkNbr]->y_pos);
-			platform->GetBlockCoordinates(blockNbr, x, y);
-			monk[monkNbr]->x_pos = x;
-			if(monk[monkNbr]->y_pos+5 > 745)
-			{
-				blockNbr = platform->getBlockNbr(monk[monkNbr]->x_pos, 760);
-				platform->GetBlockCoordinates(blockNbr, x, y);
-				monk[monkNbr]->y_pos = y;
-			}
-			else
-			{
-				if(ai->DetectCollisionWithOtherMonkFallingDown(monkNbr) == false)
-					monk[monkNbr]->y_pos+=5;
-			}
-			monk[monkNbr]->fallingFrame();
-			
-			monk[monkNbr]->isFalling = true;
-		}
-		else
-		{
-			if(monk[monkNbr]->isFalling == true)
-			{
-				monk[monkNbr]->isReleased = false;
-				monk[monkNbr]->setFrameState(0);
-			}
-			monk[monkNbr]->isFalling = false;
-		}
-	}
-	}
-}
 
 void GAMEPLAY::CollideWithMonkPlayer1(void)
 {
 	for(unsigned int index = 0; index < nbrOfMonks; index++)
 	{
 		if(monk[index]->x_pos+12 >= player[PLAYER1]->x_pos+8 && monk[index]->x_pos+12 <= player[PLAYER1]->x_pos+16
-			&& monk[index]->y_pos == player[PLAYER1]->y_pos)	// if collides with player1 then eat
+			&& monk[index]->y_pos == player[PLAYER1]->y_pos && monk[index]->isBeingHung == MONK_BEGIN_ROPE_ANIMATION)	// if collides with player1 then eat
 		{
 			MonkEatPlayer1(index);
 		}
@@ -2330,6 +2299,21 @@ void GAMEPLAY::SkipLevel(void)
 	
 }
 
+void GAMEPLAY::SetDebugMode(bool mode)
+{
+	debugMode = mode;
+}
+
+bool GAMEPLAY::GetDebugMode(void)
+{
+	return debugMode;
+}
+
+unsigned int GAMEPLAY::GetNbrOfMonks(void)
+{
+	return nbrOfMonks;
+}
+
 void GAMEPLAY::KillPlayer1(void)
 {
 	music->stopWAVFile();						
@@ -2351,7 +2335,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 17; index++)
+	for(unsigned int index = 0; index < 18; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}

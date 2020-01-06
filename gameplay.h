@@ -18,7 +18,7 @@
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
   SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD, SOUND_ENTERPORTAL, SOUND_ENDLEVEL,
-  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS, SOUND_EAT};
+  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS, SOUND_EAT, SOUND_HANGROPETRAP};
 
 enum {MAX_NBR_OF_FALLINGROCKS = 4};
 
@@ -52,14 +52,17 @@ class GAMEPLAY
 		bool MoveMonkUp(unsigned int monkNbr);
 		bool MoveMonkDown(unsigned int monkNbr);
 		void MonkEatPlayer1(unsigned int monkNbr);
+		bool HangMonk(unsigned int monkNbr);
 		int LoadLevel(unsigned int levelNbr, bool newGame);
 		int LoadLevel(void);
 		void Exit(void);
 		void Gravity(void);
 		void CollideWithMonkPlayer1(void);
-		void MonkGravity(void);
 		void ExitLevel(void);
 		void SkipLevel(void);
+		void SetDebugMode(bool mode);
+		bool GetDebugMode(void);
+		unsigned int GetNbrOfMonks(void);
 		void KillPlayer1(void);
 		void Sounds(void);
 		wchar_t* GetMusicFileName(void);
@@ -71,6 +74,7 @@ class GAMEPLAY
 		bool leaveGameplay;
 		unsigned int groupNbr;
 		bool displayPlayer1;
+		bool debugMode;
 
 	private:
 		void UnallocateItems(void);

@@ -12,6 +12,7 @@ class ROPETRAP : public SPRITE
 
 		bool isCollected;
 		bool isSet;
+		bool isUsed;
 };
 
 #endif

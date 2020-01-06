@@ -9,6 +9,7 @@ ROPETRAP::ROPETRAP(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int
 {
 	isCollected = false;
 	isSet = false;
+	isUsed = false;
 }
 
 ROPETRAP::~ROPETRAP()

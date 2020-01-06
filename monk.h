@@ -3,6 +3,9 @@
 
 #include "sprite.h"
 
+enum MONK_ROPE_STATE
+{ MONK_BEGIN_ROPE_ANIMATION = 0, MONK_MIDDLE_ROPE_ANIMATION = 1, MONK_FINISH_ROPE_ANIMATION = 2};
+
 class MONK : public SPRITE
 {
 public:
@@ -19,6 +22,7 @@ public:
 	void setFrameState(unsigned int index);
 	bool enterLevel(void);
 	bool eatPlayer1Frame(void);
+	bool hangMonkFrame(void);
 	
 	unsigned int goldCollected;
 	bool isFalling; 
@@ -26,6 +30,7 @@ public:
 	bool isClimbingBar;
 	bool isReleased;
 	unsigned int isEatingPlayer1;
+	unsigned int isBeingHung;
 };
 
 #endif

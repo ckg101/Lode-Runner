@@ -17,6 +17,7 @@ MONK::MONK(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int screen_
 	isClimbingBar = false;
 	isReleased = false;
 	isEatingPlayer1 = 0;
+	isBeingHung = MONK_BEGIN_ROPE_ANIMATION;
 }
 
 MONK::~MONK()
@@ -119,6 +120,27 @@ bool MONK::eatPlayer1Frame(void)
 		return true;
 	}
 	return false;
+}
+
+bool MONK::hangMonkFrame(void)
+{
+	if (frameState < 81 || frameState > 90)
+	{
+		frameState = 81;
+		return false;
+	}
+	else if (frameState < 90)
+	{
+		frameState++;
+		return false;
+	}
+	else if (frameState == 90)
+	{
+		frameState = 86;
+		return true;
+	}
+
+	return false;		// return false if initial animation is not complete,  true if complete
 }
 
 void MONK::setFrameState(unsigned int index)

@@ -57,6 +57,7 @@ int frameCounter;
 int gameMode;
 unsigned long seconds;
 bool isRunning;
+unsigned int monkUnderPlayerControl;	// used for debug mode
 
 //unsigned char keyboardState[256];
  
@@ -163,6 +164,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	gameplay = new GAMEPLAY(d3ddev, xaudio, platform, hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
 	gameMode = GAME_MODE_TITLE;
 	frameCounter = 0;
+	monkUnderPlayerControl = 0;
 	//platform->addPlatform(0, BLOCK_REGULAR);
 	//platform->addPlatform(1, 31);
 	//platform->setBlock(0, 0, 0);
@@ -467,6 +469,8 @@ void ProcessKeyboardInput(unsigned char k)
 	}
 	else if(gameMode == GAME_MODE_PLAY)
 	{
+		bool debugMode = gameplay->GetDebugMode();
+		wchar_t text[100];
 		switch(k)
 		{
 			case DIK_ESCAPE:
@@ -537,20 +541,39 @@ void ProcessKeyboardInput(unsigned char k)
 				gameplay->PickupItem();
 				//Sleep(150);
 			break;
-			case DIK_2:
-				gameplay->MoveMonkRight(0);
+			case DIK_F1:
+				if (MessageBoxW(hWnd, L"Do you want to turn on Debug Mode and disable AI?", L"Alert", MB_YESNO) == IDYES)
+					gameplay->SetDebugMode(true);
+				else
+					gameplay->SetDebugMode(false);
+				break;
+			case DIK_TAB:
+				if (debugMode)
+					if  (monkUnderPlayerControl < (gameplay->GetNbrOfMonks()-1) )
+						monkUnderPlayerControl++;
+					else
+						monkUnderPlayerControl = 0;
+				swprintf_s(text, L"Controlling monk[%d]", monkUnderPlayerControl);
+				MessageBoxW(hWnd, text, L"Alert", MB_OK);
+				break;
+			case DIK_NUMPAD6:
+				if(debugMode)
+					gameplay->MoveMonkRight(monkUnderPlayerControl);
 				//Sleep(150);
-			break;
-			case DIK_1:
-				gameplay->MoveMonkLeft(0);
+				break;
+			case DIK_NUMPAD4:
+				if(debugMode)
+					gameplay->MoveMonkLeft(monkUnderPlayerControl);
 				//Sleep(150);
-			break;
-			case DIK_3:
-				gameplay->MoveMonkUp(0);
-			break;
-			case DIK_4:
-				gameplay->MoveMonkDown(0);
-			break;
+				break;
+			case DIK_NUMPAD8:
+				if(debugMode)
+					gameplay->MoveMonkUp(monkUnderPlayerControl);
+				break;
+			case DIK_NUMPAD5:
+				if(debugMode)
+					gameplay->MoveMonkDown(monkUnderPlayerControl);
+				break;
 		}
 	}
 }
