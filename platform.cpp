@@ -878,10 +878,15 @@ int PLATFORM::SaveLevel(void)
                 }
 
 				fp = _wfopen(fileName, L"wb");
-				fwrite((unsigned char*)&currentWorld, sizeof(unsigned char), 1, fp);
-				fwrite((unsigned int*)type, sizeof(unsigned int) * nbrOfBlocks, 1, fp);
-				fwrite((unsigned short*)isOccupied, sizeof(unsigned short) * nbrOfBlocks, 1, fp);
-				fclose(fp);
+				if (fp == NULL)
+					MessageBoxW(NULL, L"Cannot save file.  Try running program in Administrator Mode", L"Error", MB_OK);
+				else
+				{
+					fwrite((unsigned char*)& currentWorld, sizeof(unsigned char), 1, fp);
+					fwrite((unsigned int*)type, sizeof(unsigned int) * nbrOfBlocks, 1, fp);
+					fwrite((unsigned short*)isOccupied, sizeof(unsigned short) * nbrOfBlocks, 1, fp);
+					fclose(fp);
+				}
                 psi->Release();
             }
         }

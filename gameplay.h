@@ -18,9 +18,10 @@
 enum SOUND_EFFECT
 { SOUND_BEGIN_LEVEL, SOUND_FALLING, SOUND_LANDING, SOUND_DIGGER, SOUND_GOLD, SOUND_DRILLING, SOUND_PICK, 
   SOUND_FALLINGROCKS, SOUND_SETROPETRAP, SOUND_PICKUP, SOUND_LASTGOLD, SOUND_ENTERPORTAL, SOUND_ENDLEVEL,
-  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS, SOUND_EAT, SOUND_HANGROPETRAP};
+  SOUND_WALKSLOW, SOUND_GOO, SOUND_GAS, SOUND_EAT, SOUND_HANGROPETRAP, SOUND_NOENERGY, NBR_OF_SOUNDEFFECTS};
 
-enum {MAX_NBR_OF_FALLINGROCKS = 4};
+enum GAMEPLAY_CONSTS {MAX_NBR_OF_FALLINGROCKS = 4, NEW_ENERGY_AT_LOADLEVEL = 10, 
+	STARTING_LIVES = 5, COST_OF_LIVES_TO_SKIPLEVEL = 3, DRILL_ENERGY_COST = 3, DIG_ENERGY_COST = 1};
 
 class GAMEPLAY
 {
@@ -62,6 +63,12 @@ class GAMEPLAY
 		void SkipLevel(void);
 		void SetDebugMode(bool mode);
 		bool GetDebugMode(void);
+		void AddLife(void);
+		void AddEnergy(void);
+		void AddGold(void);
+		void SubtractLife(void);
+		void SubtractEnergy(void);
+		void SubtractGold(void);
 		unsigned int GetNbrOfMonks(void);
 		void KillPlayer1(void);
 		void Sounds(void);

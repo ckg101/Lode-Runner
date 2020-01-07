@@ -87,7 +87,7 @@ int SPRITE::loadBitmaps(wchar_t* name)
 		frames[index].parameters.right = bih.biWidth;
 
 		lBits = frames[index].image;
-	
+		//memset(lBits, D3DCOLOR_XRGB(255, 255, 255), sizeof(unsigned long) * bih.biHeight * bih.biWidth);
 
 		for(int y = 0; y < bih.biHeight; y++)
 		{
@@ -253,8 +253,7 @@ int SPRITE::CopyOntoBlock(IMAGE* frame, unsigned int width, unsigned int height)
 		lBits = frame->image;
 		lFrame = frames[frameState].image;
 		//counter = bih.biWidth * bih.biHeight;
-
-		
+	
 		for(int y = 0; y < width; y++)
 		{
 			//counter = frames[frameState].parameters.right * y;

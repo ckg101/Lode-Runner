@@ -15,6 +15,8 @@ PLAYER::PLAYER(IDirect3DDevice9 *d, int nbr_of_frames, int screen_width, int scr
 	goldCollected = 0;
 	itemHeld = 0;
 	score = 0;
+	energy = 0;
+	energyStart = 0;
 }
 
 PLAYER::~PLAYER()

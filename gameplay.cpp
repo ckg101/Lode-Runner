@@ -77,7 +77,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	player[PLAYER1]->loadBitmaps(_wcsdup(L"Graphics\\block29_"));
 	player[PLAYER1]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 	player[PLAYER1]->setAnimationType(ANIMATION_TRIGGERED_SEQ);
-	player[PLAYER1]->lives = 5;
+	player[PLAYER1]->lives = STARTING_LIVES;
 
 	digger = new DIGGER(d, 14, screen_width, screen_height);
 	digger->loadBitmaps(_wcsdup(L"Graphics\\block37_"));
@@ -114,8 +114,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 		wsprintf(musicFileName[index], L"Sound\\world%d.WAV", index+1);
 	}
 
-	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * 18);
-	for(unsigned int index = 0; index < 18; index++)
+	soundFileName = (wchar_t**)malloc(sizeof(wchar_t*) * NBR_OF_SOUNDEFFECTS);
+	for(unsigned int index = 0; index < NBR_OF_SOUNDEFFECTS; index++)
 	{
 		soundFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
 	}
@@ -137,8 +137,9 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	wsprintf(soundFileName[SOUND_GAS], L"Sound\\gas.wav");
 	wsprintf(soundFileName[SOUND_EAT], L"Sound\\eat.wav");
 	wsprintf(soundFileName[SOUND_HANGROPETRAP], L"Sound\\hangropetrap.wav");
+	wsprintf(soundFileName[SOUND_NOENERGY], L"Sound\\noenergy.wav");
 
-	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * 18);
+	soundEffect = (SOUND**)malloc(sizeof(SOUND*) * NBR_OF_SOUNDEFFECTS);
 	soundEffect[SOUND_BEGIN_LEVEL] = new SOUND(xa);
 	soundEffect[SOUND_BEGIN_LEVEL]->loadWAVFile(soundFileName[SOUND_BEGIN_LEVEL]);
 	soundEffect[SOUND_FALLING] = new SOUND(xa);
@@ -175,6 +176,8 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	soundEffect[SOUND_EAT]->loadWAVFile(soundFileName[SOUND_EAT]);
 	soundEffect[SOUND_HANGROPETRAP] = new SOUND(xa);
 	soundEffect[SOUND_HANGROPETRAP]->loadWAVFile(soundFileName[SOUND_HANGROPETRAP]);
+	soundEffect[SOUND_NOENERGY] = new SOUND(xa);
+	soundEffect[SOUND_NOENERGY]->loadWAVFile(soundFileName[SOUND_NOENERGY]);
 
 	music = new SOUND(xa);
 
@@ -233,7 +236,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundFileName)
 	{
-		for(unsigned int index = 0; index < 18; index++)
+		for(unsigned int index = 0; index < NBR_OF_SOUNDEFFECTS; index++)
 		{
 			free(soundFileName[index]);
 		}
@@ -241,7 +244,7 @@ GAMEPLAY::~GAMEPLAY(void)
 	}
 	if(soundEffect)
 	{
-		for(unsigned int index = 0; index < 18; index++)
+		for(unsigned int index = 0; index < NBR_OF_SOUNDEFFECTS; index++)
 		{
 			delete soundEffect[index];
 		}
@@ -623,9 +626,11 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 	player[PLAYER1]->itemHeld = 0;
 	if (newGame)
 	{
-		player[PLAYER1]->lives = 5;
+		player[PLAYER1]->lives = STARTING_LIVES;
 		player[PLAYER1]->score = 0;
+		player[PLAYER1]->energyStart = 0;
 	}
+	player[PLAYER1]->energy += NEW_ENERGY_AT_LOADLEVEL;
 	isExitingLevel = 0;
 
 	//reset animation
@@ -861,7 +866,8 @@ int GAMEPLAY::LoadLevel(void)
 	player[PLAYER1]->x_pos = p.x;
 	player[PLAYER1]->y_pos = p.y;
 	player[PLAYER1]->itemHeld = 0;
-	player[PLAYER1]->lives = 5;
+	player[PLAYER1]->lives = STARTING_LIVES;
+	player[PLAYER1]->energy += NEW_ENERGY_AT_LOADLEVEL;
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
@@ -1081,6 +1087,10 @@ void GAMEPLAY::Exit(void)
 	platform->SetIsPlaying(false);
 	isDone = false;
 	player[PLAYER1]->goldCollected = 0;
+	player[PLAYER1]->energy = 0;
+	player[PLAYER1]->energyStart = 0;
+	player[PLAYER1]->score = 0;
+	player[PLAYER1]->lives = STARTING_LIVES;
 }
 
 wchar_t* GAMEPLAY::GetMusicFileName(void)
@@ -1282,7 +1292,9 @@ void GAMEPLAY::DigRightPlayer1(void)
 	unsigned int res, blockNbr, blockNbr2;
 	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
+	
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
+		&& player[PLAYER1]->energy)
 	{
 		// get the next block to determine if the player can dig or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos+25, player[PLAYER1]->y_pos);
@@ -1298,6 +1310,7 @@ void GAMEPLAY::DigRightPlayer1(void)
 			platform->GetBlockCoordinates(blockNbr2, x, y);
 			digger->x_pos = x;
 			digger->y_pos = y;
+			player[PLAYER1]->energy-=DIG_ENERGY_COST;
 			isDiggingRight = digger->digRightFrame();	
 			platform->DestroyBlock(blockNbr2);
 			soundEffect[SOUND_DIGGER]->startWAVFile();
@@ -1310,6 +1323,11 @@ void GAMEPLAY::DigRightPlayer1(void)
 		isDiggingRight = digger->digRightFrame();
 		
 	}
+	else if (player[PLAYER1]->energy == 0)
+	{
+		soundEffect[SOUND_NOENERGY]->startWAVFile();
+		return;
+	}
 }
 
 void GAMEPLAY::DigLeftPlayer1(void)
@@ -1317,7 +1335,9 @@ void GAMEPLAY::DigLeftPlayer1(void)
 	unsigned int res, blockNbr, blockNbr2;   // blockNbr2 is the block to be destroyed
 	unsigned int res2;	// used for the ID of the block to the right and below the player
 	int x, y;
-	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0)
+	
+	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
+		&& player[PLAYER1]->energy)
 	{
 		// get the next block to determine if the player can dig or not
 		blockNbr = platform->getBlockNbr(player[PLAYER1]->x_pos-1, player[PLAYER1]->y_pos);
@@ -1330,6 +1350,7 @@ void GAMEPLAY::DigLeftPlayer1(void)
 			platform->GetBlockCoordinates(platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos), x, y);
 			player[PLAYER1]->x_pos = x;
 			player[PLAYER1]->y_pos = y;
+			player[PLAYER1]->energy-=DIG_ENERGY_COST;
 			platform->GetBlockCoordinates(blockNbr2, x, y);
 			digger->x_pos = x;
 			digger->y_pos = y;
@@ -1344,6 +1365,11 @@ void GAMEPLAY::DigLeftPlayer1(void)
 	{
 		isDiggingLeft = digger->digLeftFrame();
 	}
+	else if (player[PLAYER1]->energy == 0)
+	{
+		soundEffect[SOUND_NOENERGY]->startWAVFile();
+		return;
+	}
 }
 
 void GAMEPLAY::DrillPlayer1(void)
@@ -1351,6 +1377,7 @@ void GAMEPLAY::DrillPlayer1(void)
 	unsigned int res, blockNbr, currentBlockNbr; 
 	int x,y;
 	bool test;
+	wchar_t text[100];
 
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false 
 		&& isDrilling == 0)
@@ -1367,6 +1394,13 @@ void GAMEPLAY::DrillPlayer1(void)
 				platform->GetBlockCoordinates(currentBlockNbr, x, y);
 				player[PLAYER1]->x_pos = x;
 				player[PLAYER1]->y_pos = y;
+				if (player[PLAYER1]->energy < DRILL_ENERGY_COST)
+				{
+					swprintf_s(text, L"You don't have enough energy! Drilling requires %d energy.", DRILL_ENERGY_COST);
+					MessageBoxW(hWnd, text, L"Alert", MB_OK);
+					return;
+				}
+				player[PLAYER1]->energy-= DRILL_ENERGY_COST;
 				soundEffect[SOUND_DRILLING]->startWAVFile();
 				isDrilling = player[PLAYER1]->drillFrame();
 			}
@@ -2121,7 +2155,7 @@ void GAMEPLAY::MonkEatPlayer1(unsigned int monkNbr)
 		test = monk[monkNbr]->eatPlayer1Frame();
 		if(test == true)
 		{
-			monk[monkNbr]->isEatingPlayer1 == 0;
+			monk[monkNbr]->isEatingPlayer1 = 0;
 			KillPlayer1();
 		}
 		else
@@ -2251,6 +2285,7 @@ void GAMEPLAY::ExitLevel(void)
 						Sleep(2000);
 						UnallocateItems();
 						player[PLAYER1]->goldCollected = 0;
+						player[PLAYER1]->energyStart = player[PLAYER1]->energy;
 						if(groupNbr == 0)
 						{
 							currentLevel++;
@@ -2279,12 +2314,13 @@ void GAMEPLAY::SkipLevel(void)
 {
 	HRESULT res;
 	
-	if (player[PLAYER1]->lives >= 3)
+	if (player[PLAYER1]->lives >= COST_OF_LIVES_TO_SKIPLEVEL)
 	{
 		res = MessageBoxW(hWnd, L"Skipping the level will cost you 3 lives", L"Alert!", MB_YESNO);
 		if (res == IDNO)
 			return;
-		player[PLAYER1]->lives -= 3;
+		player[PLAYER1]->lives -= COST_OF_LIVES_TO_SKIPLEVEL;
+		
 		// move the exit door to where the player currently is located.
 		exitdoor[0]->x_pos = player[PLAYER1]->x_pos;
 		exitdoor[0]->y_pos = player[PLAYER1]->y_pos;
@@ -2314,13 +2350,49 @@ unsigned int GAMEPLAY::GetNbrOfMonks(void)
 	return nbrOfMonks;
 }
 
+void GAMEPLAY::AddLife(void)
+{
+	player[PLAYER1]->lives++;
+}
+
+void GAMEPLAY::AddEnergy(void)
+{
+	player[PLAYER1]->energy++;
+}
+
+void GAMEPLAY::AddGold(void)
+{
+	player[PLAYER1]->score++;
+}
+
+void GAMEPLAY::SubtractLife(void)
+{
+	if (player[PLAYER1]->lives)
+		player[PLAYER1]->lives--;
+}
+
+void GAMEPLAY::SubtractEnergy(void)
+{
+	if (player[PLAYER1]->energy)
+		player[PLAYER1]->energy--;
+}
+
+void GAMEPLAY::SubtractGold(void)
+{
+	if(player[PLAYER1]->score)
+		player[PLAYER1]->score--;
+}
+
+
 void GAMEPLAY::KillPlayer1(void)
 {
-	music->stopWAVFile();						
+	music->stopWAVFile();		
 	Sleep(500);
 	UnallocateItems();
-	player[PLAYER1]->score -= player[PLAYER1]->goldCollected;
+	player[PLAYER1]->score -= player[PLAYER1]->goldCollected;	// subtract gold collected in level from score
 	player[PLAYER1]->goldCollected = 0;
+	player[PLAYER1]->energy = player[PLAYER1]->energyStart;	// return used energy to player, proper energy number will be restored in LoadLevel function 
+	
 	if(player[PLAYER1]->lives)
 	{
 		player[PLAYER1]->lives--;
@@ -2335,7 +2407,7 @@ void GAMEPLAY::Sounds(void)
 {
 	//fallingSound->playWAVFile();
 	//landingSound->playWAVFile();
-	for(unsigned int index = 0; index < 18; index++)
+	for(unsigned int index = 0; index < NBR_OF_SOUNDEFFECTS; index++)
 	{
 		soundEffect[index]->playWAVFile();
 	}
@@ -2623,7 +2695,12 @@ void GAMEPLAY::DisplayLivesCounter(void)
 	hdc = GetDC(hWnd);
 	SetTextColor(hdc, RGB(255, 255, 255));
 	SetBkMode(hdc, TRANSPARENT);
-	swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d", player[PLAYER1]->lives, text2, player[PLAYER1]->score);
+	if(debugMode == true)
+		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d\nDebug Mode On", player[PLAYER1]->lives, 
+			text2, player[PLAYER1]->score, player[PLAYER1]->energy);
+	else
+		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d", player[PLAYER1]->lives,
+			text2, player[PLAYER1]->score, player[PLAYER1]->energy);
 	DrawTextW(hdc, text, -1, &rct, DT_CENTER);
 	ReleaseDC(hWnd, hdc);
 }

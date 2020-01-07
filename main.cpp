@@ -574,6 +574,30 @@ void ProcessKeyboardInput(unsigned char k)
 				if(debugMode)
 					gameplay->MoveMonkDown(monkUnderPlayerControl);
 				break;
+			case DIK_F2:
+				if (debugMode)
+					gameplay->AddLife();
+				break;
+			case DIK_F3:
+				if (debugMode)
+					gameplay->SubtractLife();
+				break;
+			case DIK_F4:
+				if (debugMode)
+					gameplay->AddEnergy();
+				break;
+			case DIK_F5:
+				if (debugMode)
+					gameplay->SubtractEnergy();
+				break;
+			case DIK_F6:
+				if (debugMode)
+					gameplay->AddGold();
+				break;
+			case DIK_F7:
+				if (debugMode)
+					gameplay->SubtractGold();
+				break;
 		}
 	}
 }

@@ -31,6 +31,8 @@ public:
 	unsigned int itemHeld;
 	unsigned int lives;
 	unsigned int score;
+	unsigned int energy;
+	unsigned int energyStart;
 };
 
 #endif
