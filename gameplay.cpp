@@ -861,6 +861,7 @@ int GAMEPLAY::LoadLevel(void)
 	isExitingLevel = 0;
 
 	wchar_t fileName[256];
+	platform->SetIsPlaying(true);
 	platform->LoadLevel();
 	p = platform->GetStartingCoordinatesOfPlayer(0);
 	player[PLAYER1]->x_pos = p.x;
