@@ -52,7 +52,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	nbrOfGas = 0;
 	nbrOfExitdoor = 0;
 	isExitingLevel = 0;
-	nbrOfLevels = 6;
+	nbrOfLevels = MAX_NBR_OF_LEVELS;
 	currentLevel = 0;
 	debugMode = false;
 	
