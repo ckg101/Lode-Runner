@@ -1399,6 +1399,7 @@ void GAMEPLAY::DrillPlayer1(void)
 				{
 					swprintf_s(text, L"You don't have enough energy! Drilling requires %d energy.", DRILL_ENERGY_COST);
 					MessageBoxW(hWnd, text, L"Alert", MB_OK);
+					soundEffect[SOUND_NOENERGY]->startWAVFile();
 					return;
 				}
 				player[PLAYER1]->energy-= DRILL_ENERGY_COST;

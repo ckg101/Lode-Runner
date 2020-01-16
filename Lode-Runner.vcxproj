@@ -188,6 +188,7 @@
     <ClCompile Include="ropetrap.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="sprite.cpp" />
+    <ClCompile Include="teleport.cpp" />
     <ClCompile Include="TitleScreen.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +211,7 @@
     <ClInclude Include="ropetrap.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="sprite.h" />
+    <ClInclude Include="teleport.h" />
     <ClInclude Include="TitleScreen.h" />
   </ItemGroup>
   <ItemGroup>
