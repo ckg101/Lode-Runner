@@ -2698,11 +2698,11 @@ void GAMEPLAY::DisplayLivesCounter(void)
 	SetTextColor(hdc, RGB(255, 255, 255));
 	SetBkMode(hdc, TRANSPARENT);
 	if(debugMode == true)
-		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d\nDebug Mode On", player[PLAYER1]->lives, 
-			text2, player[PLAYER1]->score, player[PLAYER1]->energy);
+		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d\nLEVEL %d\nDebug Mode On", player[PLAYER1]->lives, 
+			text2, player[PLAYER1]->score, player[PLAYER1]->energy, currentLevel+1);
 	else
-		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d", player[PLAYER1]->lives,
-			text2, player[PLAYER1]->score, player[PLAYER1]->energy);
+		swprintf_s(text, L"LIVES: %d\nITEM HELD: %s\nGOLD: %d\nENERGY: %d\nLEVEL %d", player[PLAYER1]->lives,
+			text2, player[PLAYER1]->score, player[PLAYER1]->energy, currentLevel+1);
 	DrawTextW(hdc, text, -1, &rct, DT_CENTER);
 	ReleaseDC(hWnd, hdc);
 }
