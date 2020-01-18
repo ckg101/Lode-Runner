@@ -633,6 +633,7 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 					//music.stopMIDIFile();
 					music->stopWAVFile();
 					//MessageBoxW(hWnd, L"Not Implemented Yet", L"1 Player", MB_OK);
+					gameplay->LoadLevelFileNames(L"Levels\\levels.ini");
 					gameplay->LoadLevel(STARTING_LEVEL, true);
 					gameplay->leaveGameplay = false;
 					gameplay->groupNbr = 0;
@@ -656,13 +657,12 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				break;
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();
-					//Sleep(250);
 					music->stopWAVFile();
-					MessageBoxW(hWnd, L"This feature is not fully functional yet.", L"Load Level", MB_OK);
-					controls->UnacquireMouse();
-					gameplay->LoadLevel();
+					if (!gameplay->LoadLevelGroup())
+						break;
+					gameplay->LoadLevel(STARTING_LEVEL, true);
 					gameplay->leaveGameplay = false;
-					gameplay->groupNbr = 1;
+					gameplay->groupNbr = 0;
 					gameMode = GAME_MODE_PLAY;
 					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
 					//music.playMIDIFile();

@@ -58,6 +58,8 @@ class GAMEPLAY
 		bool HangMonk(unsigned int monkNbr);
 		int LoadLevel(unsigned int levelNbr, bool newGame);
 		int LoadLevel(void);
+		int LoadLevelGroup(void);
+		bool LoadLevelFileNames(const wchar_t* levelGroupINIFileName);
 		void Exit(void);
 		void Gravity(void);
 		void CollideWithMonkPlayer1(void);

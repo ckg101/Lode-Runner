@@ -6,6 +6,8 @@
 #include <mmsystem.h>
 #include <xaudio2.h>
 #include <math.h>
+#include <comdef.h>
+#include <ShObjIdl.h>
 #include "sprite.h"
 //#include "platform.h"
 #include "sound.h"
@@ -52,7 +54,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	nbrOfGas = 0;
 	nbrOfExitdoor = 0;
 	isExitingLevel = 0;
-	nbrOfLevels = MAX_NBR_OF_LEVELS;
+	nbrOfLevels = 0;
 	currentLevel = 0;
 	debugMode = false;
 	
@@ -180,15 +182,6 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	soundEffect[SOUND_NOENERGY]->loadWAVFile(soundFileName[SOUND_NOENERGY]);
 
 	music = new SOUND(xa);
-
-	/* loading the file names for the levels into the levelFileName array to be used
-	   later on when loading the levels during gameplay */
-	levelFileName = (wchar_t**)malloc(sizeof(wchar_t*) * nbrOfLevels);
-	for(unsigned int index = 0; index < nbrOfLevels; index++)
-	{
-		levelFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 256);
-		wsprintf(levelFileName[index], L"Levels\\level%d.lvl", index+1);
-	}
 
 	//load the image that tells the player what the controls are.
 	controls = new SPRITE(d,1, screen_width, screen_height);
@@ -1078,6 +1071,57 @@ int GAMEPLAY::LoadLevel(void)
 	music->startWAVFile();
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
+	return 1;
+}
+
+int GAMEPLAY::LoadLevelGroup(void)
+{
+	IFileDialog* pfd;
+	wchar_t* fileName;
+	FILE* fp;
+	HRESULT hr;
+
+	//CoUninitialize();
+	//hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+//	if(FAILED(hr))
+		//MessageBoxW(NULL, L"Failed CoInitialize", L"Error", MB_OK);
+
+	if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+	{
+		DWORD dwOptions;
+		pfd->GetOptions(&dwOptions);
+		pfd->SetOptions(dwOptions | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST);
+		pfd->SetDefaultExtension(L"ini");
+		if (SUCCEEDED(pfd->Show(NULL)))
+		{
+			IShellItem* psi;
+			if (SUCCEEDED(pfd->GetResult(&psi)))
+			{
+				//PWSTR pszPath;
+			   /* if (SUCCEEDED(GetIDListName(psi, &pszPath)))
+				{
+					MessageBox(NULL, pszPath, L"Selected Item", MB_OK);
+					CoTaskMemFree(pszPath);
+				}*/
+				hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &fileName);
+				if (!SUCCEEDED(hr))
+				{
+					MessageBox(NULL, L"GetIDListName() failed", NULL, NULL);
+					return 0;
+				}
+
+				LoadLevelFileNames(fileName);
+
+				CoTaskMemFree(fileName);
+				psi->Release();
+			}
+		}
+		else
+			return 0;
+		pfd->Release();
+	}
+	else
+		return 0;
 	return 1;
 }
 
@@ -2706,3 +2750,38 @@ void GAMEPLAY::DisplayLivesCounter(void)
 	DrawTextW(hdc, text, -1, &rct, DT_CENTER);
 	ReleaseDC(hWnd, hdc);
 }
+
+/* loading the file names for the levels into the levelFileName array to be used
+   later on when loading the levels during gameplay */
+bool GAMEPLAY::LoadLevelFileNames(const wchar_t* levelGroupINIFileName)
+{
+	FILE* fp;
+	errno_t err;
+	wchar_t directory[256];
+
+	// free the levelFileName array if it already exists in memory
+	if (levelFileName)
+	{
+		for (unsigned int index = 0; index < nbrOfLevels; index++)
+			free(levelFileName[index]);
+		free(levelFileName);
+	}
+
+	err = _wfopen_s(&fp, levelGroupINIFileName, L"r,ccs=UNICODE");
+	if (err)
+	{
+		wsprintf(directory, L"Cannot open %ls", levelGroupINIFileName);
+		MessageBoxW(hWnd, directory, L"GAMEPLAY::loadLevelFileNames()", MB_OK);
+		return false;
+	}
+	fseek(fp, 0L, SEEK_SET);
+	fwscanf_s(fp, L"%d %ls", &nbrOfLevels, directory, 255);
+	fclose(fp);
+	levelFileName = (wchar_t**)malloc(sizeof(wchar_t*) * nbrOfLevels);
+	for (unsigned int index = 0; index < nbrOfLevels; index++)
+	{
+		levelFileName[index] = (wchar_t*)malloc(sizeof(wchar_t) * 500);
+		wsprintf(levelFileName[index], L"%ls\\level%d.lvl", directory, index + 1);
+	}
+	return true;
+} 
