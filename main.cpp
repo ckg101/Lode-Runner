@@ -658,15 +658,19 @@ void ProcessMouseInput(DIMOUSESTATE* mouseState)
 				case TITLESCREEN_LOAD_BUTTON:
 					buttonpress->startWAVFile();
 					music->stopWAVFile();
+					controls->UnacquireMouse();
 					if (!gameplay->LoadLevelGroup())
-						break;
-					gameplay->LoadLevel(STARTING_LEVEL, true);
-					gameplay->leaveGameplay = false;
-					gameplay->groupNbr = 0;
-					gameMode = GAME_MODE_PLAY;
-					//music.loadMIDIFile(hWnd, gameplay->GetMusicFileName());
-					//music.playMIDIFile();
-					controls->GetMouseInput();
+					{
+						titleCursor->SetCursorPosition(0, 0);
+						return;
+					}
+					else
+					{
+						gameplay->LoadLevel(STARTING_LEVEL, true);
+						gameplay->leaveGameplay = false;
+						gameplay->groupNbr = 0;
+						gameMode = GAME_MODE_PLAY;
+					}
 				break;
 				case TITLESCREEN_OPTIONS_BUTTON:
 					buttonpress->startWAVFile();

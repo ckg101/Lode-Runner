@@ -189,7 +189,7 @@ int SPRITE::renderSprite(D3DLOCKED_RECT &locked_rect)
 		//D3DLOCKED_RECT locked_rect;
 		int counter = 0;
 		int counter2 = 0;
-		int x, y;
+		int x= 0, y=0;
 		
 		/*hr = backbuffer->LockRect(&locked_rect, NULL, 0);
 		if(FAILED(hr))
@@ -212,7 +212,8 @@ int SPRITE::renderSprite(D3DLOCKED_RECT &locked_rect)
 		//pFrame = frames[frameState].image;
 		lFrame = frames[frameState].image;
 		//counter = bih.biWidth * bih.biHeight;
-		
+
+		counter = screenWidth * (y + y_pos) + x_pos;
 		for(y = 0; y < frames[frameState].parameters.bottom; y++)
 		{
 			//counter = frames[frameState].parameters.right * y;

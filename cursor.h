@@ -19,6 +19,7 @@ class CURSOR
 		int SetBlockCursor(int c);
 		int SetButtonCursor(int c);
 		POINT GetCursorPosition(void);
+		void SetCursorPosition(int x, int y);
 	private:
 		int blockCursor;
 		SPRITE* cursorGraphic;

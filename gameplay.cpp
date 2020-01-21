@@ -622,6 +622,7 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		player[PLAYER1]->lives = STARTING_LIVES;
 		player[PLAYER1]->score = 0;
 		player[PLAYER1]->energyStart = 0;
+		player[PLAYER1]->energy = 0;
 	}
 	player[PLAYER1]->energy += NEW_ENERGY_AT_LOADLEVEL;
 	isExitingLevel = 0;
@@ -1122,6 +1123,7 @@ int GAMEPLAY::LoadLevelGroup(void)
 	}
 	else
 		return 0;
+	
 	return 1;
 }
 

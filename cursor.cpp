@@ -106,6 +106,12 @@ POINT CURSOR::GetCursorPosition(void)
 	return p;
 }
 
+void CURSOR::SetCursorPosition(int x, int y)
+{
+	cursorGraphic->x_pos = x;
+	cursorGraphic->y_pos = y;
+}
+
 int CURSOR::GetBlockCursor(void)
 {
 	return blockCursor;
