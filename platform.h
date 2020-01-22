@@ -1,9 +1,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 #include "sprite.h"
+#include "gold.h"
 
-
-typedef struct RESPAWN_BLOCK
+struct RESPAWN_BLOCK
 {
 	unsigned int nbrOfFrames;
 	unsigned int ID;
@@ -15,14 +15,14 @@ class PLATFORM
 	public:
 		PLATFORM(IDirect3DDevice9* d, int screen_width, int screen_height);
 		~PLATFORM();
-		friend class GAMEPLAY;
 		int initialize(unsigned int nbr_of_blocks, unsigned int nbr_of_types, unsigned char nbr_of_worlds);
 		int addPlatform(unsigned int blockNbr, unsigned int _type);
 		void deinitialize(void);
 		int loadBlocks(wchar_t* name);
 		int LoadBlocks(unsigned char world);
 		void setBlock(unsigned int blockNbr);
-		void renderPlatform(D3DLOCKED_RECT &buf);
+		void renderPlatform(D3DLOCKED_RECT& buf);
+		void renderPlatform(D3DLOCKED_RECT &buf, GOLD** gold, unsigned int nbrOfGold);
 		void GetBlockCoordinates(unsigned int blockNbr, int &x, int &y);
 		unsigned int getBlockNbr(int x, int y);
 		unsigned short getIsOccupied(unsigned int blockNbr);
@@ -46,6 +46,7 @@ class PLATFORM
 		void SetTypeToRocks(unsigned int blockNbr);
 		void RemoveRocks(unsigned int blockNbr);
 		void SetTypeToSlow(unsigned int blockNbr);
+		friend class GAMEPLAY;
 	private:
 		SPRITE** blocks;
 		SPRITE* temp_sprite;

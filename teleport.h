@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TELEPORT_H
+#define TELEPORT_H
 #include "sprite.h"
 class TELEPORT :
 	public SPRITE
@@ -8,3 +9,4 @@ class TELEPORT :
 		~TELEPORT();
 };
 
+#endif

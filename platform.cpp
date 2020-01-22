@@ -7,7 +7,6 @@
 #include <math.h>
 #include <comdef.h>
 #include <ShObjIdl.h>
-
 #include "platform.h"
 ////////////////////////////////////////////////////////////////////////////////////////////
 // PLATFORM CLASS
@@ -612,7 +611,7 @@ int PLATFORM::addPlatform(unsigned int blockNbr, unsigned int _type)
 	else if(isOccupied[blockNbr] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER)
 	{
 		// filter out which types can be added as a second layers
-		if(_type == BLOCK_GOLD_COIN || _type == BLOCK_LADDER || _type == BLOCK_LADDER_END || _type == BLOCK_BOMB_SMALL)
+		if(isPlaying == false &&(_type == BLOCK_GOLD_COIN || _type == BLOCK_LADDER || _type == BLOCK_LADDER_END || _type == BLOCK_BOMB_SMALL))
 		{
 			temp_sprite->copyBitmaps(&sheet[_type], 0);
 			temp_sprite->x_pos = blocks[blockNbr]->x_pos;
@@ -655,9 +654,58 @@ void PLATFORM::setBlock(unsigned int blockNbr)
 	}
 }
 
-void PLATFORM::renderPlatform(D3DLOCKED_RECT &buf)
+void PLATFORM::renderPlatform(D3DLOCKED_RECT& buf)
 {
 	unsigned int index;
+	int x, y;
+
+	background[currentWorld]->renderSprite(buf);
+
+	for (index = 0; index < nbrOfBlocks; index++)
+	{
+		if (isOccupied[index] == IS_OCCUPIED || isOccupied[index] == IS_OCCUPIED_WITH_EMPTY_SECOND_LAYER
+			|| isOccupied[index] == IS_OCCUPIED_FULL || isOccupied[index] == IS_OCCUPIED_TELEPORT)
+		{
+			if (isPlaying == true && type[index] != BLOCK_PLAYER1)
+				blocks[index]->renderSprite(buf);
+			if (isPlaying == false)
+			{
+				blocks[index]->renderSprite(buf);
+			}
+		}
+		if (isPlaying == true)
+		{
+			if (respawnBlock[index].nbrOfFrames)
+			{
+				respawnBlock[index].nbrOfFrames--;
+				if (respawnBlock[index].nbrOfFrames == 1)
+				{
+					// display the block again
+					RespawnBlock(index);
+				}
+			}
+		}
+	}
+	if (isPlaying == false)		// Editor Mode
+	{
+		for (index = 0; index < nbrOfTypes; index++)
+		{
+			menu[index]->renderSprite(buf);
+			if (isSelected[index])
+			{
+				menu[nbrOfTypes]->renderSprite(buf);
+			}
+		}
+		menu[nbrOfTypes + 1]->renderSprite(buf);
+		menu[nbrOfTypes + 2]->renderSprite(buf);
+		editorControls->renderSprite(buf);
+	}
+}
+
+void PLATFORM::renderPlatform(D3DLOCKED_RECT& buf, GOLD** gold, unsigned int nbrOfGold)
+{
+	unsigned int index; 
+	int x, y;
 
 	background[currentWorld]->renderSprite(buf);
 
@@ -682,24 +730,18 @@ void PLATFORM::renderPlatform(D3DLOCKED_RECT &buf)
 				{
 					// display the block again
 					RespawnBlock(index);
+					GetBlockCoordinates(index, x, y);
+					for (unsigned int i = 0; i < nbrOfGold; i++)
+					{	// hide gold that was inside the block that was respawned
+						if (gold[i]->x_pos == x && gold[i]->y_pos == y)
+						{
+							gold[i]->isHidden = true;
+							break;
+						}
+					}
 				}
 			}
 		}
-	}
-
-	if(isPlaying == false)		// Editor Mode
-	{
-		for(index = 0; index < nbrOfTypes; index++)
-		{
-			menu[index]->renderSprite(buf);
-			if(isSelected[index])
-			{
-				menu[nbrOfTypes]->renderSprite(buf);
-			}
-		}
-		menu[nbrOfTypes+1]->renderSprite(buf);
-		menu[nbrOfTypes+2]->renderSprite(buf);
-		editorControls->renderSprite(buf);
 	}
 }
 
@@ -816,11 +858,14 @@ void PLATFORM::ResetLevelToCurrentWorld(void)
 			else if( _type == BLOCK_REGULAR_WITH_GOLD_COIN)
 			{
 				blocks[index]->copyBitmaps(&sheet[BLOCK_REGULAR], 0);
-				temp_sprite->copyBitmaps(&sheet[BLOCK_GOLD_COIN], 0);
-				temp_sprite->x_pos = blocks[index]->x_pos;
-				temp_sprite->y_pos = blocks[index]->y_pos;
-				temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
-				temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+				if (isPlaying == false)
+				{
+					temp_sprite->copyBitmaps(&sheet[BLOCK_GOLD_COIN], 0);
+					temp_sprite->x_pos = blocks[index]->x_pos;
+					temp_sprite->y_pos = blocks[index]->y_pos;
+					temp_sprite->setTransparencyColor(D3DCOLOR_XRGB(0, 0, 0));
+					temp_sprite->CopyOntoBlock(blocks[index]->getFrame(), 24, 24);
+				}
 			}
 			else if(_type == BLOCK_REGULAR_WITH_LADDER)
 			{

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FALLINGROCKS_H
+#define FALLINGROCKS_H
 #include "sprite.h"
 
 class FALLINGROCKS :
@@ -15,3 +16,4 @@ public:
 	unsigned int timer;
 	bool fell;
 };
+#endif

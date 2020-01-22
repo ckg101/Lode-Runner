@@ -90,7 +90,7 @@ class SPRITE
 		int loadBitmaps(wchar_t* name);
 		int copyBitmaps(IMAGE* image, int frame_nbr);
 		int setAnimationType(int a);
-		int renderSprite(D3DLOCKED_RECT &locked_rect);
+		virtual int renderSprite(D3DLOCKED_RECT &locked_rect);
 		int CopyOntoBlock(IMAGE* image, unsigned int width, unsigned int height);
 		void setTransparencyColor(unsigned long color);
 		IMAGE* getFrame(void);

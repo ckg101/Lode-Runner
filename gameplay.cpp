@@ -8,8 +8,6 @@
 #include <math.h>
 #include <comdef.h>
 #include <ShObjIdl.h>
-#include "sprite.h"
-//#include "platform.h"
 #include "sound.h"
 #include "gameplay.h"
 
@@ -36,6 +34,7 @@ GAMEPLAY::GAMEPLAY(IDirect3DDevice9* d, IXAudio2* xa, PLATFORM* p, HWND &_hWnd, 
 	isClimbingBar = false;
 	isReleased = false;
 	isDone = false;
+	musicOn = true;
 	isPickingRight = 0;
 	isPickingLeft = 0;
 	isDrilling = 0;
@@ -420,9 +419,10 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 { 
 	displayPlayer1 = true;
 
-	if(!music->playWAVFile())
-		music->startWAVFile();
-
+	if(musicOn == true)
+		if(!music->playWAVFile())
+			music->startWAVFile();
+	
 	if (leaveGameplay == false)
 	{
 
@@ -446,7 +446,7 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 			//Sleep(75);
 			Player1EntersLevel();
 		}
-		platform->renderPlatform(buf);
+		platform->renderPlatform(buf, gold, nbrOfGold);
 
 		if (isDiggingRight == true)
 		{
@@ -504,12 +504,10 @@ void GAMEPLAY::Render(D3DLOCKED_RECT &buf)
 			}
 		}
 
-
 		for (unsigned int index = 0; index < nbrOfGold; index++)
 		{
 			if (gold[index])
-				if (gold[index]->isCollected == false)
-					gold[index]->renderSprite(buf);
+				gold[index]->renderSprite(buf);
 		}
 
 		for (unsigned int index = 0; index < nbrOfRopetrap; index++)
@@ -633,7 +631,8 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
-		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS) 
+			|| (platform->type[index] == BLOCK_REGULAR_WITH_GOLD_COIN))
 			nbrOfGold++;
 		else if(platform->type[index] == BLOCK_ROPE)
 			nbrOfRopetrap++;
@@ -729,17 +728,30 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 
 	for(unsigned int index = 0; index < platform->nbrOfBlocks; index++)
 	{
-		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS))
+		if((platform->type[index] >= BLOCK_GOLD_COIN) && (platform->type[index] <= BLOCK_GOLD_BARS) || (platform->type[index] == BLOCK_REGULAR_WITH_GOLD_COIN))
 		{
 			platform->GetBlockCoordinates(index, (int&)p.x, (int&)p.y);
-			wsprintf(fileName, L"Graphics\\block%d_", platform->type[index]+1);
+			if (platform->type[index] == BLOCK_REGULAR_WITH_GOLD_COIN)
+				wsprintf(fileName, L"Graphics\\block%d_", BLOCK_GOLD_COIN+1);
+			else
+				wsprintf(fileName, L"Graphics\\block%d_", platform->type[index]+1);
 			gold[counter]->loadBitmaps(fileName);
 			gold[counter]->setTransparencyColor(D3DCOLOR_XRGB(0,0,0));
 			gold[counter]->x_pos = p.x;
 			gold[counter]->y_pos = p.y;
+			if (platform->type[index] == BLOCK_REGULAR_WITH_GOLD_COIN)
+			{
+				platform->type[index] = BLOCK_REGULAR;
+				platform->isOccupied[index] = IS_OCCUPIED;
+				gold[counter]->isHidden = true;
+			}
+			else
+			{
+				platform->type[index] = BLOCK_EMPTY;
+				platform->isOccupied[index] = IS_NOT_OCCUPIED;
+				gold[counter]->isHidden = false;
+			}
 			counter++;
-			platform->type[index] = BLOCK_EMPTY;
-			platform->isOccupied[index] = IS_NOT_OCCUPIED;
 		}
 		else if(platform->type[index] == BLOCK_ROPE)
 		{
@@ -832,10 +844,12 @@ int GAMEPLAY::LoadLevel(unsigned int levelNbr, bool newGame)
 		}
 	}
 
+	platform->ResetLevelToCurrentWorld();
 	ai = new AI(this);
 
 	music->loadWAVFile(musicFileName[platform->GetWorldNbr()]);
-	music->startWAVFile();
+	if(musicOn == true)
+		music->startWAVFile();
 	isEnteringLevel = true;
 	isEnteringLevelSound = false;
 	return 1;
@@ -1338,7 +1352,7 @@ void GAMEPLAY::DigRightPlayer1(void)
 {
 	unsigned int res, blockNbr, blockNbr2;
 	unsigned int res2;	// used for the ID of the block to the right and below the player
-	int x, y;
+	int x, y, x2, y2;
 	
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0
 		&& player[PLAYER1]->energy)
@@ -1349,9 +1363,10 @@ void GAMEPLAY::DigRightPlayer1(void)
 		res2 = platform->GetType(blockNbr2);
 		// detect for hitting walls
 		res = platform->GetType(blockNbr);
-		if( res2 == BLOCK_REGULAR)
+		if( res2 == BLOCK_REGULAR || res2 == BLOCK_REGULAR_WITH_GOLD_COIN)
 		{
 			platform->GetBlockCoordinates(platform->getBlockNbr(player[PLAYER1]->x_pos, player[PLAYER1]->y_pos), x, y);
+			platform->GetBlockCoordinates(blockNbr2, x2, y2);
 			player[PLAYER1]->x_pos = x;
 			player[PLAYER1]->y_pos = y;
 			platform->GetBlockCoordinates(blockNbr2, x, y);
@@ -1360,6 +1375,11 @@ void GAMEPLAY::DigRightPlayer1(void)
 			player[PLAYER1]->energy-=DIG_ENERGY_COST;
 			isDiggingRight = digger->digRightFrame();	
 			platform->DestroyBlock(blockNbr2);
+			for (unsigned int i = 0; i < nbrOfGold; i++)
+			{
+				if (gold[i]->x_pos == x2 && gold[i]->y_pos == y2 && gold[i]->isHidden == true)
+					gold[i]->isHidden = false;
+			}
 			soundEffect[SOUND_DIGGER]->startWAVFile();
 		}
 		else
@@ -1381,7 +1401,7 @@ void GAMEPLAY::DigLeftPlayer1(void)
 {	
 	unsigned int res, blockNbr, blockNbr2;   // blockNbr2 is the block to be destroyed
 	unsigned int res2;	// used for the ID of the block to the right and below the player
-	int x, y;
+	int x, y, x2, y2;
 	
 	if(isFalling == false && isEnteringLevel == false && isDiggingLeft == false && isDiggingRight == false && isDrilling == 0 
 		&& player[PLAYER1]->energy)
@@ -1392,9 +1412,10 @@ void GAMEPLAY::DigLeftPlayer1(void)
 		res2 = platform->GetType(blockNbr2);
 		// detect for hitting walls
 		res = platform->GetType(blockNbr);
-		if( res2 == BLOCK_REGULAR)
+		if( res2 == BLOCK_REGULAR || res2 == BLOCK_REGULAR_WITH_GOLD_COIN)
 		{
 			platform->GetBlockCoordinates(platform->getBlockNbr(player[PLAYER1]->x_pos+12, player[PLAYER1]->y_pos), x, y);
+			platform->GetBlockCoordinates(blockNbr2, x2, y2);
 			player[PLAYER1]->x_pos = x;
 			player[PLAYER1]->y_pos = y;
 			player[PLAYER1]->energy-=DIG_ENERGY_COST;
@@ -1404,6 +1425,11 @@ void GAMEPLAY::DigLeftPlayer1(void)
 			isDiggingLeft = digger->digLeftFrame();
 			platform->DestroyBlock(blockNbr2);
 			soundEffect[SOUND_DIGGER]->startWAVFile();
+			for (unsigned int i = 0; i < nbrOfGold; i++)
+			{
+				if (gold[i]->x_pos == x2 && gold[i]->y_pos == y2 && gold[i]->isHidden == true)
+					gold[i]->isHidden = false;
+			}
 		}
 		else
 			player[PLAYER1]->setFrameState(0);	// if hit a wall set the frame to the idle
@@ -2393,6 +2419,17 @@ bool GAMEPLAY::GetDebugMode(void)
 	return debugMode;
 }
 
+void GAMEPLAY::SwitchMusic(void)
+{
+	if (musicOn)
+	{
+		musicOn = false;
+		music->stopWAVFile();
+	}
+	else
+		musicOn = true;
+}
+
 unsigned int GAMEPLAY::GetNbrOfMonks(void)
 {
 	return nbrOfMonks;
@@ -2787,3 +2824,5 @@ bool GAMEPLAY::LoadLevelFileNames(const wchar_t* levelGroupINIFileName)
 	}
 	return true;
 } 
+
+

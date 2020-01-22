@@ -1,8 +1,8 @@
 #ifndef GAMEPLAY_H
 #define GAMEPLAY_H
-#include "platform.h"
 #include "player.h"
 #include "monk.h"
+#include "platform.h"
 #include "digger.h"
 #include "sound.h"
 #include "gold.h"
@@ -67,6 +67,7 @@ class GAMEPLAY
 		void SkipLevel(void);
 		void SetDebugMode(bool mode);
 		bool GetDebugMode(void);
+		void SwitchMusic(void);
 		void AddLife(void);
 		void AddEnergy(void);
 		void AddGold(void);
@@ -130,6 +131,7 @@ class GAMEPLAY
 		bool isClimbingBar;
 		bool isReleased;		// used for Gravity() and falling off bar
 		bool isDone;			// once last gold is collected.
+		bool musicOn;
 		unsigned char isDrilling;
 		unsigned char isPickingRight;
 		unsigned char isPickingLeft;
